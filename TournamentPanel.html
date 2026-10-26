@@ -34,7 +34,7 @@
 </head>
 <body>
 
-<div class="container" id="mainContainer" style="display: none;">
+<div class="container" id="mainContainer">
     <div class="header-nav">
         <h2 id="tourTitle">🏆 Tournament Panel</h2>
     </div>
@@ -129,6 +129,12 @@
 
             if (tourSnap.exists()) {
                 const tournaments = tourSnap.val();
+                
+                // যদি URL-এ ID না থাকে, তবে localStorage থেকে আগের সিলেক্ট করা আইডি নিয়ে আসা
+                if (!tourId) {
+                    tourId = localStorage.getItem('proCricketSelectedTournament');
+                }
+
                 Object.keys(tournaments).forEach(tId => {
                     const tourName = tournaments[tId].name || "Unnamed Tournament";
                     let opt = document.createElement('option');
@@ -152,6 +158,10 @@
     window.switchTournament = function(selectedTourId) {
         if (!selectedTourId) return;
         tourId = selectedTourId;
+        
+        // টুর্নামেন্ট পরিবর্তনের সাথে সাথে localStorage-এ সেভ করা
+        localStorage.setItem('proCricketSelectedTournament', tourId);
+
         const newUrl = `TournamentPanel.html?t=${tourId}&u=${currentUsername}`;
         window.history.pushState({path: newUrl}, '', newUrl);
         loadTournamentData(tourId);
@@ -372,7 +382,7 @@
                 matchesContainer.innerHTML = '<li style="text-align:center; color:#888; width: 100%;">No matches scheduled yet.</li>';
             }
         } catch (err) {
-            matchesContainer.innerHTML = '<li style='text-align:center; color:red; width: 100%;'>Error loading matches.</li>';
+            matchesContainer.innerHTML = '<li style="text-align:center; color:red; width: 100%;">Error loading matches.</li>';
         }
     }
 
@@ -478,7 +488,6 @@
             if (!currentUsername) {
                 currentUsername = localStorage.getItem('proCricketUsername') || "user";
             }
-            document.getElementById('mainContainer').style.display = 'block';
             initTournamentPanel();
         } else {
             alert("⚠️ Unauthorized access! Please login first.");
