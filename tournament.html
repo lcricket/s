@@ -12,7 +12,6 @@
 
         h2, h3 { color: #1e3c72; font-family: 'Oswald', sans-serif; text-transform: uppercase; margin: 0; }
         
-        /* Collapsible Section Styles */
         .box { background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
         .box-header { padding: 15px 18px; background: #f1f5f9; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
         .box-header:hover { background: #e2e8f0; }
@@ -54,7 +53,7 @@
 
         .completed-badge { background: #e2e8f0; color: #2d3748; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
         
-        .back-btn { background: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; margin-bottom: 10px; }
+        .back-btn { background: #6c757d; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; margin-bottom: 15px; display: inline-flex; align-items: center; gap: 5px; }
         .back-btn:hover { background: #5a6268; }
     </style>
 </head>
@@ -92,7 +91,7 @@
         </div>
     </div>
 
-    <!-- ২. নির্দিষ্ট টুর্নামেন্ট প্যানেল (একই পেজে টগল হবে) -->
+    <!-- ২. নির্দিষ্ট টুর্নামেন্ট প্যানেল (টিম ও ম্যাচ ম্যানেজমেন্ট) -->
     <div id="activeTournamentView" style="display: none;">
         <button class="back-btn" onclick="window.backToTournamentList()">← Back to Tournaments List</button>
 
@@ -168,7 +167,6 @@
         const icon = headerElement.querySelector('.toggle-icon');
         const isOpen = content.classList.contains('open');
 
-        // সব সেকশন বন্ধ করে দেওয়া (Auto-hide others)
         document.querySelectorAll('.box-content').forEach(item => {
             item.classList.remove('open');
         });
@@ -276,7 +274,6 @@
         }
     }
 
-    // নির্দিষ্ট টুর্নামেন্ট সিলেক্ট করলে একই পেজে প্যানেল ওপেন হবে
     window.selectTournament = async function(tId, tName) {
         tourId = tId;
         document.getElementById('tourTitle').innerText = "🏆 " + tName;
@@ -287,7 +284,6 @@
         loadMatchesList();
     };
 
-    // ব্যাক বাটনে ক্লিক করলে আবার টুর্নামেন্ট লিস্টে ফিরে যাবে
     window.backToTournamentList = function() {
         tourId = null;
         document.getElementById('tourTitle').innerText = "🏆 Tournaments Hub";
@@ -508,7 +504,7 @@
                 matchesContainer.innerHTML = '<li style="text-align:center; color:#888; width: 100%;">No matches scheduled yet. Use above box to schedule matches!</li>';
             }
         } catch (err) {
-            matchesContainer.innerHTML = '<li style='text-align:center; color:red; width: 100%;'>Error loading matches schedule.</li>';
+            matchesContainer.innerHTML = '<li style="text-align:center; color:red; width: 100%;">Error loading matches schedule.</li>';
         }
     }
 
@@ -548,6 +544,7 @@
         }
     };
 
+    // এটি শুধুমাত্র তখনই কন্ট্রোলারে নিয়ে যাবে যখন আপনি লঞ্চ বা রিজুমি বাটনে ক্লিক করবেন
     window.launchOrResumeMatch = async function(btnElement, matchId, t1, t2, overs, type) {
         try {
             let originalText = btnElement.innerText;
@@ -606,7 +603,6 @@
         }
     };
 
-    // Firebase Auth State Listener
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserId = user.uid;
