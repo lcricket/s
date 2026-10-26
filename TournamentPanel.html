@@ -34,7 +34,7 @@
 </head>
 <body>
 
-<div class="container" id="mainContainer" style="display: none;">
+<div class="container" id="mainContainer">
     <div class="header-nav">
         <h2 id="tourTitle">🏆 Tournament Panel</h2>
     </div>
@@ -372,7 +372,7 @@
                 matchesContainer.innerHTML = '<li style="text-align:center; color:#888; width: 100%;">No matches scheduled yet.</li>';
             }
         } catch (err) {
-            matchesContainer.innerHTML = '<li style='text-align:center; color:red; width: 100%;'>Error loading matches.</li>';
+            matchesContainer.innerHTML = '<li style="text-align:center; color:red; width: 100%;">Error loading matches.</li>';
         }
     }
 
@@ -472,13 +472,13 @@
         }
     };
 
+    // ফায়ারবেস অথেন্টিকেশন সিকিউরিটি চেক (কন্টেইনার হাইড করা বাদ দিয়ে সরাসরি লোড নিশ্চিত করা হয়েছে)
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserId = user.uid;
             if (!currentUsername) {
                 currentUsername = localStorage.getItem('proCricketUsername') || "user";
             }
-            document.getElementById('mainContainer').style.display = 'block';
             initTournamentPanel();
         } else {
             alert("⚠️ Unauthorized access! Please login first.");
@@ -489,4 +489,3 @@
 
 </body>
 </html>
-
