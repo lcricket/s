@@ -56,8 +56,8 @@
     <div class="header-nav">
         <h2 id="tourTitle">🏆 Tournaments Hub</h2>
         <div>
-            <a id="profileLinkBtn" href="profile.html" class="btn-link">👤 My Profile</a>
-            <a id="dashboardLinkBtn" href="index.html" class="btn-link" style="background: #4a5568;">🏠 Dashboard</a>
+            <a id="profileLinkBtn" href="#" class="btn-link">👤 My Profile</a>
+            <a id="dashboardLinkBtn" href="#" class="btn-link" style="background: #4a5568;">🏠 Dashboard</a>
         </div>
     </div>
 
@@ -82,7 +82,7 @@
     <div id="activeTournamentView" class="page-section">
         
         <div style="margin-bottom: 15px;">
-            <a id="backToHubBtn" href="tournament.html" style="color: #0056b3; text-decoration: none; font-weight: bold; font-size: 14px;">⬅️ Back to Tournaments List</a>
+            <a id="backToHubBtn" href="#" style="color: #0056b3; text-decoration: none; font-weight: bold; font-size: 14px;">⬅️ Back to Tournaments List</a>
         </div>
 
         <!-- টিম ও স্কোয়াড ম্যানেজমেন্ট সেকশন -->
@@ -159,10 +159,12 @@
     let tourId = urlParams.get('t');
     let currentUsername = urlParams.get('u') || localStorage.getItem('proCricketUsername');
 
+    const currentPageName = window.location.pathname.split("/").pop() || "tournament.html";
+
     if (currentUsername) {
         document.getElementById('profileLinkBtn').href = `profile.html?u=${currentUsername}`;
         document.getElementById('dashboardLinkBtn').href = `index.html?u=${currentUsername}`;
-        document.getElementById('backToHubBtn').href = `tournament.html?u=${currentUsername}`;
+        document.getElementById('backToHubBtn').href = `${currentPageName}?u=${currentUsername}`;
     }
 
     let currentUserId = "";
@@ -242,7 +244,7 @@
                     let li = document.createElement('li');
                     li.className = "tournament-item";
                     li.innerHTML = `
-                        <a href="tournament.html?t=${tId}&u=${currentUsername}" style="text-decoration: none; color: #0056b3; font-weight: bold; font-size: 16px; flex: 1; display: flex; justify-content: space-between; align-items: center;">
+                        <a href="${currentPageName}?t=${tId}&u=${currentUsername}" style="text-decoration: none; color: #0056b3; font-weight: bold; font-size: 16px; flex: 1; display: flex; justify-content: space-between; align-items: center;">
                             <span>🏆 ${tour.name || 'Unnamed Tournament'}</span>
                             <span style="font-size: 18px; color: #666;">➔</span>
                         </a>
@@ -549,7 +551,7 @@
                 await remove(ref(db, `live_matches/${currentUsername}/score`));
             }
 
-            let baseUrl = window.location.href.split('?')[0].replace('tournament.html', 'controller.html');
+            let baseUrl = window.location.href.split('?')[0].replace(currentPageName, 'controller.html');
             let targetUrl = `${baseUrl}?t=${tourId}&u=${currentUsername}&m=${matchId}&t1=${encodeURIComponent(t1)}&t2=${encodeURIComponent(t2)}&overs=${overs}&type=${encodeURIComponent(type)}`;
             
             window.location.href = targetUrl;
@@ -574,10 +576,10 @@
         }
     };
 
-    // Firebase Auth State Listener (Fixed to use direct user.uid)
+    // Firebase Auth State Listener
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            currentUserId = user.uid; // সরাসরি ইউজারের আসল UID সেট করে দিচ্ছি
+            currentUserId = user.uid;
 
             if (!currentUsername) {
                 currentUsername = localStorage.getItem('proCricketUsername') || "user";
@@ -593,3 +595,4 @@
 
 </body>
 </html>
+
