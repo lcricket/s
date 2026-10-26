@@ -12,6 +12,7 @@
 
         h2, h3 { color: #1e3c72; font-family: 'Oswald', sans-serif; text-transform: uppercase; margin: 0; }
         
+        /* Collapsible Section Styles */
         .box { background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
         .box-header { padding: 15px 18px; background: #f1f5f9; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
         .box-header:hover { background: #e2e8f0; }
@@ -52,9 +53,7 @@
         .btn-launch-match:disabled { opacity: 0.7; cursor: not-allowed; }
 
         .completed-badge { background: #e2e8f0; color: #2d3748; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        
-        .back-btn { background: #6c757d; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; margin-bottom: 15px; display: inline-flex; align-items: center; gap: 5px; }
-        .back-btn:hover { background: #5a6268; }
+        .page-section { display: none; }
     </style>
 </head>
 <body>
@@ -64,8 +63,8 @@
         <h2 id="tourTitle">🏆 Tournaments Hub</h2>
     </div>
 
-    <!-- ১. টুর্নামেন্ট হাব ও লিস্ট ভিউ -->
-    <div id="noTournamentView">
+    <!-- ১. টুর্নামেন্ট হাব ভিউ -->
+    <div id="noTournamentView" class="page-section">
         <div class="box">
             <div class="box-header" onclick="toggleSection(this)">
                 <h3>➕ Create New Tournament</h3>
@@ -83,7 +82,7 @@
                 <h3>📋 My Tournaments List</h3>
                 <span class="toggle-icon">▼</span>
             </div>
-            <div class="box-content open">
+            <div class="box-content">
                 <ul id="tournamentsListContainer" class="tournament-list">
                     <li style="text-align:center; color:#888; width: 100%;">Loading tournaments...</li>
                 </ul>
@@ -91,9 +90,8 @@
         </div>
     </div>
 
-    <!-- ২. নির্দিষ্ট টুর্নামেন্ট প্যানেল (টিম ও ম্যাচ ম্যানেজমেন্ট) -->
-    <div id="activeTournamentView" style="display: none;">
-        <button class="back-btn" onclick="window.backToTournamentList()">← Back to Tournaments List</button>
+    <!-- ২. নির্দিষ্ট টুর্নামেন্ট প্যানেল -->
+    <div id="activeTournamentView" class="page-section">
 
         <!-- টিম ও স্কোয়াড ম্যানেজমেন্ট সেকশন -->
         <div class="box" style="border-color: #b8daff;">
@@ -160,13 +158,15 @@
 
 </div>
 
-<!-- Scripts & Single Page Logic -->
+<!-- Firebase Scripts & Accordion Logic -->
 <script>
+    // Toggle Function for Accordion Sections with Auto-hide feature
     function toggleSection(headerElement) {
         const content = headerElement.nextElementSibling;
         const icon = headerElement.querySelector('.toggle-icon');
         const isOpen = content.classList.contains('open');
 
+        // সব সেকশন বন্ধ করে দেওয়া (Auto-hide others)
         document.querySelectorAll('.box-content').forEach(item => {
             item.classList.remove('open');
         });
@@ -174,6 +174,7 @@
             ic.style.transform = 'rotate(0deg)';
         });
 
+        // যদি আগেরটি খোলা না থাকে, তবে বর্তমানটি ওপেন করো
         if (!isOpen) {
             content.classList.add('open');
             icon.style.transform = 'rotate(180deg)';
@@ -200,24 +201,49 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    let tourId = null;
-    let currentUsername = localStorage.getItem('proCricketUsername') || "user";
+    const urlParams = new URLSearchParams(window.location.search);
+    let tourId = urlParams.get('t');
+    let currentUsername = urlParams.get('u') || localStorage.getItem('proCricketUsername');
+
+    const currentPageName = window.location.pathname.split("/").pop() || "tournament.html";
+
     let currentUserId = "";
     let globalTeamsData = {};
 
-    async function initApp() {
+    async function initTournamentHub() {
         try {
-            const userRef = ref(db, 'usernames/' + currentUsername);
-            const snap = await get(userRef);
-            if (snap.exists()) {
-                currentUserId = snap.val();
-            } else {
-                currentUserId = currentUsername;
+            if (!currentUserId) {
+                const userRef = ref(db, 'usernames/' + currentUsername);
+                const snap = await get(userRef);
+                if (snap.exists()) {
+                    currentUserId = snap.val();
+                } else {
+                    currentUserId = currentUsername;
+                }
             }
 
-            loadAllTournaments();
+            if (!tourId || tourId.trim() === "" || tourId === "null") {
+                document.getElementById('noTournamentView').style.display = 'block';
+                document.getElementById('activeTournamentView').style.display = 'none';
+                loadAllTournaments();
+                return;
+            }
+
+            document.getElementById('noTournamentView').style.display = 'none';
+            document.getElementById('activeTournamentView').style.display = 'block';
+
+            const tourRef = ref(db, `users/${currentUserId}/tournaments/${tourId}`);
+            const tourSnap = await get(tourRef);
+            if (tourSnap.exists()) {
+                document.getElementById('tourTitle').innerText = "🏆 " + (tourSnap.val().name || "Tournament Hub");
+            } else {
+                document.getElementById('tourTitle').innerText = "🏆 Tournament Hub";
+            }
+
+            loadTeamsAndSquads();
+            loadMatchesList();
         } catch (err) {
-            console.error("Error initializing app:", err);
+            console.error("Error initializing tournament hub:", err);
         }
     }
 
@@ -258,7 +284,7 @@
                     let li = document.createElement('li');
                     li.className = "tournament-item";
                     li.innerHTML = `
-                        <a href="javascript:void(0);" onclick="window.selectTournament('${tId}', '${(tour.name || 'Unnamed Tournament').replace(/'/g, "\\'")}')" style="text-decoration: none; color: #0056b3; font-weight: bold; font-size: 16px; flex: 1; display: flex; justify-content: space-between; align-items: center;">
+                        <a href="${currentPageName}?t=${tId}&u=${currentUsername}" style="text-decoration: none; color: #0056b3; font-weight: bold; font-size: 16px; flex: 1; display: flex; justify-content: space-between; align-items: center;">
                             <span>🏆 ${tour.name || 'Unnamed Tournament'}</span>
                             <span style="font-size: 18px; color: #666;">➔</span>
                         </a>
@@ -273,24 +299,6 @@
             container.innerHTML = "<li style='text-align:center; color:red; width: 100%;'>Error loading tournaments.</li>";
         }
     }
-
-    window.selectTournament = async function(tId, tName) {
-        tourId = tId;
-        document.getElementById('tourTitle').innerText = "🏆 " + tName;
-        document.getElementById('noTournamentView').style.display = 'none';
-        document.getElementById('activeTournamentView').style.display = 'block';
-
-        loadTeamsAndSquads();
-        loadMatchesList();
-    };
-
-    window.backToTournamentList = function() {
-        tourId = null;
-        document.getElementById('tourTitle').innerText = "🏆 Tournaments Hub";
-        document.getElementById('activeTournamentView').style.display = 'none';
-        document.getElementById('noTournamentView').style.display = 'block';
-        loadAllTournaments();
-    };
 
     window.deleteTournament = async function(tId) {
         if (!confirm("⚠️ Are you sure you want to delete this tournament?")) return;
@@ -324,7 +332,7 @@
             document.getElementById('teamNameInput').value = "";
             document.getElementById('squadInput').value = "";
             loadTeamsAndSquads();
-            alert(`✅ Team '${teamName}' saved successfully!`);
+            alert(`✅ Team '${teamName}' saved to cloud successfully!`);
         } catch (err) {
             alert("❌ Failed to save team.");
         }
@@ -538,13 +546,13 @@
             document.getElementById('team2Select').value = "";
             updateTeamDropdowns();
             loadMatchesList();
-            alert("📅 Match scheduled successfully!");
+            alert("📅 Match scheduled successfully to the list!");
         } catch (err) {
+            console.error("Error scheduling match:", err);
             alert("❌ Failed to schedule match.");
         }
     };
 
-    // এটি শুধুমাত্র তখনই কন্ট্রোলারে নিয়ে যাবে যখন আপনি লঞ্চ বা রিজুমি বাটনে ক্লিক করবেন
     window.launchOrResumeMatch = async function(btnElement, matchId, t1, t2, overs, type) {
         try {
             let originalText = btnElement.innerText;
@@ -555,8 +563,10 @@
             const matchSnap = await get(matchRef);
 
             let isAlreadyStarted = false;
-            if (matchSnap.exists() && matchSnap.val().status === 'running') {
-                isAlreadyStarted = true;
+            if (matchSnap.exists()) {
+                if (matchSnap.val().status === 'running') {
+                    isAlreadyStarted = true;
+                }
             }
 
             if (!isAlreadyStarted) {
@@ -569,7 +579,7 @@
                 }
 
                 if (currentCredits <= 0) {
-                    alert("❌ Insufficient credits! 1 credit = Rs 50");
+                    alert("❌ Insufficient credits! You have 0 credits. 1 credit = Rs 50 ");
                     btnElement.innerText = originalText;
                     btnElement.disabled = false;
                     return;
@@ -577,10 +587,11 @@
 
                 await update(userRef, { credits: currentCredits - 1 });
                 await update(matchRef, { status: 'running' });
+
                 await remove(ref(db, `live_matches/${currentUsername}/score`));
             }
 
-            let baseUrl = window.location.href.split('?')[0].replace('tournament.html', 'controller.html');
+            let baseUrl = window.location.href.split('?')[0].replace(currentPageName, 'controller.html');
             let targetUrl = `${baseUrl}?t=${tourId}&u=${currentUsername}&m=${matchId}&t1=${encodeURIComponent(t1)}&t2=${encodeURIComponent(t2)}&overs=${overs}&type=${encodeURIComponent(type)}`;
             
             window.location.href = targetUrl;
@@ -593,7 +604,9 @@
     };
 
     window.deleteMatch = async function(matchId) {
-        if (!confirm("⚠️ Are you sure you want to delete this match?")) return;
+        if (!confirm("⚠️ Are you sure you want to delete this match?")) {
+            return;
+        }
         try {
             await remove(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${matchId}`));
             alert("🗑️ Match deleted successfully!");
@@ -603,15 +616,21 @@
         }
     };
 
+    // Firebase Auth State Listener
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserId = user.uid;
-            initApp();
+
+            if (!currentUsername) {
+                currentUsername = localStorage.getItem('proCricketUsername') || "user";
+            }
+            initTournamentHub();
         } else {
             alert("⚠️ Please login from dashboard first.");
             window.location.href = "index.html";
         }
     });
+
 </script>
 
 </body>
