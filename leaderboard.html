@@ -10,9 +10,6 @@
         .container { max-width: 450px; margin: auto; background: #fff; padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         
         .header-title { font-family: 'Oswald', sans-serif; color: #1e3c72; font-size: 22px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        
-        .btn-back { background: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 12px; }
-        .btn-back:hover { background: #5a6268; }
 
         /* Mode Switcher */
         .mode-container { display: flex; background: #f1f5f9; padding: 4px; border-radius: 8px; margin-bottom: 15px; gap: 4px; }
@@ -41,7 +38,6 @@
 <div class="container">
     <div class="header-title">
         <span id="tourTitle">📊 Leaderboard</span>
-        <a id="backToTourBtn" href="#" class="btn-back">⬅️ Back</a>
     </div>
 
     <!-- Tournament vs Match Mode Switcher -->
@@ -102,14 +98,6 @@
 
     let currentMode = 'tournament';
     let cachedPlayersData = {};
-
-    if (activeTournamentId && currentMatchUser) {
-        document.getElementById('backToTourBtn').href = `tournament.html?t=${activeTournamentId}&u=${currentMatchUser}`;
-    } else if (currentMatchUser) {
-        document.getElementById('backToTourBtn').href = `tournament.html?u=${currentMatchUser}`;
-    } else {
-        document.getElementById('backToTourBtn').href = `index.html`;
-    }
 
     window.switchMode = function(mode) {
         currentMode = mode;
