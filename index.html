@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard - Dashboard</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 15px;
+        }
+        .container { 
+            background: #ffffff; 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+            width: 100%; 
+            max-width: 650px; 
+            text-align: center; 
+        }
+        h2 { color: #1e3c72; margin-top: 0; margin-bottom: 15px; font-size: 22px; }
+        input, select, textarea { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 6px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 6px; 
+            font-size: 14px;
+        }
+        input:focus, select:focus, textarea:focus { border-color: #2a5298; outline: none; }
+        
+        .password-container { position: relative; width: 100%; }
+        .password-container input { padding-right: 40px; }
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            user-select: none;
+            font-size: 18px;
+            color: #777;
+        }
+
+        button { 
+            width: 100%; 
+            padding: 11px; 
+            margin: 8px 0; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 15px; 
+            font-weight: bold;
+            color: #fff; 
+            transition: 0.3s;
+        }
+        .btn-login { background-color: #28a745; }
+        .btn-signup { background-color: #007bff; }
+        .btn-logout { background-color: #4a5568; }
+        .btn-delete-acc { background-color: #dc3545; }
+        
+        .dashboard-profile-container {
+            margin: 15px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .dashboard-profile-avatar {
+            display: block;
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid #1e3c72;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin: 0 auto;
+            background: #ccc;
+        }
+        .dashboard-large-avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .btn-copy { 
+            background-color: #17a2b8; 
+            padding: 8px 14px; 
+            font-size: 14px; 
+            margin: 0; 
+            width: auto; 
+            white-space: nowrap;
+        }
+        .hidden { display: none !important; }
+        .welcome-gift {
+            background: #e3f2fd;
+            border: 1px dashed #2196f3;
+            color: #0d47a1;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+        .credit-box { 
+            background: #e8f5e9;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 17px; 
+            font-weight: bold; 
+            color: #2e7d32; 
+            margin: 12px 0; 
+            border: 1px solid #c8e6c9;
+        }
+        .link-box { 
+            background: #f8f9fa; 
+            padding: 12px; 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+            border: 1px dashed #ced4da;
+            text-align: left;
+        }
+        .link-input-group { display: flex; gap: 8px; margin-top: 6px; }
+        .link-input-group input {
+            margin: 0;
+            padding: 8px 10px;
+            font-size: 13px;
+            background: #ffffff;
+            cursor: pointer;
+            color: #007bff;
+            font-weight: 500;
+        }
+        .toggle-text { 
+            color: #007bff; 
+            cursor: pointer; 
+            font-size: 13px; 
+            text-decoration: underline; 
+            margin-top: 10px; 
+            display: inline-block;
+        }
+        .msg { font-size: 13px; margin-top: 6px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- Login Form -->
+    <div id="login-section" class="hidden">
+        <h2>Sign In</h2>
+        <input type="email" id="login-email" placeholder="Enter your email" required>
+        
+        <div class="password-container">
+            <input type="password" id="login-password" placeholder="Enter password" required>
+            <span class="toggle-password" onclick="togglePasswordVisibility('login-password', this)">👁</span>
+        </div>
+
+        <button class="btn-login" onclick="login()">Login</button>
+        <br>
+        <span class="toggle-text" style="color: #666; font-size: 13px;" onclick="resetPassword()">Forgot Password?</span>
+        <br>
+        <span class="toggle-text" onclick="toggleAuth('signup')">Don't have an account? Sign Up</span>
+        <p id="login-message" class="msg"></p>
+    </div>
+
+    <!-- Sign-Up Form -->
+    <div id="signup-section" class="hidden">
+        <h2>Create Account</h2>
+        <div class="welcome-gift">🎁 Sign up & Verify Email to get 1 FREE credit!</div>
+        <input type="text" id="signup-username" placeholder="Short Username (e.g. rakib)" maxlength="15" required>
+        <input type="email" id="signup-email" placeholder="Enter your email" required>
+        
+        <div class="password-container">
+            <input type="password" id="signup-password" placeholder="Create password" required>
+            <span class="toggle-password" onclick="togglePasswordVisibility('signup-password', this)">👁</span>
+        </div>
+
+        <div style="margin-top: 12px; font-size: 12px; color: #555;">
+            By signing up, you agree to our <a href="#" style="color: #007bff; text-decoration: underline;">Privacy Policy</a> & Terms.
+        </div>
+
+        <button class="btn-signup" onclick="signup()">Register</button>
+        <br>
+        <span class="toggle-text" onclick="toggleAuth('login')">Already have an account? Sign In</span>
+        <p id="signup-message" class="msg" style="color: red;"></p>
+    </div>
+
+    <!-- Email Verification Section -->
+    <div id="verify-section" class="hidden">
+        <h2>Verify Your Email</h2>
+        <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; font-size: 14px; margin-bottom: 15px; border: 1px solid #ffeeba;">
+            ⚠️ We've sent a verification link to <b><span id="verify-email-display"></span></b>. <br><br>Please check your inbox (and spam folder) and click the link to activate your account and claim your free credit.
+        </div>
+        <button class="btn-login" onclick="checkVerification()">✅ I have verified my email</button>
+        <button class="btn-signup" onclick="resendVerification()">📩 Resend Link</button>
+        <button class="btn-logout" style="margin-top: 15px;" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- User Dashboard -->
+    <div id="dashboard-section" class="hidden">
+        <div id="homeMainView">
+            <h2 style="text-align: center; margin-bottom: 5px;">Welcome, <span id="display-username" style="color: #ff9800;">Loading...</span>!</h2>
+            
+            <div class="dashboard-profile-container">
+                <div class="dashboard-profile-avatar">
+                    <img id="dashboardLargeAvatar" src="https://via.placeholder.com/110" alt="Profile Avatar" class="dashboard-large-avatar">
+                </div>
+            </div>
+
+            <div class="credit-box">
+                Available Balance: <span id="user-credits">0</span> Match Credit(s)
+            </div>
+
+            <div class="link-box">
+                <b style="font-size: 13px; color: #333;">Copy this Link for CameraFi LIVE & OBS Studio:</b>
+                <div class="link-input-group">
+                    <input type="text" id="viewer-link-input" readonly onclick="this.select()" placeholder="Generating link...">
+                    <button class="btn-copy" onclick="copyLink()">📋 Copy</button>
+                </div>
+            </div>
+
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                <button class="btn-logout" style="flex: 1;" onclick="logout()">Logout</button>
+                <button class="btn-delete-acc" style="flex: 1; padding: 11px; margin: 8px 0; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; color: #fff; transition: 0.3s;" onclick="deleteMyAccount()">🗑️ Delete Account</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase Scripts -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { 
+        getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+        sendPasswordResetEmail, onAuthStateChanged, signOut, deleteUser, 
+        setPersistence, browserLocalPersistence, sendEmailVerification
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyABphVo2kWvqHEkxWSsZuDvnyXk05XzX-0",
+      authDomain: "cricket-score-d187a.firebaseapp.com",
+      databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
+      projectId: "cricket-score-d187a",
+      storageBucket: "cricket-score-d187a.firebasestorage.app",
+      messagingSenderId: "782741896785",
+      appId: "1:782741896785:android:ca8c45a9120f7784928270"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    window.normalizeEmail = function(email) {
+        email = email.trim().toLowerCase();
+        if (email.endsWith('@gmail.com')) {
+            let parts = email.split('@');
+            let username = parts[0];
+            if (username.includes('+')) {
+                username = username.split('+')[0];
+            }
+            username = username.replace(/\./g, '');
+            return username + '@gmail.com';
+        }
+        return email;
+    };
+
+    window.encodeEmailForDb = function(email) {
+        return email.replace(/\./g, ',');
+    };
+
+    window.deleteMyAccount = async () => {
+        if(!confirm("⚠️ WARNING: Are you sure you want to permanently delete your account and all data? This cannot be undone.")) return;
+        
+        try {
+            const user = auth.currentUser;
+            if(user) {
+                const uid = user.uid;
+                let username = localStorage.getItem('proCricketUsername');
+                const encodedEmail = encodeEmailForDb(normalizeEmail(user.email));
+
+                if (username) {
+                    await remove(ref(db, 'usernames/' + username));
+                    await remove(ref(db, 'users/' + username)); // Cleanup for old profile format
+                }
+                
+                await remove(ref(db, `users/${uid}`));
+                await remove(ref(db, 'registered_emails/' + encodedEmail)); 
+
+                await deleteUser(user);
+                
+                alert("✅ Account deleted successfully.");
+                localStorage.removeItem('proCricketUsername');
+                window.location.reload();
+            }
+        } catch(error) {
+            if (error.code === 'auth/requires-recent-login') {
+                alert("⚠️ Please log out and log in again before deleting your account.");
+            } else {
+                alert("❌ Error deleting account: " + error.message);
+            }
+        }
+    };
+
+    window.togglePasswordVisibility = (inputId, iconElement) => {
+        const passwordInput = document.getElementById(inputId);
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            iconElement.innerText = "🙈";
+        } else {
+            passwordInput.type = "password";
+            iconElement.innerText = "👁";
+        }
+    };
+
+    window.toggleAuth = (view) => {
+        document.getElementById('login-message').innerText = "";
+        document.getElementById('signup-message').innerText = "";
+        if(view === 'signup') {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('signup-section').classList.remove('hidden');
+        } else {
+            document.getElementById('signup-section').classList.add('hidden');
+            document.getElementById('login-section').classList.remove('hidden');
+        }
+    };
+
+    window.signup = async () => {
+        const username = document.getElementById('signup-username').value.trim().toLowerCase();
+        const email = document.getElementById('signup-email').value.trim();
+        const password = document.getElementById('signup-password').value;
+        const msg = document.getElementById('signup-message');
+
+        if (!username || !email || !password) {
+            msg.style.color = "red";
+            return msg.innerText = "Please fill in all fields.";
+        }
+
+        if (!/^[a-z0-9]+$/.test(username)) {
+            msg.style.color = "red";
+            return msg.innerText = "Username must contain only lowercase letters and numbers.";
+        }
+
+        try {
+            const usernameRef = ref(db, 'usernames/' + username);
+            const snapshot = await get(usernameRef);
+            if (snapshot.exists()) {
+                msg.style.color = "red";
+                return msg.innerText = "Username already taken! Choose another.";
+            }
+
+            const encodedEmail = encodeEmailForDb(normalizeEmail(email));
+            const emailCheckRef = ref(db, 'registered_emails/' + encodedEmail);
+            const emailSnap = await get(emailCheckRef);
+            if (emailSnap.exists()) {
+                msg.style.color = "red";
+                return msg.innerText = "This email is already registered!";
+            }
+
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            // Database Save
+            await set(ref(db, 'usernames/' + username), user.uid);
+            await set(ref(db, 'registered_emails/' + encodedEmail), user.uid);
+            
+            await set(ref(db, `users/${user.uid}`), { 
+                email: email, 
+                username: username, 
+                credits: 0 
+            });
+
+            // Set profile data perfectly aligned with your profile.html code
+            await set(ref(db, `users/${user.uid}/profile`), {
+                name: username,
+                photo: "" 
+            });
+
+            await sendEmailVerification(user);
+            msg.style.color = "green";
+            msg.innerText = "Account created! Redirecting to verification...";
+            
+        } catch (error) {
+            msg.style.color = "red";
+            msg.innerText = error.message;
+        }
+    };
+
+    window.login = () => {
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        const msg = document.getElementById('login-message');
+
+        if (!email || !password) {
+            msg.style.color = "red";
+            return msg.innerText = "Please provide email and password.";
+        }
+
+        setPersistence(auth, browserLocalPersistence)
+            .then(() => signInWithEmailAndPassword(auth, email, password))
+            .catch(() => {
+                msg.style.color = "red";
+                msg.innerText = "Invalid email or password.";
+            });
+    };
+
+    window.resetPassword = async () => {
+        const email = document.getElementById('login-email').value.trim();
+        const msg = document.getElementById('login-message');
+        if (!email) {
+            msg.style.color = "red";
+            return msg.innerText = "Please enter your email above to reset password.";
+        }
+        try {
+            await sendPasswordResetEmail(auth, email);
+            msg.style.color = "green";
+            msg.innerText = "Password reset link sent! Check your email inbox/spam.";
+        } catch (error) {
+            msg.style.color = "red";
+            msg.innerText = error.code === 'auth/user-not-found' ? "No account found." : error.message;
+        }
+    };
+
+    window.logout = () => { 
+        localStorage.removeItem('proCricketUsername');
+        signOut(auth); 
+    };
+
+    window.copyLink = () => {
+        const inputField = document.getElementById('viewer-link-input');
+        if (!inputField.value) return alert("No link available!");
+        inputField.select();
+        inputField.setSelectionRange(0, 99999);
+        document.execCommand('copy');
+        alert("Viewer link copied!");
+    };
+
+    window.checkVerification = async () => {
+        const user = auth.currentUser;
+        if(user) {
+            await user.reload(); 
+            if (user.emailVerified) {
+                document.getElementById('verify-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
+                await claimCreditIfEligible(user);
+                loadUserData(user);
+            } else {
+                alert("Email not verified yet. Please check your inbox or spam folder.");
+            }
+        }
+    };
+
+    window.resendVerification = async () => {
+        const user = auth.currentUser;
+        if(user) {
+            try {
+                await sendEmailVerification(user);
+                alert("Verification email resent!");
+            } catch(error) {
+                alert(error.message);
+            }
+        }
+    };
+
+    window.claimCreditIfEligible = async (user) => {
+        const encodedEmail = encodeEmailForDb(normalizeEmail(user.email));
+        const claimRef = ref(db, 'claimed_emails/' + encodedEmail);
+        const claimSnap = await get(claimRef);
+        if (!claimSnap.exists()) {
+            await set(claimRef, true); 
+            const userCreditRef = ref(db, `users/${user.uid}/credits`);
+            const currentCreditSnap = await get(userCreditRef);
+            let credits = currentCreditSnap.exists() ? currentCreditSnap.val() : 0;
+            await set(userCreditRef, credits + 1);
+            alert("🎉 Email verified successfully! 1 Free Credit added.");
+        }
+    };
+
+    // =======================================================
+    // 100% SYNCED PHOTO FETCHER (Matches your profile.html)
+    // =======================================================
+    async function loadUserData(user) {
+        const userId = user.uid;
+        
+        let username = localStorage.getItem('proCricketUsername') || "user";
+        let credits = 0;
+
+        // Fetch user basic details
+        const userRef = ref(db, `users/${userId}`);
+        const snapshot = await get(userRef);
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            if (userData.username) username = userData.username;
+            credits = userData.credits !== undefined ? userData.credits : 0;
+        }
+
+        // Set base info
+        localStorage.setItem('proCricketUsername', username);
+        document.getElementById('user-credits').innerText = credits;
+        document.getElementById('display-username').innerText = username;
+        document.getElementById('viewer-link-input').value = `https://lcricket.github.io/s/viewer.html?u=${username}`;
+
+        // Live credits listener
+        onValue(userRef, (snap) => {
+            if (snap.exists() && snap.val().credits !== undefined) {
+                document.getElementById('user-credits').innerText = snap.val().credits;
+            }
+        });
+
+        // Function to apply fetched photo
+        const applyProfileData = (profileData) => {
+            if (profileData.name) {
+                document.getElementById('display-username').innerText = profileData.name;
+            }
+            if (profileData.photo && profileData.photo.trim() !== "") {
+                document.getElementById('dashboardLargeAvatar').src = profileData.photo;
+            }
+        };
+
+        // Listen for Profile changes exactly where profile.html saves it
+        onValue(ref(db, `users/${userId}/profile`), (snap) => {
+            if (snap.exists()) {
+                applyProfileData(snap.val());
+            } else if (username !== "user") {
+                // FALLBACK: For old accounts that saved directly under username
+                get(ref(db, `users/${username}/profile`)).then(oldSnap => {
+                    if (oldSnap.exists()) applyProfileData(oldSnap.val());
+                });
+            }
+        });
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            await user.reload(); 
+            if (!user.emailVerified) {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('signup-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.add('hidden');
+                
+                document.getElementById('verify-section').classList.remove('hidden');
+                document.getElementById('verify-email-display').innerText = user.email;
+            } else {
+                document.getElementById('verify-section').classList.add('hidden');
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('signup-section').classList.add('hidden');
+                
+                document.getElementById('dashboard-section').classList.remove('hidden');
+
+                await claimCreditIfEligible(user); 
+                loadUserData(user); 
+            }
+        } else {
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('verify-section').classList.add('hidden');
+            document.getElementById('signup-section').classList.add('hidden');
+            document.getElementById('login-section').classList.remove('hidden');
+        }
+    });
+</script>
+
+</body>
+</html>
