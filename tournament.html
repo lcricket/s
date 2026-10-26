@@ -70,7 +70,7 @@
                 <h3>➕ Create New Tournament</h3>
                 <span class="toggle-icon">▼</span>
             </div>
-            <div class="box-content open">
+            <div class="box-content">
                 <label>Tournament Name</label>
                 <input type="text" id="tourNameInput" placeholder="e.g. Summer Premier League 2026">
                 <button class="btn" onclick="window.createTournament()">Create Tournament</button>
@@ -82,7 +82,7 @@
                 <h3>📋 My Tournaments List</h3>
                 <span class="toggle-icon">▼</span>
             </div>
-            <div class="box-content open">
+            <div class="box-content">
                 <ul id="tournamentsListContainer" class="tournament-list">
                     <li style="text-align:center; color:#888; width: 100%;">Loading tournaments...</li>
                 </ul>
@@ -99,7 +99,7 @@
                 <h3 style="color: #0056b3;">👥 Add Team & Player Squad</h3>
                 <span class="toggle-icon">▼</span>
             </div>
-            <div class="box-content open">
+            <div class="box-content">
                 <label>Team Name</label>
                 <input type="text" id="teamNameInput" placeholder="e.g. Kolkata Tigers">
 
@@ -147,7 +147,7 @@
                 <h3>📜 Tournament Matches & Schedule</h3>
                 <span class="toggle-icon">▼</span>
             </div>
-            <div class="box-content open">
+            <div class="box-content">
                 <ul id="matchesListContainer" class="match-list" style="display: block;">
                     <li style="color: #888; font-size: 14px; width: 100%;">No matches scheduled yet.</li>
                 </ul>
@@ -160,16 +160,24 @@
 
 <!-- Firebase Scripts & Accordion Logic -->
 <script>
-    // Toggle Function for Accordion Sections
+    // Toggle Function for Accordion Sections with Auto-hide feature
     function toggleSection(headerElement) {
         const content = headerElement.nextElementSibling;
         const icon = headerElement.querySelector('.toggle-icon');
-        
-        content.classList.toggle('open');
-        if (content.classList.contains('open')) {
+        const isOpen = content.classList.contains('open');
+
+        // সব সেকশন বন্ধ করে দেওয়া (Auto-hide others)
+        document.querySelectorAll('.box-content').forEach(item => {
+            item.classList.remove('open');
+        });
+        document.querySelectorAll('.toggle-icon').forEach(ic => {
+            ic.style.transform = 'rotate(0deg)';
+        });
+
+        // যদি আগেরটি খোলা না থাকে, তবে বর্তমানটি ওপেন করো
+        if (!isOpen) {
+            content.classList.add('open');
             icon.style.transform = 'rotate(180deg)';
-        } else {
-            icon.style.transform = 'rotate(0deg)';
         }
     }
 </script>
