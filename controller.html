@@ -1447,18 +1447,29 @@
                             isLeagueMatchGlobal = (matchInfo.type === 'league');
                         }
 
-                        // ফায়ারবেস থেকে সরাসরি সঠিক পাথ থেকে স্কোয়াড ফেচ করা
                         const teamsData = tData.teams || {};
                         
-                        if (loadedBatTeam && teamsData[loadedBatTeam] && teamsData[loadedBatTeam].players) {
-                            let pList = teamsData[loadedBatTeam].players;
+                        const findTeamObject = (searchName) => {
+                            if (!searchName) return null;
+                            if (teamsData[searchName]) return teamsData[searchName];
+                            let foundKey = Object.keys(teamsData).find(k => k.trim().toLowerCase() === searchName.trim().toLowerCase());
+                            if (foundKey) return teamsData[foundKey];
+                            return Object.values(teamsData).find(t => t.name && t.name.trim().toLowerCase() === searchName.trim().toLowerCase());
+                        };
+
+                        let team1Obj = findTeamObject(loadedBatTeam);
+                        if (team1Obj) {
+                            if(team1Obj.name) loadedBatTeam = team1Obj.name;
+                            let pList = team1Obj.players ? (Array.isArray(team1Obj.players) ? team1Obj.players : Object.values(team1Obj.players)) : [];
                             squad1 = [loadedBatTeam, ...pList].join('\n');
                         } else {
                             squad1 = loadedBatTeam;
                         }
 
-                        if (loadedBowlTeam && teamsData[loadedBowlTeam] && teamsData[loadedBowlTeam].players) {
-                            let pList = teamsData[loadedBowlTeam].players;
+                        let team2Obj = findTeamObject(loadedBowlTeam);
+                        if (team2Obj) {
+                            if(team2Obj.name) loadedBowlTeam = team2Obj.name;
+                            let pList = team2Obj.players ? (Array.isArray(team2Obj.players) ? team2Obj.players : Object.values(team2Obj.players)) : [];
                             squad2 = [loadedBowlTeam, ...pList].join('\n');
                         } else {
                             squad2 = loadedBowlTeam;
@@ -1508,3 +1519,4 @@
 </script>
 </body>
 </html>
+
