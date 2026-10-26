@@ -130,7 +130,7 @@
             if (tourSnap.exists()) {
                 const tournaments = tourSnap.val();
                 
-                // যদি URL-এ ID না থাকে, তবে localStorage থেকে আগের সিলেক্ট করা আইডি নিয়ে আসা
+                // যদি URL-এ ID না থাকে, তবে localStorage থেকে আগের সিলেক্ট করা আইডি নিয়ে আসা
                 if (!tourId) {
                     tourId = localStorage.getItem('proCricketSelectedTournament');
                 }
@@ -459,6 +459,58 @@
                 await update(userRef, { credits: currentCredits - 1 });
                 await update(matchRef, { status: 'running' });
                 await remove(ref(db, `live_matches/${currentUsername}/score`));
+            }
+
+            // টুর্নামেন্ট ডাটাবেস থেকে টিম ও স্কোয়াড ফেচ করে কন্ট্রোলারের উপযোগী করে লোকালস্টোরেজে সেভ করা
+            const tourSnap = await get(ref(db, `users/${currentUserId}/tournaments/${tourId}`));
+            if (tourSnap.exists()) {
+                const tData = tourSnap.val();
+                const teamsData = tData.teams || {};
+
+                const getSquadText = (teamName) => {
+                    let tObj = teamsData[teamName];
+                    if (!tObj && tData.squads) tObj = tData.squads[teamName];
+                    
+                    if (!tObj) return teamName;
+                    if (typeof tObj === 'string') return tObj;
+                    
+                    let pList = tObj.players || tObj.squad || tObj.playerList || [];
+                    if (Array.isArray(pList)) {
+                        return [teamName, ...pList].join('\n');
+                    } else if (typeof pList === 'object') {
+                        let names = Object.values(pList).filter(v => typeof v === 'string' && v.trim().length > 1 && v !== teamName);
+                        return [teamName, ...names].join('\n');
+                    }
+                    return teamName;
+                };
+
+                let squad1Text = getSquadText(t1);
+                let squad2Text = getSquadText(t2);
+
+                // কন্ট্রোলার কোডের লজিক অনুযায়ী লোকালস্টোরেজে স্কোয়াড সেট করা
+                localStorage.setItem(`tempBatSquad_${currentUsername}_${matchId}`, squad1Text);
+                localStorage.setItem(`tempBowlSquad_${currentUsername}_${matchId}`, squad2Text);
+
+                // ফায়ারবেসের লাইভ স্কোর নোডেও ইনিশিয়াল ডাটা পাঠিয়ে দেওয়া
+                const liveScoreRef = ref(db, `live_matches/${currentUsername}/score`);
+                const liveSnap = await get(liveScoreRef);
+                if (!liveSnap.exists()) {
+                    await set(liveScoreRef, {
+                        batTeamName: t1,
+                        bowlTeamName: t2,
+                        runs: "0",
+                        wickets: "0",
+                        overs: "0.0",
+                        totalOvers: overs,
+                        innings: "1",
+                        target: "1st Innings is going on...",
+                        squad1Data: squad1Text,
+                        squad2Data: squad2Text,
+                        tournamentId: tourId,
+                        matchId: matchId,
+                        matchEnded: false
+                    });
+                }
             }
 
             let targetUrl = `controller.html?t=${tourId}&u=${currentUsername}&m=${matchId}&t1=${encodeURIComponent(t1)}&t2=${encodeURIComponent(t2)}&overs=${overs}&type=${encodeURIComponent(type)}`;
