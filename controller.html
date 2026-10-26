@@ -8,7 +8,7 @@
     <style>
         body { font-family: Arial, sans-serif; background: #eef2f3; padding: 15px; margin: 0; }
         .container { max-width: 750px; margin: auto; background: #fff; padding: 18px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .header-box { text-align: center; margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .header-box { text-align: center; margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         h2 { color: #333; margin: 0; font-size: 20px; }
         .sub-header-bar { display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px; flex-wrap: wrap; gap: 8px; }
         .sub-header-item { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: bold; color: #444; }
@@ -144,7 +144,8 @@
 
 <div class="container" id="mainContainerBox">
     <div class="header-box">
-        <!-- ব্যাক বাটন সফলভাবে রিমুভ করা হয়েছে -->
+        <h2>🏏 Live Match Controller</h2>
+        <button class="btn-sub-action btn-dash" id="backToTourBtn" onclick="window.returnToTournamentImmediately()">🏆 Tournament</button>
     </div>
 
     <div class="sub-header-bar">
@@ -256,6 +257,7 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     let currentMatchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername');
+    let currentUserId = ""; 
     const activeTournamentId = urlParams.get('t');
     const activeMatchId = urlParams.get('m') || "default_match";
 
@@ -346,18 +348,16 @@
 
     async function markMatchCompletedInDatabase(winnerText, winnerTeamName) {
         try {
-            if (activeTournamentId && activeMatchId) {
-                const snap = await get(ref(db, 'usernames/' + currentMatchUser));
-                if (snap.exists()) {
-                    const uid = snap.val();
-                    await update(ref(db, `users/${uid}/tournaments/${activeTournamentId}/matches/${activeMatchId}`), {
-                        status: 'completed',
-                        winner: winnerTeamName || "",
-                        resultText: winnerText || "Match Ended"
-                    });
-                }
+            if (activeTournamentId && activeMatchId && currentUserId) {
+                await update(ref(db, `users/${currentUserId}/tournaments/${activeTournamentId}/matches/${activeMatchId}`), {
+                    status: 'completed',
+                    winner: winnerTeamName || "",
+                    resultText: winnerText || "Match Ended"
+                });
             }
-        } catch (err) {}
+        } catch (err) {
+            console.error("Error updating match status: ", err);
+        }
     }
 
     async function saveMatchStatsToTournament() {
@@ -426,8 +426,13 @@
 
             winObj.matchesPlayed += 1; loseObj.matchesPlayed += 1;
             
-            if (isTie) { winObj.tied = (winObj.tied || 0) + 1; winObj.points += 1; loseObj.tied = (loseObj.tied || 0) + 1; loseObj.points += 1; } 
-            else { winObj.won += 1; winObj.points += 2; loseObj.lost += 1; }
+            if (isTie) { 
+                winObj.tied = (winObj.tied || 0) + 1; winObj.points += 1; 
+                loseObj.tied = (loseObj.tied || 0) + 1; loseObj.points += 1; 
+            } else { 
+                winObj.won += 1; winObj.points += 2; 
+                loseObj.lost += 1; 
+            }
             
             let winBallsFaced = oversToBalls(winOvers); let loseBallsFaced = oversToBalls(loseOvers);
             
@@ -714,7 +719,7 @@
             currentEvent = "WINNER";
             let bPlayed = oversToBalls(oversStr);
             if(isLeagueMatchGlobal && !tournamentPointsUpdated) {
-                updateTournamentStandings(bTeam, bwTeam, runs, oversToBalls(bPlayed), firstInningsRunsStored, oversToBalls(firstInningsOversStored));
+                updateTournamentStandings(bTeam, bwTeam, runs, oversToBalls(bPlayed), firstInningsRunsStored, oversToBalls(firstInningsOversStored), false);
                 tournamentPointsUpdated = true;
             }
             processAndUpdate();
@@ -748,17 +753,24 @@
                 matchEnded = true; 
                 let bTeam = document.getElementById('batTeamName').value; 
                 let bwTeam = document.getElementById('bowlTeamName').value;
-                let winnerText = (runs === targetNum - 1) ? `Match Tied! 🤝` : `${bwTeam} Won by ${targetNum - runs} Runs! 🏆`;
+                
+                let isTie = (runs === targetNum - 1);
+                let winnerText = isTie ? `Match Tied! 🤝` : `${bwTeam} Won by ${targetNum - runs} Runs! 🏆`;
                 document.getElementById('targetMsg').value = winnerText; 
                 currentEvent = "WINNER";
-                let winTeamName = (runs === targetNum - 1) ? "Tied" : bwTeam;
+                
+                let winTeamNameForMOM = isTie ? "Tied" : bwTeam;
+
                 if(isLeagueMatchGlobal && !tournamentPointsUpdated) {
-                    let loseTeam = (runs === targetNum - 1) ? "Tied" : bTeam;
-                    updateTournamentStandings(winTeamName, loseTeam, firstInningsRunsStored, firstInningsOversStored, runs, totalOvers + ".0");
+                    if (isTie) {
+                        updateTournamentStandings(bTeam, bwTeam, firstInningsRunsStored, firstInningsOversStored, runs, totalOvers + ".0", true);
+                    } else {
+                        updateTournamentStandings(bwTeam, bTeam, firstInningsRunsStored, firstInningsOversStored, runs, totalOvers + ".0", false);
+                    }
                     tournamentPointsUpdated = true;
                 }
                 processAndUpdate(); 
-                showMatchResultPopup(winnerText, winTeamName); 
+                showMatchResultPopup(winnerText, winTeamNameForMOM); 
                 return true;
             }
         }
@@ -1098,18 +1110,47 @@
         let bTeam = document.getElementById('batTeamName').value;
         let bwTeam = document.getElementById('bowlTeamName').value;
         let winTeam = bTeam;
+        let isTie = false;
 
+        let tNum = 0;
         if (firstInningsRunsStored > 0) {
-            let tNum = firstInningsRunsStored + 1;
-            document.getElementById('targetMsg').value = (runs >= tNum) ? `${bTeam} Won by target chase! 🎉` : `${bwTeam} Won! 🏆`;
-            winTeam = (runs >= tNum) ? bTeam : bwTeam;
+            tNum = firstInningsRunsStored + 1;
         } else if (tMsg.includes("Target:")) {
-            let tNum = parseInt(tMsg.match(/Target:\s*(\d+)/)[1]);
-            document.getElementById('targetMsg').value = (runs >= tNum) ? `${bTeam} Won by target chase! 🎉` : `${bwTeam} Won! 🏆`;
-            winTeam = (runs >= tNum) ? bTeam : bwTeam;
-        } else { 
-            document.getElementById('targetMsg').value = `Match Ended Early!`; 
+            let match = tMsg.match(/Target:\s*(\d+)/);
+            if (match) tNum = parseInt(match[1]);
         }
+
+        if (tNum > 0) {
+            if (runs >= tNum) {
+                winTeam = bTeam;
+            } else if (runs === tNum - 1) {
+                isTie = true;
+                winTeam = "Tied";
+            } else {
+                winTeam = bwTeam;
+            }
+        }
+
+        if (isTie) {
+            document.getElementById('targetMsg').value = `Match Tied! 🤝`;
+            if(isLeagueMatchGlobal && !tournamentPointsUpdated) {
+                updateTournamentStandings(bTeam, bwTeam, firstInningsRunsStored, firstInningsOversStored, runs, document.getElementById('overs').value, true);
+                tournamentPointsUpdated = true;
+            }
+        } else if (firstInningsRunsStored > 0) {
+            document.getElementById('targetMsg').value = (runs >= tNum) ? `${bTeam} Won by target chase! 🎉` : `${bwTeam} Won! 🏆`;
+            if(isLeagueMatchGlobal && !tournamentPointsUpdated) {
+                if (runs >= tNum) {
+                    updateTournamentStandings(bTeam, bwTeam, runs, document.getElementById('overs').value, firstInningsRunsStored, firstInningsOversStored, false);
+                } else {
+                    updateTournamentStandings(bwTeam, bTeam, firstInningsRunsStored, firstInningsOversStored, runs, document.getElementById('overs').value, false);
+                }
+                tournamentPointsUpdated = true;
+            }
+        } else {
+            document.getElementById('targetMsg').value = `Match Ended Early!`;
+        }
+
         matchEnded = true; currentEvent = "WINNER"; processAndUpdate(); 
         showMatchResultPopup(document.getElementById('targetMsg').value, winTeam);
     };
@@ -1314,6 +1355,23 @@
         alert(`📺 ${playerName}'s stats casted to Scoreboard!`); document.getElementById('leaderboardModal').style.display = 'none';
     };
 
+    function parseSquadData(obj, teamName) {
+        if (!obj) return "";
+        if (typeof obj === 'string') return obj === "[object Object]" ? "" : obj;
+        if (Array.isArray(obj)) return obj[0] === teamName ? obj.join('\n') : [teamName, ...obj].join('\n');
+        
+        if (typeof obj === 'object') {
+            let pData = obj.players || obj.squad || obj.playerList || obj.squadList || obj.team;
+            if (pData) {
+                if (Array.isArray(pData)) return pData[0] === teamName ? pData.join('\n') : [teamName, ...pData].join('\n');
+                if (typeof pData === 'string') return pData;
+            }
+            let names = Object.values(obj).filter(v => typeof v === 'string' && v.trim().length > 1 && v !== teamName);
+            if (names.length > 0) return [teamName, ...names].join('\n');
+        }
+        return "";
+    }
+
     function getControllerState() {
         const storedData = localStorage.getItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
         if (storedData) {
@@ -1423,12 +1481,10 @@
 
         let hasSavedState = getControllerState();
 
-        if (activeTournamentId && activeMatchId) {
+        if (activeTournamentId && activeMatchId && !hasSavedState) {
             try {
-                const userSnap = await get(ref(db, 'usernames/' + currentMatchUser));
-                if (userSnap.exists()) {
-                    const uid = userSnap.val();
-                    const tourSnap = await get(ref(db, `users/${uid}/tournaments/${activeTournamentId}`));
+                if(currentUserId) {
+                    const tourSnap = await get(ref(db, `users/${currentUserId}/tournaments/${activeTournamentId}`));
                     if (tourSnap.exists()) {
                         const tData = tourSnap.val();
                         
@@ -1445,53 +1501,67 @@
                             }
                             
                             isLeagueMatchGlobal = (matchInfo.type === 'league');
-                        }
+                            
+                            let t1Obj = (tData.teams || {})[loadedBatTeam];
+                            if (!t1Obj && tData.squads) t1Obj = tData.squads[loadedBatTeam];
+                            
+                            let t2Obj = (tData.teams || {})[loadedBowlTeam];
+                            if (!t2Obj && tData.squads) t2Obj = tData.squads[loadedBowlTeam];
 
-                        const teamsData = tData.teams || {};
-                        
-                        const findTeamObject = (searchName) => {
-                            if (!searchName) return null;
-                            if (teamsData[searchName]) return teamsData[searchName];
-                            let foundKey = Object.keys(teamsData).find(k => k.trim().toLowerCase() === searchName.trim().toLowerCase());
-                            if (foundKey) return teamsData[foundKey];
-                            return Object.values(teamsData).find(t => t.name && t.name.trim().toLowerCase() === searchName.trim().toLowerCase());
-                        };
-
-                        let team1Obj = findTeamObject(loadedBatTeam);
-                        if (team1Obj) {
-                            if(team1Obj.name) loadedBatTeam = team1Obj.name;
-                            let pList = team1Obj.players ? (Array.isArray(team1Obj.players) ? team1Obj.players : Object.values(team1Obj.players)) : [];
-                            squad1 = [loadedBatTeam, ...pList].join('\n');
-                        } else {
-                            squad1 = loadedBatTeam;
-                        }
-
-                        let team2Obj = findTeamObject(loadedBowlTeam);
-                        if (team2Obj) {
-                            if(team2Obj.name) loadedBowlTeam = team2Obj.name;
-                            let pList = team2Obj.players ? (Array.isArray(team2Obj.players) ? team2Obj.players : Object.values(team2Obj.players)) : [];
-                            squad2 = [loadedBowlTeam, ...pList].join('\n');
-                        } else {
-                            squad2 = loadedBowlTeam;
+                            squad1 = parseSquadData(t1Obj, loadedBatTeam);
+                            squad2 = parseSquadData(t2Obj, loadedBowlTeam);
                         }
                     }
                 }
             } catch (err) {
-                console.error("Error loading tournament match data:", err);
+                console.error("Error fetching tournament data:", err);
             }
         }
 
-        if (loadedBatTeam) document.getElementById('batTeamName').value = loadedBatTeam;
-        if (loadedBowlTeam) document.getElementById('bowlTeamName').value = loadedBowlTeam;
-        
-        if (scheduledMatchOvers) {
-            document.getElementById('totalOvers').value = scheduledMatchOvers;
-        } else if (!document.getElementById('totalOvers').value) {
-            document.getElementById('totalOvers').value = 10;
-        }
+        if (!hasSavedState) {
+            try {
+                const liveSnap = await get(ref(db, `live_matches/${currentMatchUser}/score`));
+                if (liveSnap.exists()) {
+                    const mData = liveSnap.val();
+                    
+                    if (mData.batTeamName) loadedBatTeam = mData.batTeamName;
+                    if (mData.bowlTeamName) loadedBowlTeam = mData.bowlTeamName;
+                    
+                    if (mData.squad1Data && mData.squad1Data !== "[object Object]" && !mData.squad1Data.includes("Player 1\nPlayer 2")) {
+                        squad1 = mData.squad1Data;
+                    }
+                    if (mData.squad2Data && mData.squad2Data !== "[object Object]" && !mData.squad2Data.includes("Player 1\nPlayer 2")) {
+                        squad2 = mData.squad2Data;
+                    }
+                    
+                    if (!scheduledMatchOvers && mData.totalOvers) {
+                        scheduledMatchOvers = mData.totalOvers;
+                        document.getElementById('totalOvers').value = scheduledMatchOvers;
+                    }
+                    if (mData.firstInningsRuns !== undefined && mData.firstInningsRuns > 0) {
+                        firstInningsRunsStored = mData.firstInningsRuns;
+                    }
+                    if (mData.firstInningsOvers !== undefined) {
+                        firstInningsOversStored = mData.firstInningsOvers;
+                    }
+                }
+            } catch (e) {}
 
-        localStorage.setItem(`tempBatSquad_${currentMatchUser}_${activeMatchId}`, squad1);
-        localStorage.setItem(`tempBowlSquad_${currentMatchUser}_${activeMatchId}`, squad2);
+            if (!squad1 || squad1.trim() === "") squad1 = loadedBatTeam;
+            if (!squad2 || squad2.trim() === "") squad2 = loadedBowlTeam;
+
+            if (loadedBatTeam) document.getElementById('batTeamName').value = loadedBatTeam;
+            if (loadedBowlTeam) document.getElementById('bowlTeamName').value = loadedBowlTeam;
+            
+            if (scheduledMatchOvers) {
+                document.getElementById('totalOvers').value = scheduledMatchOvers;
+            } else if (!document.getElementById('totalOvers').value) {
+                document.getElementById('totalOvers').value = 10;
+            }
+
+            localStorage.setItem(`tempBatSquad_${currentMatchUser}_${activeMatchId}`, squad1);
+            localStorage.setItem(`tempBowlSquad_${currentMatchUser}_${activeMatchId}`, squad2);
+        }
 
         updateSuggestions();
         document.getElementById('playerPanel').open = true;
@@ -1501,6 +1571,7 @@
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
+            currentUserId = user.uid; 
             if (!currentMatchUser) {
                 currentMatchUser = localStorage.getItem('proCricketUsername') || "user";
             }
