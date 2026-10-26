@@ -92,10 +92,6 @@
 
     <!-- ২. নির্দিষ্ট টুর্নামেন্ট প্যানেল -->
     <div id="activeTournamentView" class="page-section">
-        
-        <div style="margin-bottom: 15px;">
-            <a id="backToHubBtn" href="#" style="color: #0056b3; text-decoration: none; font-weight: bold; font-size: 14px;">⬅️ Back to Tournaments List</a>
-        </div>
 
         <!-- টিম ও স্কোয়াড ম্যানেজমেন্ট সেকশন -->
         <div class="box" style="border-color: #b8daff;">
@@ -202,10 +198,6 @@
     let currentUsername = urlParams.get('u') || localStorage.getItem('proCricketUsername');
 
     const currentPageName = window.location.pathname.split("/").pop() || "tournament.html";
-
-    if (currentUsername) {
-        document.getElementById('backToHubBtn').href = `${currentPageName}?u=${currentUsername}`;
-    }
 
     let currentUserId = "";
     let globalTeamsData = {};
