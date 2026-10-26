@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tournament List & Hub</title>
+    <title>Tournament List</title>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Poppins', sans-serif; background: #eef2f3; padding: 20px; margin: 0; }
@@ -17,7 +17,8 @@
         .btn:hover { background: #218838; }
         .tournament-list { list-style: none; padding: 0; margin-top: 10px; }
         .tournament-item { background: #fff; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; }
-        .tournament-name { font-weight: bold; color: #1e3c72; font-size: 16px; flex: 1; }
+        .tournament-link { text-decoration: none; color: #0056b3; font-weight: bold; font-size: 16px; flex: 1; display: flex; align-items: center; justify-content: space-between; }
+        .tournament-link:hover { color: #004085; text-decoration: underline; }
         .btn-delete-icon { background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.3); width: 32px; height: 32px; border-radius: 5px; cursor: pointer; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; }
         .btn-delete-icon:hover { background: #dc3545; color: white; }
     </style>
@@ -26,10 +27,10 @@
 
 <div class="container" id="mainContainer" style="display: none;">
     <div class="header-nav">
-        <h2>🏆 Tournaments List & Management</h2>
+        <h2>🏆 Tournament List</h2>
     </div>
 
-    <!-- নতুন টুর্নামেন্ট ক্রিয়েট করার বক্স -->
+    <!-- টুর্নামেন্ট ক্রিয়েট করার বক্স -->
     <div class="box">
         <h3>➕ Create New Tournament</h3>
         <label>Tournament Name</label>
@@ -39,7 +40,7 @@
 
     <!-- টুর্নামেন্ট লিস্ট -->
     <div class="box">
-        <h3>📋 My Tournaments List</h3>
+        <h3>📋 My Tournaments (Click to open panel)</h3>
         <ul id="tournamentsListContainer" class="tournament-list">
             <li style="text-align:center; color:#888; width: 100%;">Loading tournaments...</li>
         </ul>
@@ -107,9 +108,11 @@
                     let li = document.createElement('li');
                     li.className = "tournament-item";
                     
-                    // এখানে নামটিকে সাধারণ টেক্সট (span) করে দেওয়া হয়েছে, যাতে কোনো ক্লিক বা রিডাইরেক্ট না হয়
                     li.innerHTML = `
-                        <span class="tournament-name">🏆 ${tour.name || 'Unnamed Tournament'}</span>
+                        <a href="TournamentPanel.html?t=${tId}&u=${currentUsername}" class="tournament-link">
+                            <span>🏆 ${tour.name || 'Unnamed Tournament'}</span>
+                            <span style="font-size: 14px; color: #0056b3;">Open Panel ➔</span>
+                        </a>
                         <button class="btn-delete-icon" style="margin-left: 10px;" onclick="window.deleteTournament('${tId}')" title="Delete Tournament">🗑️</button>
                     `;
                     container.appendChild(li);
@@ -150,3 +153,4 @@
 
 </body>
 </html>
+
