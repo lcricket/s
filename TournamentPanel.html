@@ -8,7 +8,7 @@
     <style>
         body { font-family: 'Poppins', sans-serif; background: #eef2f3; padding: 20px; margin: 0; }
         .container { max-width: 850px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        .header-nav { border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 20px; }
+        .header-nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
         h2, h3 { color: #1e3c72; font-family: 'Oswald', sans-serif; text-transform: uppercase; margin: 0; }
         .box { background: #f9f9f9; padding: 18px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
         label { font-weight: bold; display: block; margin-top: 10px; font-size: 14px; color: #444; }
@@ -34,9 +34,10 @@
 </head>
 <body>
 
-<div class="container" id="mainContainer">
+<div class="container" id="mainContainer" style="display: none;">
     <div class="header-nav">
         <h2 id="tourTitle">🏆 Tournament Panel</h2>
+        <a id="backToHubBtn" href="tournament-list.html" style="color: #0056b3; text-decoration: none; font-weight: bold; font-size: 14px;">⬅️ Go to Tournaments List</a>
     </div>
 
     <!-- টুর্নামেন্ট সিলেকশন ড্রপডাউন বক্স -->
@@ -118,11 +119,16 @@
     let tourId = urlParams.get('t');
     let currentUsername = urlParams.get('u') || localStorage.getItem('proCricketUsername');
 
+    if (currentUsername) {
+        document.getElementById('backToHubBtn').href = `tournament-list.html?u=${currentUsername}`;
+    }
+
     let currentUserId = "";
     let globalTeamsData = {};
 
     async function initTournamentPanel() {
         try {
+            // ইউজারের সব টুর্নামেন্ট ফেচ করে ড্রপডাউনে লোড করা
             const tourSnap = await get(ref(db, `users/${currentUserId}/tournaments`));
             const selectDropdown = document.getElementById('tournamentSelect');
             selectDropdown.innerHTML = '<option value="">-- Choose a Tournament --</option>';
@@ -152,6 +158,7 @@
     window.switchTournament = function(selectedTourId) {
         if (!selectedTourId) return;
         tourId = selectedTourId;
+        // URL আপডেট করা যাতে পেজ রিফ্রেশ হলেও আইডি থাকে
         const newUrl = `TournamentPanel.html?t=${tourId}&u=${currentUsername}`;
         window.history.pushState({path: newUrl}, '', newUrl);
         loadTournamentData(tourId);
@@ -472,13 +479,13 @@
         }
     };
 
-    // ফায়ারবেস অথেন্টিকেশন সিকিউরিটি চেক (কন্টেইনার হাইড করা বাদ দিয়ে সরাসরি লোড নিশ্চিত করা হয়েছে)
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserId = user.uid;
             if (!currentUsername) {
                 currentUsername = localStorage.getItem('proCricketUsername') || "user";
             }
+            document.getElementById('mainContainer').style.display = 'block';
             initTournamentPanel();
         } else {
             alert("⚠️ Unauthorized access! Please login first.");
@@ -489,3 +496,4 @@
 
 </body>
 </html>
+
