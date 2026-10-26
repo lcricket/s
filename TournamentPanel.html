@@ -123,8 +123,8 @@
 
     async function initTournamentPanel() {
         if (!tourId) {
-            // আইডি না থাকলে আর অ্যালার্ট দিয়ে রিডাইরেক্ট করবে না, বরং প্যানেলটি সাধারণভাবে ওপেন রাখবে
-            document.getElementById('tourTitle').innerText = "🏆 Tournament Panel (No Tournament Selected)";
+            alert("⚠️ No tournament selected! Redirecting to list...");
+            window.location.href = `tournament-list.html?u=${currentUsername}`;
             return;
         }
 
@@ -133,6 +133,8 @@
             const tourSnap = await get(tourRef);
             if (tourSnap.exists()) {
                 document.getElementById('tourTitle').innerText = "🏆 " + (tourSnap.val().name || "Tournament");
+            } else {
+                document.getElementById('tourTitle').innerText = "🏆 Tournament Panel";
             }
 
             loadTeamsAndSquads();
@@ -143,10 +145,7 @@
     }
 
     window.saveTeamWithSquad = async function() {
-        if (!tourId) {
-            alert("⚠️ Please select or pass a tournament first!");
-            return;
-        }
+        if (!tourId) return;
         const teamName = document.getElementById('teamNameInput').value.trim();
         const squadText = document.getElementById('squadInput').value.trim();
 
@@ -345,10 +344,7 @@
     }
 
     window.scheduleMatch = async function() {
-        if (!tourId) {
-            alert("⚠️ Please select a tournament first!");
-            return;
-        }
+        if (!tourId) return;
         const team1 = document.getElementById('team1Select').value;
         const team2 = document.getElementById('team2Select').value;
         const overs = document.getElementById('matchOversInput').value || 10;
@@ -419,7 +415,6 @@
                 await remove(ref(db, `live_matches/${currentUsername}/score`));
             }
 
-            // বাধ্যতামূলক কন্ট্রোলারে রিডাইরেক্ট (controller.html)
             let targetUrl = `controller.html?t=${tourId}&u=${currentUsername}&m=${matchId}&t1=${encodeURIComponent(t1)}&t2=${encodeURIComponent(t2)}&overs=${overs}&type=${encodeURIComponent(type)}`;
             window.location.href = targetUrl;
             
@@ -441,7 +436,6 @@
         }
     };
 
-    // ফায়ারবেস অথেন্টিকেশন সিকিউরিটি চেক
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserId = user.uid;
@@ -459,3 +453,4 @@
 
 </body>
 </html>
+
