@@ -1314,23 +1314,6 @@
         alert(`📺 ${playerName}'s stats casted to Scoreboard!`); document.getElementById('leaderboardModal').style.display = 'none';
     };
 
-    function parseSquadData(obj, teamName) {
-        if (!obj) return "";
-        if (typeof obj === 'string') return obj === "[object Object]" ? "" : obj;
-        if (Array.isArray(obj)) return obj[0] === teamName ? obj.join('\n') : [teamName, ...obj].join('\n');
-        
-        if (typeof obj === 'object') {
-            let pData = obj.players || obj.squad || obj.playerList || obj.squadList || obj.team;
-            if (pData) {
-                if (Array.isArray(pData)) return pData[0] === teamName ? pData.join('\n') : [teamName, ...pData].join('\n');
-                if (typeof pData === 'string') return pData;
-            }
-            let names = Object.values(obj).filter(v => typeof v === 'string' && v.trim().length > 1 && v !== teamName);
-            if (names.length > 0) return [teamName, ...names].join('\n');
-        }
-        return "";
-    }
-
     function getControllerState() {
         const storedData = localStorage.getItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
         if (storedData) {
@@ -1462,50 +1445,32 @@
                             }
                             
                             isLeagueMatchGlobal = (matchInfo.type === 'league');
-                            
-                            let t1Obj = (tData.teams || {})[loadedBatTeam];
-                            if (!t1Obj && tData.squads) t1Obj = tData.squads[loadedBatTeam];
-                            
-                            let t2Obj = (tData.teams || {})[loadedBowlTeam];
-                            if (!t2Obj && tData.squads) t2Obj = tData.squads[loadedBowlTeam];
+                        }
 
-                            squad1 = parseSquadData(t1Obj, loadedBatTeam);
-                            squad2 = parseSquadData(t2Obj, loadedBowlTeam);
+                        // ফায়ারবেস থেকে সরাসরি সঠিক পাথ থেকে স্কোয়াড ফেচ করা
+                        const teamsData = tData.teams || {};
+                        
+                        if (loadedBatTeam && teamsData[loadedBatTeam] && teamsData[loadedBatTeam].players) {
+                            let pList = teamsData[loadedBatTeam].players;
+                            squad1 = [loadedBatTeam, ...pList].join('\n');
+                        } else {
+                            squad1 = loadedBatTeam;
+                        }
+
+                        if (loadedBowlTeam && teamsData[loadedBowlTeam] && teamsData[loadedBowlTeam].players) {
+                            let pList = teamsData[loadedBowlTeam].players;
+                            squad2 = [loadedBowlTeam, ...pList].join('\n');
+                        } else {
+                            squad2 = loadedBowlTeam;
                         }
                     }
                 }
-            } catch (err) {}
+            } catch (err) {
+                console.error("Error loading tournament match data:", err);
+            }
         }
 
         if (!hasSavedState) {
-            try {
-                const liveSnap = await get(ref(db, `live_matches/${currentMatchUser}/score`));
-                if (liveSnap.exists()) {
-                    const mData = liveSnap.val();
-                    
-                    if (mData.batTeamName) loadedBatTeam = mData.batTeamName;
-                    if (mData.bowlTeamName) loadedBowlTeam = mData.bowlTeamName;
-                    
-                    if (mData.squad1Data && mData.squad1Data !== "[object Object]" && !mData.squad1Data.includes("Player 1\nPlayer 2")) {
-                        squad1 = mData.squad1Data;
-                    }
-                    if (mData.squad2Data && mData.squad2Data !== "[object Object]" && !mData.squad2Data.includes("Player 1\nPlayer 2")) {
-                        squad2 = mData.squad2Data;
-                    }
-                    
-                    if (!scheduledMatchOvers && mData.totalOvers) {
-                        scheduledMatchOvers = mData.totalOvers;
-                        document.getElementById('totalOvers').value = scheduledMatchOvers;
-                    }
-                    if (mData.firstInningsRuns !== undefined && mData.firstInningsRuns > 0) {
-                        firstInningsRunsStored = mData.firstInningsRuns;
-                    }
-                    if (mData.firstInningsOvers !== undefined) {
-                        firstInningsOversStored = mData.firstInningsOvers;
-                    }
-                }
-            } catch (e) {}
-
             if (!squad1 || squad1.trim() === "") squad1 = loadedBatTeam;
             if (!squad2 || squad2.trim() === "") squad2 = loadedBowlTeam;
 
