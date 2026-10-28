@@ -16,7 +16,7 @@
         .mode-tab { flex: 1; padding: 8px; border: none; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; background: transparent; color: #64748b; transition: all 0.2s; }
         .mode-tab.active { background: #007bff; color: white; box-shadow: 0 2px 5px rgba(0,123,255,0.3); }
 
-        /* Category Selector */
+        /* Category & Tournament Selector */
         .select-box { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; font-weight: bold; color: #334155; background: #f8fafc; margin-bottom: 15px; }
 
         /* Table Styling */
@@ -39,6 +39,11 @@
     <div class="header-title">
         <span id="tourTitle">📊 Leaderboard</span>
     </div>
+
+    <!-- Tournament Selection Dropdown (NEW) -->
+    <select id="tournamentDropdown" class="select-box" onchange="changeTournament()" style="display: none;">
+        <option value="">-- Select Tournament --</option>
+    </select>
 
     <!-- Tournament vs Match Mode Switcher -->
     <div class="mode-container">
@@ -93,11 +98,28 @@
     const urlParams = new URLSearchParams(window.location.search);
     let currentMatchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername');
     let currentUserId = "";
-    const activeTournamentId = urlParams.get('t');
+    
+    // Changed const to let so it can be updated from dropdown
+    let activeTournamentId = urlParams.get('t'); 
     const activeMatchId = urlParams.get('m') || "default_match";
 
     let currentMode = 'tournament';
     let cachedPlayersData = {};
+
+    // NEW: Function to handle tournament dropdown change
+    window.changeTournament = function() {
+        const dropdown = document.getElementById('tournamentDropdown');
+        activeTournamentId = dropdown.value;
+        
+        if (activeTournamentId) {
+            const selectedText = dropdown.options[dropdown.selectedIndex].text;
+            document.getElementById('tourTitle').innerText = "🏆 " + selectedText;
+        } else {
+            document.getElementById('tourTitle').innerText = "📊 Leaderboard";
+        }
+        
+        loadLeaderboardData();
+    }
 
     window.switchMode = function(mode) {
         currentMode = mode;
@@ -135,7 +157,7 @@
         let pArr = Object.keys(cachedPlayersData).map(name => ({ name: name, data: cachedPlayersData[name] }));
 
         if (pArr.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:#888; padding: 20px;">No player records found</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:#888; padding: 20px;">No player records found for this selection</td></tr>`;
             return;
         }
 
@@ -180,6 +202,37 @@
         });
     }
 
+    // NEW: Function to load user's tournaments into the dropdown
+    async function loadTournamentsDropdown(uid) {
+        try {
+            const tourSnap = await get(ref(db, `users/${uid}/tournaments`));
+            if (tourSnap.exists()) {
+                const tournaments = tourSnap.val();
+                const dropdown = document.getElementById('tournamentDropdown');
+                
+                // Show dropdown if there is data
+                dropdown.style.display = "block";
+                
+                // Populate options
+                for (let tId in tournaments) {
+                    let option = document.createElement('option');
+                    option.value = tId;
+                    option.innerText = tournaments[tId].name || "Unnamed Tournament";
+                    
+                    // If this matches the URL parameter 't', set it as selected
+                    if (tId === activeTournamentId) {
+                        option.selected = true;
+                        document.getElementById('tourTitle').innerText = "🏆 " + (tournaments[tId].name || "Leaderboard");
+                    }
+                    
+                    dropdown.appendChild(option);
+                }
+            }
+        } catch(e) {
+            console.error("Error loading tournaments list:", e);
+        }
+    }
+
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserId = user.uid;
@@ -187,15 +240,10 @@
                 currentMatchUser = localStorage.getItem('proCricketUsername') || "user";
             }
             
-            if (activeTournamentId) {
-                try {
-                    const tourSnap = await get(ref(db, `users/${currentUserId}/tournaments/${activeTournamentId}`));
-                    if (tourSnap.exists()) {
-                        document.getElementById('tourTitle').innerText = "🏆 " + (tourSnap.val().name || "Leaderboard");
-                    }
-                } catch(e) {}
-            }
+            // Load the dropdown list first
+            await loadTournamentsDropdown(currentUserId);
             
+            // Initial data load
             loadLeaderboardData();
         } else {
             alert("⚠️ Please login first.");
@@ -206,3 +254,4 @@
 
 </body>
 </html>
+
