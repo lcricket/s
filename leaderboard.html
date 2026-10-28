@@ -11,13 +11,11 @@
         
         .header-title { font-family: 'Oswald', sans-serif; color: #1e3c72; font-size: 22px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
 
-        /* Mode Switcher */
-        .mode-container { display: flex; background: #f1f5f9; padding: 4px; border-radius: 8px; margin-bottom: 15px; gap: 4px; }
-        .mode-tab { flex: 1; padding: 8px; border: none; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; background: transparent; color: #64748b; transition: all 0.2s; }
-        .mode-tab.active { background: #007bff; color: white; box-shadow: 0 2px 5px rgba(0,123,255,0.3); }
-
-        /* Category & Tournament Selector */
-        .select-box { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; font-weight: bold; color: #334155; background: #f8fafc; margin-bottom: 15px; }
+        /* Selectors */
+        .select-box { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; font-weight: bold; color: #334155; background: #f8fafc; margin-bottom: 15px; cursor: pointer; }
+        
+        /* Tournament Selector Specific */
+        #tournamentSelector { border-color: #007bff; background: #eef2ff; color: #1e3c72; }
 
         /* Table Styling */
         .leaderboard-table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
@@ -40,16 +38,10 @@
         <span id="tourTitle">📊 Leaderboard</span>
     </div>
 
-    <!-- Tournament Selection Dropdown (NEW) -->
-    <select id="tournamentDropdown" class="select-box" onchange="changeTournament()" style="display: none;">
-        <option value="">-- Select Tournament --</option>
+    <!-- Tournament Dropdown -->
+    <select id="tournamentSelector" class="select-box" onchange="changeTournament()">
+        <option value="">⏳ Loading Tournaments...</option>
     </select>
-
-    <!-- Tournament vs Match Mode Switcher -->
-    <div class="mode-container">
-        <button id="btnTour" class="mode-tab active" onclick="switchMode('tournament')">🏆 Tournament</button>
-        <button id="btnMatch" class="mode-tab" onclick="switchMode('match')">🏏 This Match</button>
-    </div>
 
     <!-- Category Dropdown -->
     <select id="leaderboardCategory" class="select-box" onchange="renderLeaderboard()">
@@ -98,33 +90,24 @@
     const urlParams = new URLSearchParams(window.location.search);
     let currentMatchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername');
     let currentUserId = "";
-    
-    // Changed const to let so it can be updated from dropdown
-    let activeTournamentId = urlParams.get('t'); 
-    const activeMatchId = urlParams.get('m') || "default_match";
-
-    let currentMode = 'tournament';
+    let activeTournamentId = urlParams.get('t');
     let cachedPlayersData = {};
 
-    // NEW: Function to handle tournament dropdown change
     window.changeTournament = function() {
-        const dropdown = document.getElementById('tournamentDropdown');
-        activeTournamentId = dropdown.value;
+        const selector = document.getElementById('tournamentSelector');
+        activeTournamentId = selector.value;
         
         if (activeTournamentId) {
-            const selectedText = dropdown.options[dropdown.selectedIndex].text;
-            document.getElementById('tourTitle').innerText = "🏆 " + selectedText;
+            document.getElementById('tourTitle').innerText = "🏆 " + selector.options[selector.selectedIndex].text;
+            
+            // Update URL without reloading
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('t', activeTournamentId);
+            window.history.pushState({}, '', newUrl);
         } else {
             document.getElementById('tourTitle').innerText = "📊 Leaderboard";
         }
         
-        loadLeaderboardData();
-    }
-
-    window.switchMode = function(mode) {
-        currentMode = mode;
-        document.getElementById('btnTour').className = mode === 'tournament' ? 'mode-tab active' : 'mode-tab';
-        document.getElementById('btnMatch').className = mode === 'match' ? 'mode-tab active' : 'mode-tab';
         loadLeaderboardData();
     }
 
@@ -133,15 +116,12 @@
         tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:#888; padding: 20px;">Loading...</td></tr>`;
 
         try {
-            if (currentMode === 'tournament') {
-                if (activeTournamentId && currentMatchUser) {
-                    const snap = await get(ref(db, `live_matches/${currentMatchUser}/tournaments_data/${activeTournamentId}/players/`));
-                    cachedPlayersData = snap.val() || {};
-                } else {
-                    cachedPlayersData = {};
-                }
+            // Only fetching Tournament data now
+            if (activeTournamentId && currentMatchUser) {
+                const snap = await get(ref(db, `live_matches/${currentMatchUser}/tournaments_data/${activeTournamentId}/players/`));
+                cachedPlayersData = snap.val() || {};
             } else {
-                cachedPlayersData = JSON.parse(localStorage.getItem(`currentMatchPlayers_${currentMatchUser}_${activeMatchId}`) || '{}');
+                cachedPlayersData = {};
             }
             window.renderLeaderboard();
         } catch (e) {
@@ -157,7 +137,7 @@
         let pArr = Object.keys(cachedPlayersData).map(name => ({ name: name, data: cachedPlayersData[name] }));
 
         if (pArr.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:#888; padding: 20px;">No player records found for this selection</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:#888; padding: 20px;">No player records found</td></tr>`;
             return;
         }
 
@@ -202,37 +182,6 @@
         });
     }
 
-    // NEW: Function to load user's tournaments into the dropdown
-    async function loadTournamentsDropdown(uid) {
-        try {
-            const tourSnap = await get(ref(db, `users/${uid}/tournaments`));
-            if (tourSnap.exists()) {
-                const tournaments = tourSnap.val();
-                const dropdown = document.getElementById('tournamentDropdown');
-                
-                // Show dropdown if there is data
-                dropdown.style.display = "block";
-                
-                // Populate options
-                for (let tId in tournaments) {
-                    let option = document.createElement('option');
-                    option.value = tId;
-                    option.innerText = tournaments[tId].name || "Unnamed Tournament";
-                    
-                    // If this matches the URL parameter 't', set it as selected
-                    if (tId === activeTournamentId) {
-                        option.selected = true;
-                        document.getElementById('tourTitle').innerText = "🏆 " + (tournaments[tId].name || "Leaderboard");
-                    }
-                    
-                    dropdown.appendChild(option);
-                }
-            }
-        } catch(e) {
-            console.error("Error loading tournaments list:", e);
-        }
-    }
-
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserId = user.uid;
@@ -240,10 +189,39 @@
                 currentMatchUser = localStorage.getItem('proCricketUsername') || "user";
             }
             
-            // Load the dropdown list first
-            await loadTournamentsDropdown(currentUserId);
+            // Fetch all tournaments
+            try {
+                const toursSnap = await get(ref(db, `users/${currentUserId}/tournaments/`));
+                const selector = document.getElementById('tournamentSelector');
+                
+                if (toursSnap.exists()) {
+                    const toursData = toursSnap.val();
+                    selector.innerHTML = '<option value="">-- Select a Tournament --</option>';
+                    
+                    for (let tId in toursData) {
+                        let opt = document.createElement('option');
+                        opt.value = tId;
+                        opt.textContent = toursData[tId].name || "Unnamed Tournament";
+                        
+                        if (tId === activeTournamentId) {
+                            opt.selected = true;
+                            document.getElementById('tourTitle').innerText = "🏆 " + opt.textContent;
+                        }
+                        selector.appendChild(opt);
+                    }
+                    
+                    if (!activeTournamentId && selector.options.length > 1) {
+                        selector.selectedIndex = 1;
+                        window.changeTournament(); 
+                    }
+                } else {
+                    selector.innerHTML = '<option value="">No Tournaments Found</option>';
+                }
+            } catch(e) {
+                console.error("Error fetching tournaments:", e);
+                document.getElementById('tournamentSelector').innerHTML = '<option value="">Error loading tournaments</option>';
+            }
             
-            // Initial data load
             loadLeaderboardData();
         } else {
             alert("⚠️ Please login first.");
@@ -254,4 +232,3 @@
 
 </body>
 </html>
-
