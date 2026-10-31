@@ -174,12 +174,20 @@
         <div class="player-grid-3">
             <div class="box" id="strikerBox" style="background: #fff;">
                 <h3 style="color: #b78103;">Striker 🏏</h3>
-                <label>Name / Type</label> 
-                <!-- ড্রপডাউন এবং সরাসরি নাম টাইপ করার অপশন (Datalist Input) -->
-                <input type="text" id="bat1Name" list="bat1List" placeholder="Select or type..." onchange="window.onPlayerSelectionChanged('striker')" oninput="window.onPlayerSelectionChanged('striker')">
-                <datalist id="bat1List"></datalist>
+                
+                <!-- ড্রপডাউন সিলেক্ট অপশন (সবসময় থাকবে) -->
+                <label>Select from List</label>
+                <select id="bat1Select" onchange="window.onDropdownSelectionChanged('striker')">
+                    <option value="">-- Striker --</option>
+                </select>
 
-                <div class="small-flex">
+                <!-- টেক্সট ইনপুট অপশন (১১ জনের কম হলে আসবে) -->
+                <div id="bat1InputContainer" style="display: none; margin-top: 5px;">
+                    <label>Or Type Name</label>
+                    <input type="text" id="bat1Name" placeholder="Type new name..." oninput="window.onPlayerTextChanged('striker')">
+                </div>
+
+                <div class="small-flex" style="margin-top: 8px;">
                     <div style="flex: 1;"><label>Runs</label> <input type="number" id="bat1Runs" value="0" onchange="window.processAndUpdate()"></div>
                     <div style="flex: 1;"><label>Balls</label> <input type="number" id="bat1Balls" value="0" onchange="window.processAndUpdate()"></div>
                 </div>
@@ -187,12 +195,20 @@
             
             <div class="box" id="nonStrikerBox" style="background: #fff;">
                 <h3>Non-Striker</h3>
-                <label>Name / Type</label> 
-                <!-- ড্রপডাউন এবং সরাসরি নাম টাইপ করার অপশন (Datalist Input) -->
-                <input type="text" id="bat2Name" list="bat2List" placeholder="Select or type..." onchange="window.onPlayerSelectionChanged('nonStriker')" oninput="window.onPlayerSelectionChanged('nonStriker')">
-                <datalist id="bat2List"></datalist>
+                
+                <!-- ড্রপডাউন সিলেক্ট অপশন -->
+                <label>Select from List</label>
+                <select id="bat2Select" onchange="window.onDropdownSelectionChanged('nonStriker')">
+                    <option value="">-- Non-Striker --</option>
+                </select>
 
-                <div class="small-flex">
+                <!-- টেক্সট ইনপুট অপশন -->
+                <div id="bat2InputContainer" style="display: none; margin-top: 5px;">
+                    <label>Or Type Name</label>
+                    <input type="text" id="bat2Name" placeholder="Type new name..." oninput="window.onPlayerTextChanged('nonStriker')">
+                </div>
+
+                <div class="small-flex" style="margin-top: 8px;">
                     <div style="flex: 1;"><label>Runs</label> <input type="number" id="bat2Runs" value="0" onchange="window.processAndUpdate()"></div>
                     <div style="flex: 1;"><label>Balls</label> <input type="number" id="bat2Balls" value="0" onchange="window.processAndUpdate()"></div>
                 </div>
@@ -200,12 +216,20 @@
             
             <div class="box" id="bowlerBox" style="background: #fff;">
                 <h3>Bowler</h3>
-                <label>Name / Type</label> 
-                <!-- ড্রপডাউন এবং সরাসরি নাম টাইপ করার অপশন (Datalist Input) -->
-                <input type="text" id="bowlerName" list="bowlerList" placeholder="Select or type..." onchange="window.onBowlerNameChange()" oninput="window.onBowlerNameChange()">
-                <datalist id="bowlerList"></datalist>
+                
+                <!-- ড্রপডাউন সিলেক্ট অপশন -->
+                <label>Select from List</label>
+                <select id="bowlerSelect" onchange="window.onDropdownSelectionChanged('bowler')">
+                    <option value="">-- Bowler --</option>
+                </select>
 
-                <div class="small-flex">
+                <!-- টেক্সট ইনপুট অপশন -->
+                <div id="bowlerInputContainer" style="display: none; margin-top: 5px;">
+                    <label>Or Type Name</label>
+                    <input type="text" id="bowlerName" placeholder="Type new name..." oninput="window.onPlayerTextChanged('bowler')">
+                </div>
+
+                <div class="small-flex" style="margin-top: 8px;">
                     <div style="flex: 1;"><label>Wkt</label> <input type="number" id="bWickets" value="0" onchange="window.processAndUpdate()"></div>
                     <div style="flex: 1;"><label>Run</label> <input type="number" id="bRuns" value="0" onchange="window.processAndUpdate()"></div>
                     <div style="flex: 1;"><label>Ov</label> <input type="text" id="bowlerOvers" value="0.0" onchange="window.processAndUpdate()"></div>
@@ -320,6 +344,25 @@
         });
     }
 
+    // স্কোয়াড চেক করে ইনপুট ফিল্ড হাইড/শো করার ফাংশন
+    function checkSquadAndToggleInputs() {
+        let batPlayers = getPlayersList(true);
+        let bowlPlayers = getPlayersList(false);
+
+        let batInputBox = document.getElementById('bat1InputContainer');
+        let nsInputBox = document.getElementById('bat2InputContainer');
+        let bowlInputBox = document.getElementById('bowlerInputContainer');
+
+        // ব্যাটিং স্কোয়াডে ১১ জনের কম থাকলে ইনপুট বক্স দেখাবে, অন্যথায় হাইড থাকবে
+        let showBatInput = batPlayers.length < 11;
+        if(batInputBox) batInputBox.style.display = showBatInput ? 'block' : 'none';
+        if(nsInputBox) nsInputBox.style.display = showBatInput ? 'block' : 'none';
+
+        // বোলিং স্কোয়াডে ১১ জনের কম থাকলে বোলারের ইনপুট বক্স দেখাবে
+        let showBowlInput = bowlPlayers.length < 11;
+        if(bowlInputBox) bowlInputBox.style.display = showBowlInput ? 'block' : 'none';
+    }
+
     // নতুন নাম স্কোয়াডে যোগ করার ফাংশন
     function addNewPlayerToSquadIfNeeded(playerName, isBattingTeam) {
         if (!playerName || playerName.trim() === "") return;
@@ -333,10 +376,10 @@
             squadLines.push(playerName);
             localStorage.setItem(squadKey, squadLines.join('\n'));
             updateSquadsInFirebase();
+            checkSquadAndToggleInputs();
         }
     }
 
-    // ফায়ারবেসে স্কোয়াড সিঙ্ক করার ফাংশন
     function updateSquadsInFirebase() {
         let s1 = localStorage.getItem(`tempBatSquad_${currentMatchUser}_${activeMatchId}`) || "";
         let s2 = localStorage.getItem(`tempBowlSquad_${currentMatchUser}_${activeMatchId}`) || "";
@@ -362,25 +405,22 @@
 
         if (target === 'striker') {
             sBox.style.border = '2px solid #ffc107';
-            setTimeout(() => { document.getElementById('bat1Name').focus(); }, 120);
         } else if (target === 'nonStriker') {
             nsBox.style.border = '2px solid #ffc107';
-            setTimeout(() => { document.getElementById('bat2Name').focus(); }, 120);
         } else if (target === 'bowler') {
             bBox.style.border = '2px solid #007bff';
-            setTimeout(() => { document.getElementById('bowlerName').focus(); }, 120);
         }
     }
 
     function autoClosePanel() {
-        let b1 = document.getElementById('bat1Name').value;
-        let b2 = document.getElementById('bat2Name').value;
-        let bowler = document.getElementById('bowlerName').value;
-        if (b1 !== "" && b2 !== "" && bowler !== "" && !bowlerSelectionPending) {
+        // ১১ জনের লিস্ট পূর্ণ থাকলে এবং সবাই সিলেক্ট করা হলে প্যানেল অটো ক্লোজ হবে
+        let batPlayers = getPlayersList(true);
+        let b1 = document.getElementById('bat1Select').value;
+        let b2 = document.getElementById('bat2Select').value;
+        let bowler = document.getElementById('bowlerSelect').value;
+
+        if (batPlayers.length >= 11 && b1 !== "" && b2 !== "" && bowler !== "" && !bowlerSelectionPending) {
             document.getElementById('playerPanel').open = false;
-            document.getElementById('strikerBox').style.border = '1px solid #ddd';
-            document.getElementById('nonStrikerBox').style.border = '1px solid #ddd';
-            document.getElementById('bowlerBox').style.border = '1px solid #ddd';
         }
     }
 
@@ -499,75 +539,126 @@
         const battingPlayers = getPlayersList(true);
         const bowlingPlayers = getPlayersList(false);
 
-        const bat1List = document.getElementById('bat1List');
-        const bat2List = document.getElementById('bat2List');
-        const bowlerList = document.getElementById('bowlerList');
-        if (!bat1List || !bat2List || !bowlerList) return;
+        const bat1Select = document.getElementById('bat1Select');
+        const bat2Select = document.getElementById('bat2Select');
+        const bowlerSelect = document.getElementById('bowlerSelect');
+        if (!bat1Select || !bat2Select || !bowlerSelect) return;
 
-        const bat1Input = document.getElementById('bat1Name');
-        const bat2Input = document.getElementById('bat2Name');
-        const bowlerInput = document.getElementById('bowlerName');
+        const currentBat1 = bat1Select.value;
+        const currentBat2 = bat2Select.value;
+        const currentBowler = bowlerSelect.value;
 
-        const currentBat1 = bat1Input.value;
-        const currentBat2 = bat2Input.value;
-        const currentBowler = bowlerInput.value;
-
-        bowlerList.innerHTML = '';
+        bowlerSelect.innerHTML = '<option value="">-- Bowler --</option>';
         bowlingPlayers.forEach(player => {
             if (player !== lastBowler || player === currentBowler) {
                 let opt = document.createElement('option');
-                opt.value = player; 
-                bowlerList.appendChild(opt);
+                opt.value = player; opt.innerText = player;
+                bowlerSelect.appendChild(opt);
             }
         });
+        bowlerSelect.value = currentBowler;
 
-        bat1List.innerHTML = '';
+        bat1Select.innerHTML = '<option value="">-- Striker --</option>';
         battingPlayers.forEach(player => {
             if (!outPlayersList.includes(player) || player === currentBat1) {
                 if (player !== currentBat2 || player === "") {
                     let opt = document.createElement('option');
-                    opt.value = player; 
-                    bat1List.appendChild(opt);
+                    opt.value = player; opt.innerText = player;
+                    bat1Select.appendChild(opt);
                 }
             }
         });
+        bat1Select.value = currentBat1;
 
-        bat2List.innerHTML = '';
+        bat2Select.innerHTML = '<option value="">-- Non-Striker --</option>';
         battingPlayers.forEach(player => {
             if (!outPlayersList.includes(player) || player === currentBat2) {
                 if (player !== currentBat1 || player === "") {
                     let opt = document.createElement('option');
-                    opt.value = player; 
-                    bat2List.appendChild(opt);
+                    opt.value = player; opt.innerText = player;
+                    bat2Select.appendChild(opt);
                 }
             }
         });
+        bat2Select.value = currentBat2;
+
+        checkSquadAndToggleInputs();
     }
 
-    window.onPlayerSelectionChanged = function(changedSide) {
-        const b1 = document.getElementById('bat1Name').value.trim();
-        const b2 = document.getElementById('bat2Name').value.trim();
+    window.onDropdownSelectionChanged = function(changedSide) {
+        let b1 = document.getElementById('bat1Select').value;
+        let b2 = document.getElementById('bat2Select').value;
+        let bowler = document.getElementById('bowlerSelect').value;
+
+        if (changedSide === 'striker' && b1 !== "") {
+            document.getElementById('bat1Name').value = "";
+        } else if (changedSide === 'nonStriker' && b2 !== "") {
+            document.getElementById('bat2Name').value = "";
+        } else if (changedSide === 'bowler' && bowler !== "") {
+            if (bowler === lastBowler) { alert("⚠ Same bowler cannot bowl consecutive overs!"); document.getElementById('bowlerSelect').value = ""; return; }
+            document.getElementById('bowlerName').value = "";
+            if (bowlersRecord[bowler]) {
+                setVal('bWickets', bowlersRecord[bowler].wickets); setVal('bRuns', bowlersRecord[bowler].runs); document.getElementById('bowlerOvers').value = bowlersRecord[bowler].overs;
+            } else { setVal('bWickets', 0); setVal('bRuns', 0); document.getElementById('bowlerOvers').value = "0.0"; }
+            activeBowler = bowler; bowlerSelectionPending = false;
+        }
 
         if (b1 !== "" && b2 !== "" && b1 === b2) {
             alert("⚠️ Same player cannot be in both striker and non-striker positions!");
-            if (changedSide === 'striker') { document.getElementById('bat1Name').value = ""; } 
-            else { document.getElementById('bat2Name').value = ""; }
+            if (changedSide === 'striker') { document.getElementById('bat1Select').value = ""; } 
+            else { document.getElementById('bat2Select').value = ""; }
             return;
-        }
-        
-        if (changedSide === 'striker' && b1 !== "") {
-            addNewPlayerToSquadIfNeeded(b1, true);
-        } else if (changedSide === 'nonStriker' && b2 !== "") {
-            addNewPlayerToSquadIfNeeded(b2, true);
         }
 
         updateSuggestions(); processAndUpdate(); autoClosePanel();
     };
 
+    window.onPlayerTextChanged = function(changedSide) {
+        let b1Text = document.getElementById('bat1Name').value.trim();
+        let b2Text = document.getElementById('bat2Name').value.trim();
+        let bowlerText = document.getElementById('bowlerName').value.trim();
+
+        if (changedSide === 'striker' && b1Text !== "") {
+            document.getElementById('bat1Select').value = "";
+            addNewPlayerToSquadIfNeeded(b1Text, true);
+        } else if (changedSide === 'nonStriker' && b2Text !== "") {
+            document.getElementById('bat2Select').value = "";
+            addNewPlayerToSquadIfNeeded(b2Text, true);
+        } else if (changedSide === 'bowler' && bowlerText !== "") {
+            document.getElementById('bowlerSelect').value = "";
+            addNewPlayerToSquadIfNeeded(bowlerText, false);
+            activeBowler = bowlerText; bowlerSelectionPending = false;
+        }
+
+        processAndUpdate();
+    };
+
+    // বর্তমান সিলেক্ট করা বা টাইপ করা নাম পাওয়ার ফাংশন
+    function getActivePlayerName(side) {
+        if (side === 'bat1') {
+            let sVal = document.getElementById('bat1Select').value;
+            let tVal = document.getElementById('bat1Name').value.trim();
+            return sVal || tVal;
+        } else if (side === 'bat2') {
+            let sVal = document.getElementById('bat2Select').value;
+            let tVal = document.getElementById('bat2Name').value.trim();
+            return sVal || tVal;
+        } else if (side === 'bowler') {
+            let sVal = document.getElementById('bowlerSelect').value;
+            let tVal = document.getElementById('bowlerName').value.trim();
+            return sVal || tVal;
+        }
+        return "";
+    }
+
     function processAndUpdate() {
-        if(activeBowler !== "") bowlersRecord[activeBowler] = { wickets: getVal('bWickets'), runs: getVal('bRuns'), overs: document.getElementById('bowlerOvers').value };
+        let activeB = getActivePlayerName('bowler');
+        if(activeB !== "") bowlersRecord[activeB] = { wickets: getVal('bWickets'), runs: getVal('bRuns'), overs: document.getElementById('bowlerOvers').value };
+        
         let cms = JSON.parse(localStorage.getItem(`currentMatchPlayers_${currentMatchUser}_${activeMatchId}`) || '{}');
-        let b1 = document.getElementById('bat1Name').value; let b2 = document.getElementById('bat2Name').value; let bowler = document.getElementById('bowlerName').value;
+        let b1 = getActivePlayerName('bat1'); 
+        let b2 = getActivePlayerName('bat2'); 
+        let bowler = activeB;
 
         if(b1) { 
             if(!cms[b1]) cms[b1] = { runs: 0, balls: 0, wickets: 0, oversBowled: "0.0", runsConceded: 0, catches: 0, stumpings: 0, runOuts: 0, fours: 0, sixes: 0, dotBalls: 0, dotBallsBowled: 0 }; 
@@ -603,9 +694,9 @@
             bowlTeamName: currentBowlTeam,
             runs: document.getElementById('runs').value, wickets: document.getElementById('wickets').value, overs: document.getElementById('overs').value, totalOvers: document.getElementById('totalOvers').value,
             innings: document.getElementById('innings').value, target: document.getElementById('targetMsg').value, 
-            bat1Name: document.getElementById('bat1Name').value, bat1Runs: document.getElementById('bat1Runs').value, bat1Balls: document.getElementById('bat1Balls').value,
-            bat2Name: document.getElementById('bat2Name').value, bat2Runs: document.getElementById('bat2Runs').value, bat2Balls: document.getElementById('bat2Balls').value, 
-            bowlerName: document.getElementById('bowlerName').value, bowlerFig: document.getElementById('bWickets').value + '-' + document.getElementById('bRuns').value, bowlerOvers: document.getElementById('bowlerOvers').value, 
+            bat1Name: b1, bat1Runs: document.getElementById('bat1Runs').value, bat1Balls: document.getElementById('bat1Balls').value,
+            bat2Name: b2, bat2Runs: document.getElementById('bat2Runs').value, bat2Balls: document.getElementById('bat2Balls').value, 
+            bowlerName: bowler, bowlerFig: document.getElementById('bWickets').value + '-' + document.getElementById('bRuns').value, bowlerOvers: document.getElementById('bowlerOvers').value, 
             squad1Data: localStorage.getItem(`tempBatSquad_${currentMatchUser}_${activeMatchId}`) || "", 
             squad2Data: localStorage.getItem(`tempBowlSquad_${currentMatchUser}_${activeMatchId}`) || "", 
             lastBowler: lastBowler, activeBowler: activeBowler, bowlersRecord: bowlersRecord, 
@@ -637,7 +728,9 @@
 
     function validateMandatorySelections() {
         if(matchEnded) { alert("⚠️ Match has ended! Return to tournament."); return false; }
-        let bat1 = document.getElementById('bat1Name').value; let bat2 = document.getElementById('bat2Name').value; let bowler = document.getElementById('bowlerName').value;
+        let bat1 = getActivePlayerName('bat1'); 
+        let bat2 = getActivePlayerName('bat2'); 
+        let bowler = getActivePlayerName('bowler');
         if (!bat1 || !bat2) { alert("⚠️ Selecting both batters is mandatory!"); document.getElementById('playerPanel').open = true; return false; }
         if (!bowler) { alert("⚠️ Selecting the current bowler is mandatory!"); document.getElementById('playerPanel').open = true; return false; }
         if (bowlerSelectionPending) { alert("⚠️ Over finished! Select a new bowler."); highlightPlayerBox('bowler'); return false; }
@@ -701,10 +794,14 @@
     function incrementOver(oversStr) { let p = String(oversStr).split('.'); let o = parseInt(p[0])||0, b = parseInt(p[1])||0; b++; if (b >= 6) { o++; b = 0; } return `${o}.${b}`; }
     
     function swapStrikeInternal() {
+        let b1Select = document.getElementById('bat1Select');
+        let b2Select = document.getElementById('bat2Select');
         let b1Input = document.getElementById('bat1Name');
         let b2Input = document.getElementById('bat2Name');
-        let b1N = b1Input.value;
-        let b2N = b2Input.value;
+
+        let b1N = b1Select.value || b1Input.value;
+        let b2N = b2Select.value || b2Input.value;
+
         let b1R = getVal('bat1Runs');
         let b1B = getVal('bat1Balls');
         let b2R = getVal('bat2Runs');
@@ -716,8 +813,16 @@
             setVal('bat2Runs', b1R); 
             setVal('bat2Balls', b1B);
 
-            b1Input.value = b2N;
-            b2Input.value = b1N;
+            if (b1Select.value && b2Select.value) {
+                let temp = b1Select.value;
+                b1Select.value = b2Select.value;
+                b2Select.value = temp;
+            } else {
+                b1Input.value = b2N;
+                b2Input.value = b1N;
+                b1Select.value = "";
+                b2Select.value = "";
+            }
 
             updateSuggestions();
         }
@@ -728,10 +833,10 @@
             innings: document.getElementById('innings').value, totalOvers: document.getElementById('totalOvers').value,
             batTeamName: document.getElementById('batTeamName').value, bowlTeamName: document.getElementById('bowlTeamName').value, 
             runs: document.getElementById('runs').value, wickets: document.getElementById('wickets').value, overs: document.getElementById('overs').value,
-            targetMsg: document.getElementById('targetMsg').value, bowlerName: document.getElementById('bowlerName').value,
+            targetMsg: document.getElementById('targetMsg').value, bowlerName: getActivePlayerName('bowler'),
             bWickets: document.getElementById('bWickets').value, bRuns: document.getElementById('bRuns').value, bowlerOvers: document.getElementById('bowlerOvers').value, 
-            bat1Name: document.getElementById('bat1Name').value, bat1Runs: document.getElementById('bat1Runs').value, bat1Balls: document.getElementById('bat1Balls').value,
-            bat2Name: document.getElementById('bat2Name').value, bat2Runs: document.getElementById('bat2Runs').value, bat2Balls: document.getElementById('bat2Balls').value, 
+            bat1Name: getActivePlayerName('bat1'), bat1Runs: document.getElementById('bat1Runs').value, bat1Balls: document.getElementById('bat1Balls').value,
+            bat2Name: getActivePlayerName('bat2'), bat2Runs: document.getElementById('bat2Runs').value, bat2Balls: document.getElementById('bat2Balls').value, 
             currentOverBalls: [...currentOverBalls], legalBallsInCurrentOver: legalBallsInCurrentOver, outPlayers: [...outPlayersList], overHistory: [...overHistoryList],
             lastBowler: lastBowler, activeBowler: activeBowler, bowlersRecord: JSON.parse(JSON.stringify(bowlersRecord)),
             isLeagueMatch: isLeagueMatchGlobal, tournamentPointsUpdated: tournamentPointsUpdated, autoInningsSwitched: autoInningsSwitched, matchEnded: matchEnded,
@@ -850,20 +955,21 @@
                 currentOverBalls = []; 
                 legalBallsInCurrentOver = 0; 
                 bowlerSelectionPending = true;
-                lastBowler = document.getElementById('bowlerName').value; 
+                lastBowler = getActivePlayerName('bowler'); 
+                document.getElementById('bowlerSelect').value = ""; 
                 document.getElementById('bowlerName').value = ""; 
                 activeBowler = ""; 
                 
                 swapStrikeInternal();
 
                 const bowlingPlayers = getPlayersList(false);
-                const bowlerList = document.getElementById('bowlerList');
-                bowlerList.innerHTML = '';
+                const bowlerSelect = document.getElementById('bowlerSelect');
+                bowlerSelect.innerHTML = '<option value="">-- Bowler --</option>';
                 bowlingPlayers.forEach(player => {
                     if (player !== lastBowler) {
                         let opt = document.createElement('option');
-                        opt.value = player;
-                        bowlerList.appendChild(opt);
+                        opt.value = player; opt.innerText = player;
+                        bowlerSelect.appendChild(opt);
                     }
                 });
 
@@ -885,7 +991,7 @@
         if(!validateMandatorySelections()) return;
         autoClosePanel(); saveState();
         
-        let b1 = document.getElementById('bat1Name').value; let bw = document.getElementById('bowlerName').value;
+        let b1 = getActivePlayerName('bat1'); let bw = getActivePlayerName('bowler');
         initDS(b1); initDS(bw);
         if (runs === 4) detailedStats[b1].fours++;
         if (runs === 6) detailedStats[b1].sixes++;
@@ -915,8 +1021,8 @@
         
         let rInput = 0; 
         currentEvent = "";
-        let b1 = document.getElementById('bat1Name').value; 
-        let bw = document.getElementById('bowlerName').value; 
+        let b1 = getActivePlayerName('bat1'); 
+        let bw = getActivePlayerName('bowler'); 
         initDS(b1); 
         initDS(bw);
 
@@ -955,7 +1061,7 @@
     window.addLegBye = function() {
         if(!validateMandatorySelections()) return; autoClosePanel(); saveState();
         let rInput = parseInt(prompt("Bye runs?", "1")) || 0;
-        let b1 = document.getElementById('bat1Name').value; let bw = document.getElementById('bowlerName').value; initDS(b1); initDS(bw);
+        let b1 = getActivePlayerName('bat1'); let bw = getActivePlayerName('bowler'); initDS(b1); initDS(bw);
         detailedStats[b1].dotBalls++; detailedStats[bw].dotBallsBowled++;
 
         setVal('runs', getVal('runs') + rInput); setVal('bat1Balls', getVal('bat1Balls') + 1);
@@ -991,10 +1097,10 @@
         if ((t === 'caught' || t === 'stumped') && !f) { alert("⚠️ Select fielder!"); return; }
         window.closeWicketModal(); saveState();
         
-        let outB = document.getElementById('bat1Name').value;
+        let outB = getActivePlayerName('bat1');
         if(outB && !outPlayersList.includes(outB)) outPlayersList.push(outB);
         
-        let bw = document.getElementById('bowlerName').value; initDS(outB); initDS(bw);
+        let bw = getActivePlayerName('bowler'); initDS(outB); initDS(bw);
         detailedStats[outB].dotBalls++; detailedStats[bw].dotBallsBowled++;
 
         setVal('wickets', getVal('wickets') + 1); setVal('bWickets', getVal('bWickets') + 1); setVal('bat1Balls', getVal('bat1Balls') + 1);
@@ -1005,6 +1111,7 @@
         
         let w = getVal('wickets');
         if (w < 10) { 
+            document.getElementById('bat1Select').value = ""; 
             document.getElementById('bat1Name').value = ""; 
             setVal('bat1Runs', 0); 
             setVal('bat1Balls', 0); 
@@ -1018,9 +1125,9 @@
     window.addLBW = function() {
         if(!validateMandatorySelections()) return; saveState(); autoClosePanel();
         
-        let outB = document.getElementById('bat1Name').value; 
+        let outB = getActivePlayerName('bat1'); 
         if(outB && !outPlayersList.includes(outB)) outPlayersList.push(outB);
-        let bw = document.getElementById('bowlerName').value; initDS(outB); initDS(bw);
+        let bw = getActivePlayerName('bowler'); initDS(outB); initDS(bw);
         detailedStats[outB].dotBalls++; detailedStats[bw].dotBallsBowled++;
 
         setVal('wickets', getVal('wickets') + 1); setVal('bWickets', getVal('bWickets') + 1); setVal('bat1Balls', getVal('bat1Balls') + 1);
@@ -1028,6 +1135,7 @@
         
         let w = getVal('wickets');
         if (w < 10) { 
+            document.getElementById('bat1Select').value = ""; 
             document.getElementById('bat1Name').value = ""; 
             setVal('bat1Runs', 0); 
             setVal('bat1Balls', 0); 
@@ -1043,7 +1151,7 @@
         let bp = getPlayersList(false);
         let fSel = document.getElementById('runOutFielder'); fSel.innerHTML = '<option value="">-- Fielder --</option>';
         bp.forEach(p => { fSel.innerHTML += `<option value="${p}">${p}</option>`; });
-        document.getElementById('runOutBatsman').innerHTML = `<option value="1">Striker: ${document.getElementById('bat1Name').value}</option><option value="2">Non-Striker: ${document.getElementById('bat2Name').value}</option>`;
+        document.getElementById('runOutBatsman').innerHTML = `<option value="1">Striker: ${getActivePlayerName('bat1')}</option><option value="2">Non-Striker: ${getActivePlayerName('bat2')}</option>`;
         document.getElementById('runOutRuns').value = "0"; document.getElementById('runOutPopupModal').style.display = 'flex';
     };
     window.closeRunOutModal = function() { document.getElementById('runOutPopupModal').style.display = 'none'; };
@@ -1057,8 +1165,8 @@
         window.closeRunOutModal(); 
         saveState();
 
-        let outB = (oAns === "1") ? document.getElementById('bat1Name').value : document.getElementById('bat2Name').value;
-        let bw = document.getElementById('bowlerName').value;
+        let outB = (oAns === "1") ? getActivePlayerName('bat1') : getActivePlayerName('bat2');
+        let bw = getActivePlayerName('bowler');
         if(outB && !outPlayersList.includes(outB)) outPlayersList.push(outB);
 
         initDS(outB); initDS(bw);
@@ -1079,11 +1187,13 @@
 
         if (w < 10) {
             if (oAns === "1") { 
+                document.getElementById('bat1Select').value = ""; 
                 document.getElementById('bat1Name').value = ""; 
                 setVal('bat1Runs', 0); 
                 setVal('bat1Balls', 0); 
                 targetHighlight = "striker";
             } else { 
+                document.getElementById('bat2Select').value = ""; 
                 document.getElementById('bat2Name').value = ""; 
                 setVal('bat2Runs', 0); 
                 setVal('bat2Balls', 0); 
@@ -1127,9 +1237,9 @@
         setVal('wickets', 0); 
         document.getElementById('overs').value = "0.0";
         
-        document.getElementById('bat1List').innerHTML = ""; document.getElementById('bat1Name').value = ""; setVal('bat1Runs', 0); setVal('bat1Balls', 0);
-        document.getElementById('bat2List').innerHTML = ""; document.getElementById('bat2Name').value = ""; setVal('bat2Runs', 0); setVal('bat2Balls', 0);
-        document.getElementById('bowlerList').innerHTML = ""; document.getElementById('bowlerName').value = ""; setVal('bWickets', 0); setVal('bRuns', 0); document.getElementById('bowlerOvers').value = "0.0";
+        document.getElementById('bat1Select').value = ""; document.getElementById('bat1Name').value = ""; setVal('bat1Runs', 0); setVal('bat1Balls', 0);
+        document.getElementById('bat2Select').value = ""; document.getElementById('bat2Name').value = ""; setVal('bat2Runs', 0); setVal('bat2Balls', 0);
+        document.getElementById('bowlerSelect').value = ""; document.getElementById('bowlerName').value = ""; setVal('bWickets', 0); setVal('bRuns', 0); document.getElementById('bowlerOvers').value = "0.0";
         
         document.getElementById('targetMsg').value = `Target: ${firstInningsRunsStored + 1}`;
         document.getElementById('playerPanel').open = true;
@@ -1216,13 +1326,13 @@
             totalOvers: document.getElementById('totalOvers').value,
             innings: document.getElementById('innings').value,
             target: document.getElementById('targetMsg').value,
-            bat1Name: document.getElementById('bat1Name').value,
+            bat1Name: getActivePlayerName('bat1'),
             bat1Runs: document.getElementById('bat1Runs').value,
             bat1Balls: document.getElementById('bat1Balls').value,
-            bat2Name: document.getElementById('bat2Name').value,
+            bat2Name: getActivePlayerName('bat2'),
             bat2Runs: document.getElementById('bat2Runs').value,
             bat2Balls: document.getElementById('bat2Balls').value,
-            bowlerName: document.getElementById('bowlerName').value,
+            bowlerName: getActivePlayerName('bowler'),
             bowlerFig: document.getElementById('bWickets').value + '-' + document.getElementById('bRuns').value,
             bowlerOvers: document.getElementById('bowlerOvers').value,
             triggerEvent: "MAN_OF_THE_MATCH",
@@ -1240,25 +1350,6 @@
         } else {
             window.location.href = "index.html";
         }
-    };
-
-    window.onBowlerNameChange = function() {
-        let bowler = document.getElementById('bowlerName').value.trim();
-        let bat1 = document.getElementById('bat1Name').value;
-        let bat2 = document.getElementById('bat2Name').value;
-
-        if (!bat1 || !bat2) { alert("⚠ Select batters first!"); document.getElementById('bowlerName').value = ""; return; }
-        if (bowler !== "" && bowler === lastBowler) { alert("⚠ Same bowler cannot bowl consecutive overs!"); document.getElementById('bowlerName').value = ""; updateSuggestions(); return; }
-
-        if(bowler !== "") {
-            addNewPlayerToSquadIfNeeded(bowler, false);
-
-            if (bowlersRecord[bowler]) {
-                setVal('bWickets', bowlersRecord[bowler].wickets); setVal('bRuns', bowlersRecord[bowler].runs); document.getElementById('bowlerOvers').value = bowlersRecord[bowler].overs;
-            } else { setVal('bWickets', 0); setVal('bRuns', 0); document.getElementById('bowlerOvers').value = "0.0"; }
-            activeBowler = bowler; bowlerSelectionPending = false;
-        }
-        processAndUpdate(); autoClosePanel();
     };
 
     window.swapTeams = function() {
@@ -1296,9 +1387,9 @@
             firstInningsRunsStored = state.firstInningsRuns !== undefined ? state.firstInningsRuns : firstInningsRunsStored;
             firstInningsOversStored = state.firstInningsOvers !== undefined ? state.firstInningsOvers : firstInningsOversStored;
             
-            document.getElementById('bat1Name').value = state.bat1Name;
-            document.getElementById('bat2Name').value = state.bat2Name;
-            document.getElementById('bowlerName').value = state.bowlerName;
+            document.getElementById('bat1Select').value = state.bat1Name;
+            document.getElementById('bat2Select').value = state.bat2Name;
+            document.getElementById('bowlerSelect').value = state.bowlerName;
 
             updateSuggestions(); currentEvent = ""; processAndUpdate();
         } else { alert("⚠️ No undo history!"); }
@@ -1447,19 +1538,19 @@
             lastBowler = data.lastBowler || ""; activeBowler = data.activeBowler || ""; bowlersRecord = data.bowlersRecord || {};
 
             if (data.bat1Name) {
-                document.getElementById('bat1Name').value = data.bat1Name;
+                document.getElementById('bat1Select').value = data.bat1Name;
             }
             document.getElementById('bat1Runs').value = data.bat1Runs || 0; 
             document.getElementById('bat1Balls').value = data.bat1Balls || 0;
             
             if (data.bat2Name) {
-                document.getElementById('bat2Name').value = data.bat2Name;
+                document.getElementById('bat2Select').value = data.bat2Name;
             }
             document.getElementById('bat2Runs').value = data.bat2Runs || 0; 
             document.getElementById('bat2Balls').value = data.bat2Balls || 0;
             
             if (data.bowlerName) {
-                document.getElementById('bowlerName').value = data.bowlerName;
+                document.getElementById('bowlerSelect').value = data.bowlerName;
             }
             
             let figParts = (data.bowlerFig || "0-0").split('-'); 
@@ -1631,5 +1722,4 @@
 </script>
 </body>
 </html>
-
 
