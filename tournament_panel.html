@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Panel & Match Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #eef2f3; padding: 20px; margin: 0; }
+        .container { max-width: 850px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .header-nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+
+        h2, h3, h4 { color: #1e3c72; font-family: 'Oswald', sans-serif; text-transform: uppercase; margin: 0; }
+        
+        .box { background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+        .box-header { padding: 15px 18px; background: #f1f5f9; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+        .box-header:hover { background: #e2e8f0; }
+        .box-header h3 { font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        .toggle-icon { font-size: 16px; color: #555; transition: transform 0.3s ease; }
+        
+        .box-content { padding: 18px; border-top: 1px solid #ddd; background: #fff; display: none; }
+        .box-content.open { display: block; }
+
+        label { font-weight: bold; display: block; margin-top: 10px; font-size: 14px; color: #444; }
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
+        .btn { width: 100%; padding: 12px; background: #28a745; color: white; border: none; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 15px; }
+        .btn:hover { background: #218838; }
+
+        .team-list, .match-list { list-style: none; padding: 0; margin-top: 10px; }
+        .team-item { background: #fff; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); overflow: hidden; }
+        .team-header-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #fff; cursor: pointer; user-select: none; }
+        .team-header-row:hover { background: #f8fafc; }
+        .team-name-text { font-weight: bold; color: #1e3c72; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        
+        .squad-dropdown-content { display: none; padding: 15px; background: #f8fafc; border-top: 1px solid #eee; }
+        .squad-dropdown-content.open { display: block; }
+
+        .player-row { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 5px; margin-bottom: 6px; font-size: 14px; }
+        .btn-edit-player { background: rgba(0, 86, 179, 0.1); color: #0056b3; border: 1px solid rgba(0, 86, 179, 0.3); padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-edit-player:hover { background: #0056b3; color: white; }
+
+        .match-item { background: #fff; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; }
+        .match-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; color: #1e3c72; font-size: 14px; width: 100%; flex-wrap: wrap; gap: 10px; }
+        
+        .btn-delete-icon { background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.3); width: 32px; height: 32px; border-radius: 5px; cursor: pointer; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-delete-icon:hover { background: #dc3545; color: white; }
+
+        .btn-launch-match { background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-size: 13px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+        .btn-launch-match:hover { background: #0056b3; }
+        .completed-badge { background: #e2e8f0; color: #2d3748; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .back-btn { background: #6c757d; color: white; padding: 6px 12px; text-decoration: none; border-radius: 5px; font-size: 13px; font-weight: bold; }
+        .back-btn:hover { background: #5a6268; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-nav">
+        <h2 id="tourTitle">🏆 Tournament Panel</h2>
+        <a href="index.html" class="back-btn">← Back to Tournaments</a>
+    </div>
+
+    <!-- টিম ও স্কোয়াড ম্যানেজমেন্ট সেকশন -->
+    <div class="box" style="border-color: #b8daff;">
+        <div class="box-header" style="background: #f0f7ff;" onclick="toggleSection(this)">
+            <h3 style="color: #0056b3;">👥 Add Team & Player Squad</h3>
+            <span class="toggle-icon">▼</span>
+        </div>
+        <div class="box-content open">
+            <label>Team Name</label>
+            <input type="text" id="teamNameInput" placeholder="e.g. Kolkata Tigers">
+
+            <label>Players List (Put (c) first, then (wk), each on a new line)</label>
+            <textarea id="squadInput" rows="4" placeholder="Player 1 (c)&#10;Player 2 (wk)&#10;Player 3"></textarea>
+
+            <button class="btn" style="background: #0056b3;" onclick="window.saveTeamWithSquad()">💾 Save Team & Squad</button>
+            
+            <h4 style="margin-top: 20px; color: #333;">Registered Teams:</h4>
+            <ul id="teamsListContainer" class="team-list">
+                <li style="color: #888; font-size: 14px; width: 100%; padding: 10px;">Loading teams...</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ম্যাচ শিডিউল তৈরি করার সেকশন -->
+    <div class="box">
+        <div class="box-header" onclick="toggleSection(this)">
+            <h3>⚔️ Schedule New Match</h3>
+            <span class="toggle-icon">▼</span>
+        </div>
+        <div class="box-content">
+            <label>Select Team 1</label>
+            <select id="team1Select" onchange="window.filterTeams()"><option value="">-- Select Team 1 --</option></select>
+
+            <label>Select Team 2</label>
+            <select id="team2Select" onchange="window.filterTeams()"><option value="">-- Select Team 2 --</option></select>
+
+            <label>Number of Overs</label>
+            <input type="number" id="matchOversInput" value="10" min="1" max="50">
+
+            <label>Match Type / Format</label>
+            <select id="matchTypeSelect">
+                <option value="League">League Match</option>
+                <option value="Knockout">Knockout</option>
+            </select>
+
+            <button class="btn" style="background: #007bff;" onclick="window.scheduleMatch()">📅 Save / Schedule Match to List</button>
+        </div>
+    </div>
+
+    <!-- ম্যাচ হিস্ট্রি ও শিডিউল লিস্ট -->
+    <div class="box">
+        <div class="box-header" onclick="toggleSection(this)">
+            <h3>📜 Tournament Matches & Schedule</h3>
+            <span class="toggle-icon">▼</span>
+        </div>
+        <div class="box-content">
+            <ul id="matchesListContainer" class="match-list">
+                <li style="color: #888; font-size: 14px; width: 100%;">Loading matches...</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleSection(headerElement) {
+        const content = headerElement.nextElementSibling;
+        const icon = headerElement.querySelector('.toggle-icon');
+        const isOpen = content.classList.contains('open');
+
+        document.querySelectorAll('.box-content').forEach(item => item.classList.remove('open'));
+        document.querySelectorAll('.toggle-icon').forEach(ic => ic.style.transform = 'rotate(0deg)');
+
+        if (!isOpen) {
+            content.classList.add('open');
+            icon.style.transform = 'rotate(180deg)';
+        }
+    }
+</script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getDatabase, ref, get, set, push, remove, update } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyABphVo2kWvqHEkxWSsZuDvnyXk05XzX-0",
+      authDomain: "cricket-score-d187a.firebaseapp.com",
+      databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
+      projectId: "cricket-score-d187a",
+      storageBucket: "cricket-score-d187a.firebasestorage.app",
+      messagingSenderId: "782741896785",
+      appId: "1:782741896785:android:ca8c45a9120f7784928270"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    let tourId = urlParams.get('t');
+    let currentUsername = urlParams.get('u') || localStorage.getItem('proCricketUsername') || "user";
+    let currentUserId = "";
+    let globalTeamsData = {};
+
+    async function init() {
+        const userRef = ref(db, 'usernames/' + currentUsername);
+        const snap = await get(userRef);
+        currentUserId = snap.exists() ? snap.val() : currentUsername;
+
+        if (!tourId) {
+            alert("⚠️ No tournament selected!");
+            window.location.href = "index.html";
+            return;
+        }
+
+        const tourRef = ref(db, `users/${currentUserId}/tournaments/${tourId}`);
+        const tourSnap = await get(tourRef);
+        if (tourSnap.exists()) {
+            document.getElementById('tourTitle').innerText = "🏆 " + (tourSnap.val().name || "Tournament Panel");
+        }
+
+        loadTeamsAndSquads();
+        loadMatchesList();
+    }
+
+    window.saveTeamWithSquad = async function() {
+        const teamName = document.getElementById('teamNameInput').value.trim();
+        const squadText = document.getElementById('squadInput').value.trim();
+        if (!teamName) { alert("⚠️ Please enter a team name!"); return; }
+
+        let players = squadText ? squadText.split('\n').map(p => p.trim()).filter(p => p.length > 0) : [];
+        try {
+            await set(ref(db, `users/${currentUserId}/tournaments/${tourId}/teams/${teamName}`), { name: teamName, players: players });
+            document.getElementById('teamNameInput').value = "";
+            document.getElementById('squadInput').value = "";
+            loadTeamsAndSquads();
+            alert(`✅ Team '${teamName}' saved successfully!`);
+        } catch (err) { alert("❌ Failed to save team."); }
+    };
+
+    window.deleteTeam = async function(teamName) {
+        if (!confirm(`⚠️ Delete team '${teamName}'?`)) return;
+        try {
+            await remove(ref(db, `users/${currentUserId}/tournaments/${tourId}/teams/${teamName}`));
+            loadTeamsAndSquads();
+        } catch (err) { alert("❌ Failed to delete team."); }
+    };
+
+    window.toggleSquadDropdown = function(element) {
+        element.nextElementSibling.classList.toggle('open');
+    };
+
+    window.editPlayerName = async function(teamName, idx, currentName) {
+        const newName = prompt("✏️ Edit Player Name:", currentName);
+        if (!newName || newName.trim() === "") return;
+        try {
+            const teamRef = ref(db, `users/${currentUserId}/tournaments/${tourId}/teams/${teamName}`);
+            const snap = await get(teamRef);
+            if (snap.exists()) {
+                let data = snap.val();
+                data.players[idx] = newName.trim();
+                await set(teamRef, data);
+                loadTeamsAndSquads();
+            }
+        } catch (err) { alert("❌ Failed to update player."); }
+    };
+
+    async function loadTeamsAndSquads() {
+        const container = document.getElementById('teamsListContainer');
+        try {
+            const snap = await get(ref(db, `users/${currentUserId}/tournaments/${tourId}/teams`));
+            if (snap.exists()) {
+                globalTeamsData = snap.val();
+                container.innerHTML = "";
+                Object.keys(globalTeamsData).forEach(key => {
+                    const team = globalTeamsData[key];
+                    let playersHTML = '';
+                    if (team.players && Array.isArray(team.players)) {
+                        team.players.forEach((p, idx) => {
+                            playersHTML += `<div class="player-row"><span>👤 ${p}</span><button class="btn-edit-player" onclick="window.editPlayerName('${team.name}', ${idx}, '${p}')">✏ Edit</button></div>`;
+                        });
+                    } else { playersHTML = '<div style="color: #888; font-size: 13px;">No players</div>'; }
+
+                    let li = document.createElement('li');
+                    li.className = "team-item";
+                    li.innerHTML = `
+                        <div class="team-header-row" onclick="window.toggleSquadDropdown(this)">
+                            <span class="team-name-text">🏏 ${team.name} <span style="font-size:12px; color:#666; font-weight:normal;">(Click to view squad ▾)</span></span>
+                            <button class="btn-delete-icon" onclick="event.stopPropagation(); window.deleteTeam('${team.name}')">🗑️</button>
+                        </div>
+                        <div class="squad-dropdown-content">
+                            <h5 style="margin: 0 0 8px 0; color: #1e3c72;">Player Squad:</h5>
+                            ${playersHTML}
+                        </div>
+                    `;
+                    container.appendChild(li);
+                });
+                updateTeamDropdowns();
+            } else {
+                globalTeamsData = {};
+                container.innerHTML = '<li style="color: #888; font-size: 14px; width: 100%; padding: 10px;">No teams added yet.</li>';
+                updateTeamDropdowns();
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    window.updateTeamDropdowns = function() {
+        const t1Sel = document.getElementById('team1Select');
+        const t2Sel = document.getElementById('team2Select');
+        const val1 = t1Sel.value, val2 = t2Sel.value;
+        t1Sel.innerHTML = '<option value="">-- Select Team 1 --</option>';
+        t2Sel.innerHTML = '<option value="">-- Select Team 2 --</option>';
+
+        Object.keys(globalTeamsData).forEach(key => {
+            const name = globalTeamsData[key].name;
+            if (name !== val2) {
+                let opt = document.createElement('option'); opt.value = name; opt.innerText = name;
+                if (name === val1) opt.selected = true;
+                t1Sel.appendChild(opt);
+            }
+            if (name !== val1) {
+                let opt = document.createElement('option'); opt.value = name; opt.innerText = name;
+                if (name === val2) opt.selected = true;
+                t2Sel.appendChild(opt);
+            }
+        });
+    };
+
+    window.filterTeams = function() { updateTeamDropdowns(); };
+
+    window.scheduleMatch = async function() {
+        const team1 = document.getElementById('team1Select').value;
+        const team2 = document.getElementById('team2Select').value;
+        const overs = document.getElementById('matchOversInput').value || 10;
+        const matchType = document.getElementById('matchTypeSelect').value;
+
+        if (!team1 || !team2) { alert("⚠️ Select both teams!"); return; }
+        if (team1 === team2) { alert("⚠️ Teams cannot be the same!"); return; }
+
+        try {
+            await push(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches`), {
+                team1, team2, overs, type: matchType.toLowerCase(), status: 'scheduled', createdAt: Date.now()
+            });
+            document.getElementById('team1Select').value = "";
+            document.getElementById('team2Select').value = "";
+            loadMatchesList();
+            alert("📅 Match scheduled successfully!");
+        } catch (err) { alert("❌ Failed to schedule match."); }
+    };
+
+    async function loadMatchesList() {
+        const container = document.getElementById('matchesListContainer');
+        try {
+            const snap = await get(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches`));
+            if (snap.exists()) {
+                const matches = snap.val();
+                container.innerHTML = "";
+                Object.keys(matches).forEach(mId => {
+                    const m = matches[mId];
+                    let actionBtn = m.status === "completed" ? 
+                        `<span class="completed-badge">Completed (${m.winner || 'Finished'})</span>` : 
+                        `<button class="btn-launch-match" onclick="window.launchMatch('${mId}', '${m.team1}', '${m.team2}', '${m.overs || 10}', '${m.type || 'League'}')">🚀 Launch Match</button>`;
+
+                    let li = document.createElement('li');
+                    li.className = "match-item";
+                    li.innerHTML = `
+                        <div class="match-header">
+                            <span>🏏 ${m.team1} vs ${m.team2} (${m.overs || 10} Ov)</span>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                ${actionBtn}
+                                <button class="btn-delete-icon" onclick="window.deleteMatch('${mId}')">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(li);
+                });
+            } else {
+                container.innerHTML = '<li style="text-align:center; color:#888; width: 100%;">No matches scheduled yet.</li>';
+            }
+        } catch (e) { container.innerHTML = '<li style="color:red;">Error loading matches.</li>'; }
+    }
+
+    window.launchMatch = async function(mId, t1, t2, overs, type) {
+        try {
+            const userRef = ref(db, `users/${currentUserId}`);
+            const userSnap = await get(userRef);
+            let credits = userSnap.exists() && userSnap.val().credits ? parseInt(userSnap.val().credits) : 0;
+
+            if (credits <= 0) { alert("❌ Insufficient credits! You have 0 credits."); return; }
+
+            await update(userRef, { credits: credits - 1 });
+            await update(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${mId}`), { status: 'running' });
+
+            window.location.href = `controller.html?t=${tourId}&u=${currentUsername}&m=${mId}&t1=${encodeURIComponent(t1)}&t2=${encodeURIComponent(t2)}&overs=${overs}&type=${encodeURIComponent(type)}`;
+        } catch (err) { alert("❌ Error: " + err.message); }
+    };
+
+    window.deleteMatch = async function(mId) {
+        if (!confirm("⚠️ Delete match?")) return;
+        try {
+            await remove(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${mId}`));
+            loadMatchesList();
+        } catch (e) { alert("❌ Failed to delete match."); }
+    };
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) { init(); } else { window.location.href = "index.html"; }
+    });
+</script>
+
+</body>
+</html>
+
