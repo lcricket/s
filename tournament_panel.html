@@ -49,20 +49,18 @@
         .btn-launch-match:hover { background: #0056b3; }
         .completed-badge { background: #e2e8f0; color: #2d3748; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
         
-        /* সুইচ ড্রপডাউন স্টাইল */
-        .tournament-switch-container { display: flex; align-items: center; gap: 6px; }
-        .tournament-switch-container select { padding: 6px 10px; font-size: 14px; border-radius: 5px; border: 1px solid #ccc; background: #fff; cursor: pointer; width: auto; margin-top: 0; }
+        /* টুর্নামেন্ট নাম এবং ড্রপডাউন পাশাপাশি রাখার স্টাইল */
+        .tournament-switch-container { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .tournament-switch-container select { padding: 8px 12px; font-size: 14px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; color: #1e3c72; font-weight: bold; cursor: pointer; width: auto; margin-top: 0; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header-nav">
-        <h2 id="tourTitle">🏆 Tournament Panel</h2>
-        
-        <!-- ডাইনামিক টুর্নামেন্ট ড্রপডাউন মেনু -->
+        <!-- টুর্নামেন্ট নাম এবং ড্রপডাউন পাশাপাশি -->
         <div class="tournament-switch-container">
-            <label for="switchTournamentSelect" style="margin: 0; font-size: 13px; color: #555;">Switch:</label>
+            <h2 id="tourTitle" style="margin: 0;">🏆 Tournament Panel</h2>
             <select id="switchTournamentSelect" onchange="window.switchTournament(this.value)">
                 <option value="">⏳ Loading...</option>
             </select>
@@ -436,17 +434,14 @@
         } catch (e) { alert("❌ Failed to delete match."); }
     };
 
-    // ফায়ারবেজ অথেন্টিকেশন স্টেট লিসেনার (সঠিক সিকোয়েন্স নিশ্চিত করা হয়েছে)
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserId = user.uid;
             if (!currentMatchUser) {
                 currentMatchUser = localStorage.getItem('proCricketUsername') || "user";
             }
-            // ইউজার নিশ্চিত হওয়ার পরই init() কল হবে, ফলে লগইন পেজে আর রিডাইরেক্ট করবে না
-            await init();
+            init();
         } else {
-            // যদি সত্যিই লগইন করা না থাকে তবেই রিডাইরেক্ট করবে
             alert("⚠️ Please login from dashboard first.");
             window.location.href = "index.html";
         }
@@ -455,4 +450,5 @@
 
 </body>
 </html>
+
 
