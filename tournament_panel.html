@@ -48,8 +48,10 @@
         .btn-launch-match { background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-size: 13px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
         .btn-launch-match:hover { background: #0056b3; }
         .completed-badge { background: #e2e8f0; color: #2d3748; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .back-btn { background: #6c757d; color: white; padding: 6px 12px; text-decoration: none; border-radius: 5px; font-size: 13px; font-weight: bold; }
-        .back-btn:hover { background: #5a6268; }
+        
+        /* সুইচ ড্রপডাউন স্টাইল */
+        .tournament-switch-container { display: flex; align-items: center; gap: 6px; }
+        .tournament-switch-container select { padding: 6px 10px; font-size: 14px; border-radius: 5px; border: 1px solid #ccc; background: #fff; cursor: pointer; width: auto; margin-top: 0; }
     </style>
 </head>
 <body>
@@ -57,7 +59,14 @@
 <div class="container">
     <div class="header-nav">
         <h2 id="tourTitle">🏆 Tournament Panel</h2>
-        <a href="index.html" class="back-btn">← Back to Tournaments</a>
+        
+        <!-- ব্যাক বাটনের পরিবর্তে ডাইনামিক টুর্নামেন্ট ড্রপডাউন মেনু -->
+        <div class="tournament-switch-container">
+            <label for="switchTournamentSelect" style="margin: 0; font-size: 13px; color: #555;">Switch:</label>
+            <select id="switchTournamentSelect" onchange="window.switchTournament(this.value)">
+                <option value="">-- Select Tournament --</option>
+            </select>
+        </div>
     </div>
 
     <!-- টিম ও স্কোয়াড ম্যানেজমেন্ট সেকশন -->
@@ -163,28 +172,69 @@
     let currentUserId = "";
     let globalTeamsData = {};
 
+    const currentPageName = window.location.pathname.split("/").pop() || "tournament_panel.html";
+
     async function init() {
         const userRef = ref(db, 'usernames/' + currentUsername);
         const snap = await get(userRef);
         currentUserId = snap.exists() ? snap.val() : currentUsername;
 
-        if (!tourId) {
-            alert("⚠️ No tournament selected!");
+        if (!tourId || tourId.trim() === "" || tourId === "null") {
             window.location.href = "index.html";
             return;
         }
+
+        loadTournamentsDropdown();
 
         const tourRef = ref(db, `users/${currentUserId}/tournaments/${tourId}`);
         const tourSnap = await get(tourRef);
         if (tourSnap.exists()) {
             document.getElementById('tourTitle').innerText = "🏆 " + (tourSnap.val().name || "Tournament Panel");
+        } else {
+            window.location.href = "index.html";
+            return;
         }
 
         loadTeamsAndSquads();
         loadMatchesList();
     }
 
+    async function loadTournamentsDropdown() {
+        const dropdown = document.getElementById('switchTournamentSelect');
+        try {
+            const tourSnap = await get(ref(db, `users/${currentUserId}/tournaments`));
+            if (tourSnap.exists()) {
+                const tours = tourSnap.val();
+                dropdown.innerHTML = '<option value="">-- Switch Tournament --</option>';
+                
+                Object.keys(tours).forEach(tId => {
+                    const tour = tours[tId];
+                    let opt = document.createElement('option');
+                    opt.value = tId;
+                    opt.innerText = tour.name || 'Unnamed Tournament';
+                    if (tId === tourId) {
+                        opt.selected = true;
+                    }
+                    dropdown.appendChild(opt);
+                });
+            }
+        } catch (e) {
+            console.error("Error loading tournament dropdown:", e);
+        }
+    }
+
+    window.switchTournament = function(selectedTourId) {
+        if (!selectedTourId) return;
+        window.location.href = `${currentPageName}?t=${selectedTourId}&u=${currentUsername}`;
+    };
+
     window.saveTeamWithSquad = async function() {
+        if (!auth.currentUser) {
+            alert("⚠️ Unauthorized! Please log in first.");
+            window.location.href = "index.html";
+            return;
+        }
+
         const teamName = document.getElementById('teamNameInput').value.trim();
         const squadText = document.getElementById('squadInput').value.trim();
         if (!teamName) { alert("⚠️ Please enter a team name!"); return; }
@@ -200,6 +250,12 @@
     };
 
     window.deleteTeam = async function(teamName) {
+        if (!auth.currentUser) {
+            alert("⚠️ Unauthorized! Please log in first.");
+            window.location.href = "index.html";
+            return;
+        }
+
         if (!confirm(`⚠️ Delete team '${teamName}'?`)) return;
         try {
             await remove(ref(db, `users/${currentUserId}/tournaments/${tourId}/teams/${teamName}`));
@@ -212,6 +268,12 @@
     };
 
     window.editPlayerName = async function(teamName, idx, currentName) {
+        if (!auth.currentUser) {
+            alert("⚠️ Unauthorized! Please log in first.");
+            window.location.href = "index.html";
+            return;
+        }
+
         const newName = prompt("✏️ Edit Player Name:", currentName);
         if (!newName || newName.trim() === "") return;
         try {
@@ -290,6 +352,12 @@
     window.filterTeams = function() { updateTeamDropdowns(); };
 
     window.scheduleMatch = async function() {
+        if (!auth.currentUser) {
+            alert("⚠️ Unauthorized! Please log in first.");
+            window.location.href = "index.html";
+            return;
+        }
+
         const team1 = document.getElementById('team1Select').value;
         const team2 = document.getElementById('team2Select').value;
         const overs = document.getElementById('matchOversInput').value || 10;
@@ -342,6 +410,12 @@
     }
 
     window.launchMatch = async function(mId, t1, t2, overs, type) {
+        if (!auth.currentUser) {
+            alert("⚠️ Unauthorized! Please log in first.");
+            window.location.href = "index.html";
+            return;
+        }
+
         try {
             const userRef = ref(db, `users/${currentUserId}`);
             const userSnap = await get(userRef);
@@ -357,6 +431,12 @@
     };
 
     window.deleteMatch = async function(mId) {
+        if (!auth.currentUser) {
+            alert("⚠️ Unauthorized! Please log in first.");
+            window.location.href = "index.html";
+            return;
+        }
+
         if (!confirm("⚠️ Delete match?")) return;
         try {
             await remove(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${mId}`));
@@ -364,11 +444,21 @@
         } catch (e) { alert("❌ Failed to delete match."); }
     };
 
-    onAuthStateChanged(auth, (user) => {
-        if (user) { init(); } else { window.location.href = "index.html"; }
+    // ফায়ারবেস অথেন্টিকেশন স্টেট লিসেনার ও সিকিউরিটি চেক
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUserId = user.uid;
+            if (!currentUsername) {
+                currentUsername = localStorage.getItem('proCricketUsername') || "user";
+            }
+            init();
+        } else {
+            // যদি ইউজার লগইন করা না থাকে, তবে তাৎক্ষণিকভাবে লগইন পেজে রিডাইরেক্ট করবে
+            alert("⚠️ Please login from dashboard first.");
+            window.location.href = "index.html";
+        }
     });
 </script>
 
 </body>
 </html>
-
