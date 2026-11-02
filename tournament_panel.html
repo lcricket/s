@@ -172,8 +172,6 @@
     let currentUserId = "";
     let globalTeamsData = {};
 
-    const currentPageName = window.location.pathname.split("/").pop() || "tournament_panel.html";
-
     window.switchTournament = function(selectedTourId) {
         if (!selectedTourId) return;
         const newUrl = new URL(window.location);
@@ -185,7 +183,8 @@
     async function loadTournamentsDropdown() {
         const dropdown = document.getElementById('switchTournamentSelect');
         try {
-            const toursSnap = await get(ref(db, `users/${currentUserId}/tournaments`));
+            // পয়েন্ট টেবিলের মতো সরাসরি সঠিক পাথে রিকোয়েস্ট পাঠানো হচ্ছে
+            const toursSnap = await get(ref(db, `users/${currentUserId}/tournaments/`));
             if (toursSnap.exists()) {
                 const toursData = toursSnap.val();
                 dropdown.innerHTML = '<option value="">-- Select Tournament --</option>';
@@ -202,11 +201,13 @@
                     dropdown.appendChild(opt);
                 }
 
+                // যদি URL-এ কোনো টুর্নামেন্ট আইডি না থাকে, তবে ড্রপডাউনের প্রথমটি স্বয়ংক্রিয়ভাবে সিলেক্ট করবে
                 if (!tourId && dropdown.options.length > 1) {
                     dropdown.selectedIndex = 1;
                     tourId = dropdown.value;
-                    window.switchTournament(tourId);
-                    return;
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.set('t', tourId);
+                    window.history.pushState({}, '', newUrl);
                 }
             } else {
                 dropdown.innerHTML = '<option value="">No Tournaments Found</option>';
@@ -218,13 +219,12 @@
     }
 
     async function init() {
-        if (!tourId || tourId.trim() === "" || tourId === "null") {
-            // যদি ইউআরএল এ টুর্নামেন্ট আইডি না থাকে, তবে ড্রপডাউন থেকে প্রথমটি লোড করবে
-            await loadTournamentsDropdown();
-            if (!tourId) return;
-        }
-
         await loadTournamentsDropdown();
+
+        if (!tourId) {
+            document.getElementById('teamsListContainer').innerHTML = '<li style="color: #888; padding: 10px;">Please select a tournament from above.</li>';
+            return;
+        }
 
         const tourRef = ref(db, `users/${currentUserId}/tournaments/${tourId}`);
         const tourSnap = await get(tourRef);
@@ -243,6 +243,11 @@
             return;
         }
 
+        if (!tourId) {
+            alert("⚠️ Please select a tournament first!");
+            return;
+        }
+
         const teamName = document.getElementById('teamNameInput').value.trim();
         const squadText = document.getElementById('squadInput').value.trim();
         if (!teamName) { alert("⚠️ Please enter a team name!"); return; }
@@ -258,12 +263,7 @@
     };
 
     window.deleteTeam = async function(teamName) {
-        if (!auth.currentUser) {
-            alert("⚠️ Unauthorized! Please log in first.");
-            window.location.href = "index.html";
-            return;
-        }
-
+        if (!auth.currentUser) return;
         if (!confirm(`⚠️ Delete team '${teamName}'?`)) return;
         try {
             await remove(ref(db, `users/${currentUserId}/tournaments/${tourId}/teams/${teamName}`));
@@ -276,12 +276,7 @@
     };
 
     window.editPlayerName = async function(teamName, idx, currentName) {
-        if (!auth.currentUser) {
-            alert("⚠️ Unauthorized! Please log in first.");
-            window.location.href = "index.html";
-            return;
-        }
-
+        if (!auth.currentUser) return;
         const newName = prompt("✏️ Edit Player Name:", currentName);
         if (!newName || newName.trim() === "") return;
         try {
@@ -298,6 +293,7 @@
 
     async function loadTeamsAndSquads() {
         const container = document.getElementById('teamsListContainer');
+        if (!tourId) return;
         try {
             const snap = await get(ref(db, `users/${currentUserId}/tournaments/${tourId}/teams`));
             if (snap.exists()) {
@@ -329,7 +325,7 @@
                 updateTeamDropdowns();
             } else {
                 globalTeamsData = {};
-                container.innerHTML = '<li style="color: #888; font-size: 14px; width: 100%; padding: 10px;">No teams added yet.</li>';
+                container.innerHTML = '<li style="color: #888; font-size: 14px; width: 100%; padding: 10px;">No teams added yet for this tournament.</li>';
                 updateTeamDropdowns();
             }
         } catch (e) { console.error(e); }
@@ -360,11 +356,8 @@
     window.filterTeams = function() { updateTeamDropdowns(); };
 
     window.scheduleMatch = async function() {
-        if (!auth.currentUser) {
-            alert("⚠️ Unauthorized! Please log in first.");
-            window.location.href = "index.html";
-            return;
-        }
+        if (!auth.currentUser) return;
+        if (!tourId) { alert("⚠️ Please select a tournament first!"); return; }
 
         const team1 = document.getElementById('team1Select').value;
         const team2 = document.getElementById('team2Select').value;
@@ -387,6 +380,7 @@
 
     async function loadMatchesList() {
         const container = document.getElementById('matchesListContainer');
+        if (!tourId) return;
         try {
             const snap = await get(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches`));
             if (snap.exists()) {
@@ -418,12 +412,7 @@
     }
 
     window.launchMatch = async function(mId, t1, t2, overs, type) {
-        if (!auth.currentUser) {
-            alert("⚠️ Unauthorized! Please log in first.");
-            window.location.href = "index.html";
-            return;
-        }
-
+        if (!auth.currentUser) return;
         try {
             const userRef = ref(db, `users/${currentUserId}`);
             const userSnap = await get(userRef);
@@ -439,12 +428,7 @@
     };
 
     window.deleteMatch = async function(mId) {
-        if (!auth.currentUser) {
-            alert("⚠️ Unauthorized! Please log in first.");
-            window.location.href = "index.html";
-            return;
-        }
-
+        if (!auth.currentUser) return;
         if (!confirm("⚠️ Delete match?")) return;
         try {
             await remove(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${mId}`));
