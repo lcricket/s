@@ -48,7 +48,7 @@
                 </tr>
             </thead>
             <tbody id="pointsTableBody">
-                <tr><td colspan="6" class="loading-text">Loading points table...</td></tr>
+                <tr><td colspan="6" class="loading-text">Please select a tournament to view points table.</td></tr>
             </tbody>
         </table>
     </div>
@@ -76,7 +76,7 @@
     let targetUsername = urlParams.get('u') || localStorage.getItem('proCricketUsername');
     let tourId = urlParams.get('t');
     let currentUserId = targetUsername;
-    let allTournaments = {}; // সবগুলো টুর্নামেন্ট স্টোর করার জন্য
+    let allTournaments = {}; 
 
     // ড্রপডাউন থেকে টুর্নামেন্ট চেঞ্জ করার ফাংশন
     window.changeTournament = function() {
@@ -86,18 +86,21 @@
         if (tourId) {
             document.getElementById('tourTitle').innerText = "📊 " + selector.options[selector.selectedIndex].text;
             
-            // URL আপডেট করা (যাতে পেজ রিলোড দিলে একই টুর্নামেন্ট থাকে)
+            // URL আপডেট করা 
             const newUrl = new URL(window.location);
             newUrl.searchParams.set('t', tourId);
             window.history.pushState({}, '', newUrl);
         } else {
             document.getElementById('tourTitle').innerText = "📊 Points Table";
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.delete('t');
+            window.history.pushState({}, '', newUrl);
         }
         
         loadPointsTable();
     }
 
-    // শুরুতে ডাটাবেস থেকে সব টুর্নামেন্ট নিয়ে আসার ফাংশন
+    // শুরুতে ডাটাবেস থেকে সব টুর্নামেন্ট নিয়ে আসার ফাংশন
     async function initApp() {
         const tableBody = document.getElementById('pointsTableBody');
         const selector = document.getElementById('tournamentSelector');
@@ -133,25 +136,15 @@
                 selector.innerHTML = '<option value="">No Tournaments Found</option>';
             }
 
-            // ৩. টুর্নামেন্ট আইডি অটো-ডিটেক্ট করা (যদি লিংকে না থাকে)
-            if (!tourId || tourId === 'null') {
-                const liveSnap = await get(ref(db, `live_matches/${targetUsername}/score/tournamentId`));
-                if (liveSnap.exists() && liveSnap.val() !== "null") {
-                    tourId = liveSnap.val();
-                } else if (Object.keys(allTournaments).length > 0) {
-                    // লাইভ ম্যাচ না থাকলে সর্বশেষ টুর্নামেন্টটি সিলেক্ট করবে
-                    const tourKeys = Object.keys(allTournaments);
-                    tourId = tourKeys[tourKeys.length - 1]; 
-                }
-            }
-
-            // ড্রপডাউনে ডিফল্ট টুর্নামেন্ট সিলেক্ট করে রাখা
+            // ৩. যদি URL এ টুর্নামেন্ট আইডি (t) দেওয়া থাকে শুধুমাত্র তখনই সেটি সিলেক্ট করবে, অন্যথায় খালি থাকবে
             if (tourId && allTournaments[tourId]) {
                 selector.value = tourId;
                 document.getElementById('tourTitle').innerText = "📊 " + (allTournaments[tourId].name || "Points Table");
+                loadPointsTable();
+            } else {
+                tourId = ""; // রিসেট করে দিলাম যাতে অটো সিলেক্ট না হয়
+                tableBody.innerHTML = `<tr><td colspan="6" class="loading-text" style="color:#666;">Please select a tournament from above to view the points table.</td></tr>`;
             }
-
-            loadPointsTable();
 
         } catch (error) {
             console.error("Error initializing app:", error);
@@ -159,18 +152,18 @@
         }
     }
 
-    // পয়েন্ট টেবিল লোড করার মেইন ফাংশন
+    // পয়েন্ট টেবিল লোড করার মেইন ফাংশন
     async function loadPointsTable() {
         const tableBody = document.getElementById('pointsTableBody');
-        tableBody.innerHTML = `<tr><td colspan="6" class="loading-text">Loading points table...</td></tr>`;
 
-        if (!tourId || tourId === 'null') {
-            tableBody.innerHTML = `<tr><td colspan="6" style="color:#dc3545; padding: 20px;">⚠️ No active tournament found. Please create one!</td></tr>`;
+        if (!tourId || tourId === 'null' || tourId === '') {
+            tableBody.innerHTML = `<tr><td colspan="6" class="loading-text" style="color:#666;">Please select a tournament from above to view the points table.</td></tr>`;
             return;
         }
 
+        tableBody.innerHTML = `<tr><td colspan="6" class="loading-text">Loading points table...</td></tr>`;
+
         try {
-            // প্রথমে দেখবে লাইভ টুর্নামেন্ট ডেটাতে কোনো পয়েন্ট টেবিল আছে কি না
             let teamsData = null;
             const livePointsSnap = await get(ref(db, `live_matches/${targetUsername}/tournaments_data/${tourId}/teams`));
             
@@ -178,7 +171,6 @@
                 teamsData = livePointsSnap.val();
             }
 
-            // ম্যাচ খেলা না হলে (ডেটা না থাকলে), মেইন ডাটাবেস থেকে টিমগুলো জিরো (0) অবস্থায় নিয়ে আসবে (Fallback)
             if (!teamsData) {
                 const mainTeamsSnap = await get(ref(db, `users/${currentUserId}/tournaments/${tourId}/teams`));
                 if (mainTeamsSnap.exists()) {
@@ -187,14 +179,14 @@
             }
 
             if (!teamsData) {
-                tableBody.innerHTML = `<tr><td colspan="6" style="color:#888; padding: 20px;">No teams added yet. Please add teams in Tournament Hub!</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="6" style="color:#888; padding: 20px;">No teams added yet for this tournament.</td></tr>`;
                 return;
             }
 
             tableBody.innerHTML = "";
             let teamsArray = Object.keys(teamsData).map(key => teamsData[key]);
 
-            // পয়েন্ট এবং নেট রানরেটের ভিত্তিতে দলগুলোকে সাজানো (Sorting)
+            // পয়েন্ট এবং নেট রানরেটের ভিত্তিতে দলগুলোকে সাজানো (Sorting)
             teamsArray.sort((a, b) => (b.points || 0) - (a.points || 0) || parseFloat(b.netRunRate || 0) - parseFloat(a.netRunRate || 0));
 
             teamsArray.forEach((team, index) => {
@@ -215,9 +207,9 @@
         }
     }
 
-    // পেজ লোড হলেই অ্যাপ ইনিশিয়ালাইজ হবে
     window.onload = initApp;
 
 </script>
 </body>
 </html>
+
