@@ -30,7 +30,7 @@
         <h2 id="tourTitle">📊 Points Table</h2>
     </div>
     
-    <!-- Tournament Dropdown Added Here -->
+    <!-- Tournament Dropdown -->
     <select id="tournamentSelector" class="select-box" onchange="changeTournament()">
         <option value="">⏳ Loading Tournaments...</option>
     </select>
@@ -78,7 +78,7 @@
     let currentUserId = targetUsername;
     let allTournaments = {}; 
 
-    // ড্রপডাউন থেকে টুর্নামেন্ট চেঞ্জ করার ফাংশন
+    // ড্রপডাউন থেকে টুর্নামেন্ট পরিবর্তনের ফাংশন
     window.changeTournament = function() {
         const selector = document.getElementById('tournamentSelector');
         tourId = selector.value;
@@ -86,7 +86,7 @@
         if (tourId) {
             document.getElementById('tourTitle').innerText = "📊 " + selector.options[selector.selectedIndex].text;
             
-            // URL আপডেট করা 
+            // URL আপডেট করা যাতে রিলোড দিলে আইডি হারিয়ে না যায়
             const newUrl = new URL(window.location);
             newUrl.searchParams.set('t', tourId);
             window.history.pushState({}, '', newUrl);
@@ -100,7 +100,7 @@
         loadPointsTable();
     }
 
-    // শুরুতে ডাটাবেস থেকে সব টুর্নামেন্ট নিয়ে আসার ফাংশন
+    // অ্যাপ ইনিশিয়ালাইজ এবং টুর্নামেন্ট ফেচ করার ফাংশন
     async function initApp() {
         const tableBody = document.getElementById('pointsTableBody');
         const selector = document.getElementById('tournamentSelector');
@@ -112,15 +112,21 @@
         }
 
         try {
-            // ১. Username থেকে আসল UID বের করা
+            // ১. Username থেকে আসল UID বের করা (যদি usernames নোড ব্যবহার করা হয়ে থাকে)
             const userRef = ref(db, 'usernames/' + targetUsername);
             const userSnap = await get(userRef);
             if (userSnap.exists()) {
                 currentUserId = userSnap.val();
             }
 
-            // ২. সবগুলো টুর্নামেন্ট ফেচ করা
-            const allToursSnap = await get(ref(db, `users/${currentUserId}/tournaments`));
+            // ২. সরাসরি দুটি সম্ভাব্য পাথ থেকে টুর্নামেন্ট ফেচ করার চেষ্টা (সুরক্ষিত পদ্ধতি)
+            let allToursSnap = await get(ref(db, `users/${currentUserId}/tournaments`));
+            
+            // যদি প্রথম পাথে না পাওয়া যায়, তবে সরাসরি ইউজারনেম দিয়ে চেক করবে
+            if (!allToursSnap.exists() && currentUserId !== targetUsername) {
+                allToursSnap = await get(ref(db, `users/${targetUsername}/tournaments`));
+            }
+
             if (allToursSnap.exists()) {
                 allTournaments = allToursSnap.val();
                 
@@ -134,15 +140,25 @@
                 }
             } else {
                 selector.innerHTML = '<option value="">No Tournaments Found</option>';
+                tableBody.innerHTML = `<tr><td colspan="6" style="color:#888; padding: 20px;">No tournaments found under this account.</td></tr>`;
+                return;
             }
 
-            // ৩. যদি URL এ টুর্নামেন্ট আইডি (t) দেওয়া থাকে শুধুমাত্র তখনই সেটি সিলেক্ট করবে, অন্যথায় খালি থাকবে
+            // ৩. URL বা লাইভ ম্যাচ থেকে টুর্নামেন্ট আইডি সেট করা
+            if (!tourId || tourId === 'null') {
+                const liveSnap = await get(ref(db, `live_matches/${targetUsername}/score/tournamentId`));
+                if (liveSnap.exists() && liveSnap.val() !== "null") {
+                    tourId = liveSnap.val();
+                }
+            }
+
+            // যদি টুর্নামেন্ট আইডি ম্যাচ করে, তবে ড্রপডাউনে সিলেক্ট করে টেবিল লোড করবে
             if (tourId && allTournaments[tourId]) {
                 selector.value = tourId;
                 document.getElementById('tourTitle').innerText = "📊 " + (allTournaments[tourId].name || "Points Table");
                 loadPointsTable();
             } else {
-                tourId = ""; // রিসেট করে দিলাম যাতে অটো সিলেক্ট না হয়
+                tourId = ""; 
                 tableBody.innerHTML = `<tr><td colspan="6" class="loading-text" style="color:#666;">Please select a tournament from above to view the points table.</td></tr>`;
             }
 
@@ -152,7 +168,7 @@
         }
     }
 
-    // পয়েন্ট টেবিল লোড করার মেইন ফাংশন
+    // পয়েন্ট টেবিল লোড করার ফাংশন
     async function loadPointsTable() {
         const tableBody = document.getElementById('pointsTableBody');
 
@@ -165,16 +181,24 @@
 
         try {
             let teamsData = null;
-            const livePointsSnap = await get(ref(db, `live_matches/${targetUsername}/tournaments_data/${tourId}/teams`));
             
+            // প্রথমে লাইভ ম্যাচ ডেটা থেকে পয়েন্ট টেবিল চেক করবে
+            const livePointsSnap = await get(ref(db, `live_matches/${targetUsername}/tournaments_data/${tourId}/teams`));
             if (livePointsSnap.exists()) {
                 teamsData = livePointsSnap.val();
             }
 
+            // লাইভ ডেটা না থাকলে মূল টুর্নামেন্ট ডেটাবেস থেকে টিমগুলো নিয়ে আসবে
             if (!teamsData) {
                 const mainTeamsSnap = await get(ref(db, `users/${currentUserId}/tournaments/${tourId}/teams`));
                 if (mainTeamsSnap.exists()) {
                     teamsData = mainTeamsSnap.val();
+                } else {
+                    // বিকল্প পাথ চেক
+                    const altTeamsSnap = await get(ref(db, `users/${targetUsername}/tournaments/${tourId}/teams`));
+                    if (altTeamsSnap.exists()) {
+                        teamsData = altTeamsSnap.val();
+                    }
                 }
             }
 
@@ -212,4 +236,3 @@
 </script>
 </body>
 </html>
-
