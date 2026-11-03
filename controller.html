@@ -174,13 +174,11 @@
             <div class="box" id="strikerBox" style="background: #fff;">
                 <h3 style="color: #b78103;">Striker 🏏</h3>
                 
-                <!-- ড্রপডাউন সিলেক্ট অপশন (সবসময় থাকবে) -->
                 <label>Select from List</label>
                 <select id="bat1Select" onchange="window.onDropdownSelectionChanged('striker')">
                     <option value="">-- Striker --</option>
                 </select>
 
-                <!-- টেক্সট ইনপুট অপশন (১১ জনের কম হলে আসবে) -->
                 <div id="bat1InputContainer" style="display: none; margin-top: 5px;">
                     <label>Or Type Name</label>
                     <input type="text" id="bat1Name" placeholder="Type new name..." oninput="window.onPlayerTextChanged('striker')">
@@ -195,13 +193,11 @@
             <div class="box" id="nonStrikerBox" style="background: #fff;">
                 <h3>Non-Striker</h3>
                 
-                <!-- ড্রপডাউন সিলেক্ট অপশন -->
                 <label>Select from List</label>
                 <select id="bat2Select" onchange="window.onDropdownSelectionChanged('nonStriker')">
                     <option value="">-- Non-Striker --</option>
                 </select>
 
-                <!-- টেক্সট ইনপুট অপশন -->
                 <div id="bat2InputContainer" style="display: none; margin-top: 5px;">
                     <label>Or Type Name</label>
                     <input type="text" id="bat2Name" placeholder="Type new name..." oninput="window.onPlayerTextChanged('nonStriker')">
@@ -216,13 +212,11 @@
             <div class="box" id="bowlerBox" style="background: #fff;">
                 <h3>Bowler</h3>
                 
-                <!-- ড্রপডাউন সিলেক্ট অপশন -->
                 <label>Select from List</label>
                 <select id="bowlerSelect" onchange="window.onDropdownSelectionChanged('bowler')">
                     <option value="">-- Bowler --</option>
                 </select>
 
-                <!-- টেক্সট ইনপুট অপশন -->
                 <div id="bowlerInputContainer" style="display: none; margin-top: 5px;">
                     <label>Or Type Name</label>
                     <input type="text" id="bowlerName" placeholder="Type new name..." oninput="window.onPlayerTextChanged('bowler')">
@@ -316,21 +310,6 @@
     let detailedStats = {};
     let scheduledMatchOvers = null;
 
-    window.returnToTournamentImmediately = async function() {
-        let targetTourId = activeTournamentId;
-        if (!targetTourId || targetTourId === "null" || targetTourId === "undefined") {
-            try {
-                const snapshot = await get(ref(db, `live_matches/${currentMatchUser}/score/tournamentId`));
-                if (snapshot.exists()) targetTourId = snapshot.val();
-            } catch (err) {}
-        }
-        if (targetTourId && targetTourId !== "null" && targetTourId !== "undefined") {
-            window.location.href = `tournament.html?t=${targetTourId}`;
-        } else {
-            window.location.href = "index.html";
-        }
-    };
-
     function sendToFirebase(scoreData) {
         const btn = document.getElementById('updateBtn');
         if(btn) { btn.innerText = "⚡ Auto-Updating..."; btn.style.background = "#17a2b8"; }
@@ -343,7 +322,6 @@
         });
     }
 
-    // স্কোয়াড চেক করে ইনপুট ফিল্ড হাইড/শো করার ফাংশন
     function checkSquadAndToggleInputs() {
         let batPlayers = getPlayersList(true);
         let bowlPlayers = getPlayersList(false);
@@ -352,17 +330,14 @@
         let nsInputBox = document.getElementById('bat2InputContainer');
         let bowlInputBox = document.getElementById('bowlerInputContainer');
 
-        // ব্যাটিং স্কোয়াডে ১১ জনের কম থাকলে ইনপুট বক্স দেখাবে, অন্যথায় হাইড থাকবে
         let showBatInput = batPlayers.length < 11;
         if(batInputBox) batInputBox.style.display = showBatInput ? 'block' : 'none';
         if(nsInputBox) nsInputBox.style.display = showBatInput ? 'block' : 'none';
 
-        // বোলিং স্কোয়াডে ১১ জনের কম থাকলে বোলারের ইনপুট বক্স দেখাবে
         let showBowlInput = bowlPlayers.length < 11;
         if(bowlInputBox) bowlInputBox.style.display = showBowlInput ? 'block' : 'none';
     }
 
-    // নতুন নাম স্কোয়াডে যোগ করার ফাংশন
     function addNewPlayerToSquadIfNeeded(playerName, isBattingTeam) {
         if (!playerName || playerName.trim() === "") return;
         playerName = playerName.trim();
@@ -412,7 +387,6 @@
     }
 
     function autoClosePanel() {
-        // ১১ জনের লিস্ট পূর্ণ থাকলে এবং সবাই সিলেক্ট করা হলে প্যানেল অটো ক্লোজ হবে
         let batPlayers = getPlayersList(true);
         let b1 = document.getElementById('bat1Select').value;
         let b2 = document.getElementById('bat2Select').value;
@@ -632,7 +606,6 @@
         processAndUpdate();
     };
 
-    // বর্তমান সিলেক্ট করা বা টাইপ করা নাম পাওয়ার ফাংশন
     function getActivePlayerName(side) {
         if (side === 'bat1') {
             let sVal = document.getElementById('bat1Select').value;
@@ -1571,7 +1544,7 @@
     }
 
     async function initializePointsTable(tData) {
-        if (!activeTournamentId) return;
+        if (!activeTournamentId || !currentUserId) return;
         const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${activeTournamentId}/teams/`);
         try {
             const snapshot = await get(pointsRef);
@@ -1580,8 +1553,11 @@
             
             let tourTeamNames = [];
             if (tData.teams) {
-                if (Array.isArray(tData.teams)) { tourTeamNames = tData.teams.map(t => typeof t === 'string' ? t : (t.name || '')); } 
-                else { tourTeamNames = Object.keys(tData.teams); }
+                if (Array.isArray(tData.teams)) { 
+                    tourTeamNames = tData.teams.map(t => typeof t === 'string' ? t : (t.name || '')); 
+                } else { 
+                    tourTeamNames = Object.keys(tData.teams).map(k => tData.teams[k].name || k); 
+                }
             } else if (tData.squads) {
                 tourTeamNames = Object.keys(tData.squads);
             }
@@ -1617,13 +1593,14 @@
 
         let hasSavedState = getControllerState();
 
-        if (activeTournamentId && activeMatchId && !hasSavedState) {
+        if (activeTournamentId && activeMatchId) {
             try {
                 if(currentUserId) {
                     const tourSnap = await get(ref(db, `users/${currentUserId}/tournaments/${activeTournamentId}`));
                     if (tourSnap.exists()) {
                         const tData = tourSnap.val();
                         
+                        // টুর্নামেন্টের সমস্ত টিম পয়েন্ট টেবিলে অটো ইনিশিয়ালাইজ করবে
                         await initializePointsTable(tData);
 
                         const matchInfo = (tData.matches || {})[activeMatchId];
@@ -1721,3 +1698,4 @@
 </script>
 </body>
 </html>
+
