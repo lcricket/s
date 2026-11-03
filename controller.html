@@ -8,7 +8,7 @@
     <style>
         body { font-family: Arial, sans-serif; background: #eef2f3; padding: 15px; margin: 0; }
         .container { max-width: 750px; margin: auto; background: #fff; padding: 18px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .header-box { text-align: center; margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .header-box { text-align: center; margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; display: flex; justify-content: center; align-items: center; }
         h2 { color: #333; margin: 0; font-size: 20px; }
         .sub-header-bar { display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px; flex-wrap: wrap; gap: 8px; }
         .sub-header-item { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: bold; color: #444; }
@@ -145,7 +145,6 @@
 <div class="container" id="mainContainerBox">
     <div class="header-box">
         <h2>🏏 Live Match Controller</h2>
-        <button class="btn-sub-action btn-dash" id="backToTourBtn" onclick="window.returnToTournamentImmediately()">🏆 Tournament</button>
     </div>
 
     <div class="sub-header-bar">
@@ -175,7 +174,7 @@
             <div class="box" id="strikerBox" style="background: #fff;">
                 <h3 style="color: #b78103;">Striker 🏏</h3>
                 
-                <!-- ড্রপডাউন সিলেক্ট অপশন (সবসময় থাকবে) -->
+                <!-- ড্রপডাউন সিলেক্ট অপশন (সবসময় থাকবে) -->
                 <label>Select from List</label>
                 <select id="bat1Select" onchange="window.onDropdownSelectionChanged('striker')">
                     <option value="">-- Striker --</option>
@@ -344,7 +343,7 @@
         });
     }
 
-    // স্কোয়াড চেক করে ইনপুট ফিল্ড হাইড/শো করার ফাংশন
+    // স্কোয়াড চেক করে ইনপুট ফিল্ড হাইড/শো করার ফাংশন
     function checkSquadAndToggleInputs() {
         let batPlayers = getPlayersList(true);
         let bowlPlayers = getPlayersList(false);
@@ -353,17 +352,17 @@
         let nsInputBox = document.getElementById('bat2InputContainer');
         let bowlInputBox = document.getElementById('bowlerInputContainer');
 
-        // ব্যাটিং স্কোয়াডে ১১ জনের কম থাকলে ইনপুট বক্স দেখাবে, অন্যথায় হাইড থাকবে
+        // ব্যাটিং স্কোয়াডে ১১ জনের কম থাকলে ইনপুট বক্স দেখাবে, অন্যথায় হাইড থাকবে
         let showBatInput = batPlayers.length < 11;
         if(batInputBox) batInputBox.style.display = showBatInput ? 'block' : 'none';
         if(nsInputBox) nsInputBox.style.display = showBatInput ? 'block' : 'none';
 
-        // বোলিং স্কোয়াডে ১১ জনের কম থাকলে বোলারের ইনপুট বক্স দেখাবে
+        // বোলিং স্কোয়াডে ১১ জনের কম থাকলে বোলারের ইনপুট বক্স দেখাবে
         let showBowlInput = bowlPlayers.length < 11;
         if(bowlInputBox) bowlInputBox.style.display = showBowlInput ? 'block' : 'none';
     }
 
-    // নতুন নাম স্কোয়াডে যোগ করার ফাংশন
+    // নতুন নাম স্কোয়াডে যোগ করার ফাংশন
     function addNewPlayerToSquadIfNeeded(playerName, isBattingTeam) {
         if (!playerName || playerName.trim() === "") return;
         playerName = playerName.trim();
@@ -633,7 +632,7 @@
         processAndUpdate();
     };
 
-    // বর্তমান সিলেক্ট করা বা টাইপ করা নাম পাওয়ার ফাংশন
+    // বর্তমান সিলেক্ট করা বা টাইপ করা নাম পাওয়ার ফাংশন
     function getActivePlayerName(side) {
         if (side === 'bat1') {
             let sVal = document.getElementById('bat1Select').value;
@@ -1722,5 +1721,3 @@
 </script>
 </body>
 </html>
-
-
