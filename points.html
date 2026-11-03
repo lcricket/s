@@ -79,14 +79,13 @@
     const urlParams = new URLSearchParams(window.location.search);
     let currentMatchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername');
     let currentUserId = "";
-    let activeTournamentId = urlParams.get('t') || localStorage.getItem('activeTournamentId');
+    let activeTournamentId = urlParams.get('t');
 
     window.changeTournament = function() {
         const selector = document.getElementById('tournamentSelector');
         activeTournamentId = selector.value;
         
         if (activeTournamentId) {
-            localStorage.setItem('activeTournamentId', activeTournamentId);
             document.getElementById('tourTitle').innerText = "📊 " + selector.options[selector.selectedIndex].text;
             
             const newUrl = new URL(window.location);
@@ -231,13 +230,8 @@
                 document.getElementById('tournamentSelector').innerHTML = '<option value="">Error loading tournaments</option>';
             }
         } else {
-            // যদি ফায়ারবেস অথেন্টিকেশন পেতে দেরি হয়, তবুও লোকালস্টোরেজ থেকে ডাটা লোড করার চেষ্টা করবে
-            if (activeTournamentId) {
-                loadPointsTable();
-            } else {
-                alert("⚠️ Please login first.");
-                window.location.href = "index.html";
-            }
+            alert("⚠️ Please login first.");
+            window.location.href = "index.html";
         }
     });
 </script>
