@@ -83,21 +83,33 @@
 
     window.changeTournament = function() {
         const selector = document.getElementById('tournamentSelector');
+        if (!selector) return;
+        
         activeTournamentId = selector.value;
         
         if (activeTournamentId) {
             localStorage.setItem('activeTournamentId', activeTournamentId);
-            document.getElementById('tourTitle').innerText = "📊 " + selector.options[selector.selectedIndex].text;
+            if (selector.options[selector.selectedIndex]) {
+                document.getElementById('tourTitle').innerText = "📊 " + selector.options[selector.selectedIndex].text;
+            }
             
-            const newUrl = new URL(window.location);
-            newUrl.searchParams.set('t', activeTournamentId);
-            if(currentMatchUser) newUrl.searchParams.set('u', currentMatchUser);
-            window.history.pushState({}, '', newUrl);
+            try {
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('t', activeTournamentId);
+                if(currentMatchUser) newUrl.searchParams.set('u', currentMatchUser);
+                window.history.pushState({}, '', newUrl);
+            } catch(err) {
+                console.error("History push state error:", err);
+            }
         } else {
             document.getElementById('tourTitle').innerText = "📊 Points Table";
-            const newUrl = new URL(window.location);
-            newUrl.searchParams.delete('t');
-            window.history.pushState({}, '', newUrl);
+            try {
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.delete('t');
+                window.history.pushState({}, '', newUrl);
+            } catch(err) {
+                console.error("History delete state error:", err);
+            }
         }
         
         loadPointsTable();
@@ -105,10 +117,15 @@
 
     async function loadPointsTable() {
         const tbody = document.getElementById('pointsTableBody');
+        if (!tbody) return;
         
         if (!activeTournamentId) {
             tbody.innerHTML = `<tr><td colspan="6" class="loading-text">Please select a tournament from above.</td></tr>`;
             return;
+        }
+
+        if (!currentMatchUser) {
+            currentMatchUser = localStorage.getItem('proCricketUsername') || "user";
         }
 
         tbody.innerHTML = `<tr><td colspan="6" class="loading-text">Loading points table...</td></tr>`;
@@ -116,22 +133,37 @@
         try {
             const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${activeTournamentId}/teams/`);
             let snap = await get(pointsRef);
-            let teamsData = snap.val() || {};
-
-            let teamsArray = Object.keys(teamsData).map(key => teamsData[key]);
-
-            if (teamsArray.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="loading-text" style="color:#dc3545;">No points table data found for this tournament!</td></tr>`;
+            
+            if (!snap.exists()) {
+                tbody.innerHTML = `<tr><td colspan="6" class="loading-text" style="color:#dc3545;">No teams registered in this tournament yet!</td></tr>`;
                 return;
             }
 
-            teamsArray.sort((a, b) => (b.points || 0) - (a.points || 0) || parseFloat(b.netRunRate || 0) - parseFloat(a.netRunRate || 0));
+            let teamsData = snap.val() || {};
+            let teamsArray = Object.keys(teamsData)
+                .map(key => teamsData[key])
+                .filter(item => item !== null && typeof item === 'object' && item.name);
+
+            if (teamsArray.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="loading-text" style="color:#dc3545;">No teams registered in this tournament yet!</td></tr>`;
+                return;
+            }
+
+            // সর্টিং (পয়েন্ট এবং এনআরআর অনুযায়ী)
+            teamsArray.sort((a, b) => {
+                let ptsA = Number(a.points) || 0;
+                let ptsB = Number(b.points) || 0;
+                let nrrA = parseFloat(a.netRunRate) || 0;
+                let nrrB = parseFloat(b.netRunRate) || 0;
+
+                return ptsB - ptsA || nrrB - nrrA;
+            });
 
             tbody.innerHTML = "";
             teamsArray.forEach((team, index) => {
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="team-name">${index + 1}. ${team.name || 'Team'}</td>
+                    <td class="team-name">${index + 1}. ${team.name}</td>
                     <td>${team.matchesPlayed || 0}</td>
                     <td>${team.won || 0}</td>
                     <td>${team.lost || 0}</td>
@@ -141,15 +173,13 @@
                 tbody.appendChild(tr);
             });
         } catch (e) {
-            console.error(e);
+            console.error("Points table load error:", e);
             tbody.innerHTML = `<tr><td colspan="6" class="loading-text" style="color:#dc3545;">Failed to load points table</td></tr>`;
         }
     }
 
-    // ফায়ারবেস অথেন্টিকেশন স্টেট চেকার (লগইন করা না থাকলে পেজ ব্লক করে রিডাইরেক্ট করবে)
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            // ইউজার লগইন করা আছে
             currentUserId = user.uid;
             if (!currentMatchUser) {
                 currentMatchUser = localStorage.getItem('proCricketUsername') || "user";
@@ -158,21 +188,24 @@
             try {
                 const toursSnap = await get(ref(db, `users/${currentUserId}/tournaments/`));
                 const selector = document.getElementById('tournamentSelector');
+                if (!selector) return;
                 
                 if (toursSnap.exists()) {
                     const toursData = toursSnap.val();
                     selector.innerHTML = '<option value="">-- Select a Tournament --</option>';
                     
                     for (let tId in toursData) {
-                        let opt = document.createElement('option');
-                        opt.value = tId;
-                        opt.textContent = toursData[tId].name || "Unnamed Tournament";
-                        
-                        if (tId === activeTournamentId) {
-                            opt.selected = true;
-                            document.getElementById('tourTitle').innerText = "📊 " + opt.textContent;
+                        if (toursData[tId]) {
+                            let opt = document.createElement('option');
+                            opt.value = tId;
+                            opt.textContent = toursData[tId].name || "Unnamed Tournament";
+                            
+                            if (tId === activeTournamentId) {
+                                opt.selected = true;
+                                document.getElementById('tourTitle').innerText = "📊 " + opt.textContent;
+                            }
+                            selector.appendChild(opt);
                         }
-                        selector.appendChild(opt);
                     }
                     
                     if (!activeTournamentId && selector.options.length > 1) {
@@ -183,16 +216,21 @@
                     }
                 } else {
                     selector.innerHTML = '<option value="">No Tournaments Found</option>';
-                    document.getElementById('pointsTableBody').innerHTML = `<tr><td colspan="6" class="loading-text">No tournaments available.</td></tr>`;
+                    const tbodyElem = document.getElementById('pointsTableBody');
+                    if (tbodyElem) {
+                        tbodyElem.innerHTML = `<tr><td colspan="6" class="loading-text">No tournaments available.</td></tr>`;
+                    }
                 }
             } catch(e) {
                 console.error("Error fetching tournaments:", e);
-                document.getElementById('tournamentSelector').innerHTML = '<option value="">Error loading tournaments</option>';
+                const selectorElem = document.getElementById('tournamentSelector');
+                if (selectorElem) {
+                    selectorElem.innerHTML = '<option value="">Error loading tournaments</option>';
+                }
             }
         } else {
-            // ইউজার লগইন করা নেই - তাই পয়েন্ট টেবিল দেখতে পারবে না এবং লগইন পেজে পাঠিয়ে দেওয়া হবে
             alert("⚠️ আপনাকে পয়েন্ট টেবিল দেখতে হলে অবশ্যই লগইন বা সাইন-আপ করতে হবে।");
-            window.location.href = "index.html"; // আপনার লগইন পেজের ফাইল নেম অনুযায়ী এটি পরিবর্তন করতে পারেন
+            window.location.href = "index.html";
         }
     });
 </script>
