@@ -284,7 +284,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     let currentMatchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername');
     let currentUserId = ""; 
-    const activeTournamentId = urlParams.get('t');
+    let activeTournamentId = urlParams.get('t') || localStorage.getItem('activeTournamentId');
     const activeMatchId = urlParams.get('m') || "default_match";
 
     let isLeagueMatchGlobal = true;
@@ -309,6 +309,21 @@
     let firstInningsOversStored = "0.0";
     let detailedStats = {};
     let scheduledMatchOvers = null;
+
+    window.returnToTournamentImmediately = async function() {
+        let targetTourId = activeTournamentId;
+        if (!targetTourId || targetTourId === "null" || targetTourId === "undefined") {
+            try {
+                const snapshot = await get(ref(db, `live_matches/${currentMatchUser}/score/tournamentId`));
+                if (snapshot.exists()) targetTourId = snapshot.val();
+            } catch (err) {}
+        }
+        if (targetTourId && targetTourId !== "null" && targetTourId !== "undefined") {
+            window.location.href = `tournament.html?t=${targetTourId}`;
+        } else {
+            window.location.href = "index.html";
+        }
+    };
 
     function sendToFirebase(scoreData) {
         const btn = document.getElementById('updateBtn');
@@ -1544,7 +1559,10 @@
     }
 
     async function initializePointsTable(tData) {
-        if (!activeTournamentId || !currentUserId) return;
+        if (!activeTournamentId) return;
+        if (activeTournamentId) {
+            localStorage.setItem('activeTournamentId', activeTournamentId);
+        }
         const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${activeTournamentId}/teams/`);
         try {
             const snapshot = await get(pointsRef);
@@ -1556,29 +1574,41 @@
                 if (Array.isArray(tData.teams)) { 
                     tourTeamNames = tData.teams.map(t => typeof t === 'string' ? t : (t.name || '')); 
                 } else { 
-                    tourTeamNames = Object.keys(tData.teams).map(k => tData.teams[k].name || k); 
+                    tourTeamNames = Object.keys(tData.teams).map(k => (tData.teams[k] && tData.teams[k].name) ? tData.teams[k].name : k); 
                 }
             } else if (tData.squads) {
                 tourTeamNames = Object.keys(tData.squads);
             }
-            
+
+            let bTeam = document.getElementById('batTeamName').value;
+            let bwTeam = document.getElementById('bowlTeamName').value;
+            if(bTeam && !tourTeamNames.includes(bTeam)) tourTeamNames.push(bTeam);
+            if(bwTeam && !tourTeamNames.includes(bwTeam)) tourTeamNames.push(bwTeam);
+
             tourTeamNames.forEach(teamName => {
                 if (!teamName || typeof teamName !== 'string' || teamName.trim() === '' || teamName === 'team1' || teamName === 'team2') return; 
                 
-                let formattedName = teamName.trim().toUpperCase().replace(/[.#$\[\]]/g, '_');
-                let existingKey = Object.keys(teamsData).find(k => k.trim().toUpperCase().replace(/[.#$\[\]]/g, '_') === formattedName);
+                let formattedKey = teamName.trim().replace(/[.#$\[\]]/g, '_');
                 
-                if (!existingKey) {
-                    let sKey = teamName.trim().replace(/[.#$\[\]]/g, '_');
-                    teamsData[sKey] = { 
-                        name: teamName.trim(), matchesPlayed: 0, won: 0, lost: 0, tied: 0, points: 0, 
-                        totalRunsScored: 0, totalBallsFaced: 0, totalRunsConceded: 0, totalBallsBowled: 0, netRunRate: "+0.000" 
+                if (!teamsData[formattedKey]) {
+                    teamsData[formattedKey] = { 
+                        name: teamName.trim(), 
+                        matchesPlayed: 0, 
+                        won: 0, 
+                        lost: 0, 
+                        tied: 0, 
+                        points: 0, 
+                        totalRunsScored: 0, 
+                        totalBallsFaced: 0, 
+                        totalRunsConceded: 0, 
+                        totalBallsBowled: 0, 
+                        netRunRate: "+0.000" 
                     };
                     isUpdated = true;
                 }
             });
 
-            if (isUpdated) {
+            if (isUpdated || Object.keys(teamsData).length === 0) {
                 await set(pointsRef, teamsData);
             }
         } catch(e) {}
@@ -1593,6 +1623,10 @@
 
         let hasSavedState = getControllerState();
 
+        if (activeTournamentId) {
+            localStorage.setItem('activeTournamentId', activeTournamentId);
+        }
+
         if (activeTournamentId && activeMatchId) {
             try {
                 if(currentUserId) {
@@ -1600,7 +1634,6 @@
                     if (tourSnap.exists()) {
                         const tData = tourSnap.val();
                         
-                        // টুর্নামেন্টের সমস্ত টিম পয়েন্ট টেবিলে অটো ইনিশিয়ালাইজ করবে
                         await initializePointsTable(tData);
 
                         const matchInfo = (tData.matches || {})[activeMatchId];
