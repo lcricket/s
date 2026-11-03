@@ -11,11 +11,9 @@
         
         .header-title { font-family: 'Oswald', sans-serif; color: #1e3c72; font-size: 22px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
 
-        /* Selectors */
         .select-box { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; font-weight: bold; color: #334155; background: #f8fafc; margin-bottom: 15px; cursor: pointer; }
         #tournamentSelector { border-color: #007bff; background: #eef2ff; color: #1e3c72; }
 
-        /* Table Styling */
         .points-table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: center; }
         .points-table th { background: #007bff; color: #fff; font-family: 'Oswald', sans-serif; font-weight: 500; padding: 10px 8px; letter-spacing: 0.5px; font-size: 13px; }
         .points-table th:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; text-align: left; padding-left: 12px; }
@@ -36,12 +34,10 @@
         <span id="tourTitle">📊 Points Table</span>
     </div>
 
-    <!-- Tournament Dropdown -->
-    <select id="tournamentSelector" class="select-box" onchange="changeTournament()">
+    <select id="tournamentSelector" class="select-box" onchange="window.changeTournament()">
         <option value="">⏳ Loading Tournaments...</option>
     </select>
 
-    <!-- Table Container -->
     <div style="overflow-x: auto;">
         <table class="points-table">
             <thead>
@@ -64,7 +60,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+    import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyABphVo2kWvqHEkxWSsZuDvnyXk05XzX-0",
@@ -83,17 +79,19 @@
     const urlParams = new URLSearchParams(window.location.search);
     let currentMatchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername');
     let currentUserId = "";
-    let activeTournamentId = urlParams.get('t');
+    let activeTournamentId = urlParams.get('t') || localStorage.getItem('activeTournamentId');
 
     window.changeTournament = function() {
         const selector = document.getElementById('tournamentSelector');
         activeTournamentId = selector.value;
         
         if (activeTournamentId) {
+            localStorage.setItem('activeTournamentId', activeTournamentId);
             document.getElementById('tourTitle').innerText = "📊 " + selector.options[selector.selectedIndex].text;
             
             const newUrl = new URL(window.location);
             newUrl.searchParams.set('t', activeTournamentId);
+            if(currentMatchUser) newUrl.searchParams.set('u', currentMatchUser);
             window.history.pushState({}, '', newUrl);
         } else {
             document.getElementById('tourTitle').innerText = "📊 Points Table";
@@ -116,17 +114,61 @@
         tbody.innerHTML = `<tr><td colspan="6" class="loading-text">Loading points table...</td></tr>`;
 
         try {
-            const snap = await get(ref(db, `live_matches/${currentMatchUser}/tournaments_data/${activeTournamentId}/teams/`));
+            const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${activeTournamentId}/teams/`);
+            let snap = await get(pointsRef);
             let teamsData = snap.val() || {};
 
             let teamsArray = Object.keys(teamsData).map(key => teamsData[key]);
+
+            if (teamsArray.length === 0 && currentUserId) {
+                const tourSnap = await get(ref(db, `users/${currentUserId}/tournaments/${activeTournamentId}/`));
+                if (tourSnap.exists()) {
+                    let tourInfo = tourSnap.val();
+                    let teamNamesList = [];
+
+                    if (tourInfo.teams) {
+                        if (Array.isArray(tourInfo.teams)) {
+                            teamNamesList = tourInfo.teams.map(t => typeof t === 'string' ? t : (t.name || ''));
+                        } else {
+                            teamNamesList = Object.keys(tourInfo.teams).map(k => (tourInfo.teams[k] && tourInfo.teams[k].name) ? tourInfo.teams[k].name : k);
+                        }
+                    } else if (tourInfo.squads) {
+                        teamNamesList = Object.keys(tourInfo.squads);
+                    }
+
+                    let newTeamsObj = {};
+                    teamNamesList.forEach(tName => {
+                        if (tName && tName.trim() !== '' && tName !== 'team1' && tName !== 'team2') {
+                            let cleanKey = tName.trim().replace(/[.#$\[\]]/g, '_');
+                            newTeamsObj[cleanKey] = {
+                                name: tName.trim(),
+                                matchesPlayed: 0,
+                                won: 0,
+                                lost: 0,
+                                tied: 0,
+                                points: 0,
+                                totalRunsScored: 0,
+                                totalBallsFaced: 0,
+                                totalRunsConceded: 0,
+                                totalBallsBowled: 0,
+                                netRunRate: "+0.000"
+                            };
+                        }
+                    });
+
+                    if (Object.keys(newTeamsObj).length > 0) {
+                        await set(pointsRef, newTeamsObj);
+                        teamsData = newTeamsObj;
+                        teamsArray = Object.keys(teamsData).map(key => teamsData[key]);
+                    }
+                }
+            }
 
             if (teamsArray.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="loading-text" style="color:#dc3545;">No teams found for this tournament!</td></tr>`;
                 return;
             }
 
-            // পয়েন্ট এবং নেট রানরেটের ভিত্তিতে সর্টিং
             teamsArray.sort((a, b) => (b.points || 0) - (a.points || 0) || parseFloat(b.netRunRate || 0) - parseFloat(a.netRunRate || 0));
 
             tbody.innerHTML = "";
@@ -143,6 +185,7 @@
                 tbody.appendChild(tr);
             });
         } catch (e) {
+            console.error(e);
             tbody.innerHTML = `<tr><td colspan="6" class="loading-text" style="color:#dc3545;">Failed to load points table</td></tr>`;
         }
     }
@@ -188,11 +231,17 @@
                 document.getElementById('tournamentSelector').innerHTML = '<option value="">Error loading tournaments</option>';
             }
         } else {
-            alert("⚠️ Please login first.");
-            window.location.href = "index.html";
+            // যদি ফায়ারবেস অথেন্টিকেশন পেতে দেরি হয়, তবুও লোকালস্টোরেজ থেকে ডাটা লোড করার চেষ্টা করবে
+            if (activeTournamentId) {
+                loadPointsTable();
+            } else {
+                alert("⚠️ Please login first.");
+                window.location.href = "index.html";
+            }
         }
     });
 </script>
 
 </body>
 </html>
+
