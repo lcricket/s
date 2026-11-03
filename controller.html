@@ -1504,6 +1504,13 @@
         if (storedData) {
             const data = JSON.parse(storedData);
             
+            // যদি ম্যাচ ইতিমধ্যে শেষ হয়ে গিয়ে থাকে (matchEnded: true), তবে নতুন ম্যাচ শুরুর মতো রিসেট অবস্থা রিটার্ন করবে
+            if (data.matchEnded) {
+                localStorage.removeItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
+                localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}_${activeMatchId}`);
+                return false;
+            }
+
             if (data.batTeamName) document.getElementById('batTeamName').value = data.batTeamName;
             if (data.bowlTeamName) document.getElementById('bowlTeamName').value = data.bowlTeamName;
 
@@ -1641,6 +1648,11 @@
                             loadedBatTeam = matchInfo.team1 || "";
                             loadedBowlTeam = matchInfo.team2 || "";
                             
+                            // যদি আগের ম্যাচ শেষ হয়ে গিয়ে থাকে (status: 'completed'), তবে নতুন ম্যাচের ক্ষেত্রে ফিল্ডগুলো একদম ফ্রেস/খালি থাকবে
+                            if (matchInfo.status === 'completed') {
+                                hasSavedState = false;
+                            }
+
                             if (matchInfo.overs) {
                                 scheduledMatchOvers = matchInfo.overs;
                                 document.getElementById('totalOvers').value = scheduledMatchOvers;
@@ -1665,33 +1677,33 @@
         }
 
         if (!hasSavedState) {
-            try {
-                const liveSnap = await get(ref(db, `live_matches/${currentMatchUser}/score`));
-                if (liveSnap.exists()) {
-                    const mData = liveSnap.val();
-                    
-                    if (mData.batTeamName) loadedBatTeam = mData.batTeamName;
-                    if (mData.bowlTeamName) loadedBowlTeam = mData.bowlTeamName;
-                    
-                    if (mData.squad1Data && mData.squad1Data !== "[object Object]" && !mData.squad1Data.includes("Player 1\nPlayer 2")) {
-                        squad1 = mData.squad1Data;
-                    }
-                    if (mData.squad2Data && mData.squad2Data !== "[object Object]" && !mData.squad2Data.includes("Player 1\nPlayer 2")) {
-                        squad2 = mData.squad2Data;
-                    }
-                    
-                    if (!scheduledMatchOvers && mData.totalOvers) {
-                        scheduledMatchOvers = mData.totalOvers;
-                        document.getElementById('totalOvers').value = scheduledMatchOvers;
-                    }
-                    if (mData.firstInningsRuns !== undefined && mData.firstInningsRuns > 0) {
-                        firstInningsRunsStored = mData.firstInningsRuns;
-                    }
-                    if (mData.firstInningsOvers !== undefined) {
-                        firstInningsOversStored = mData.firstInningsOvers;
-                    }
-                }
-            } catch (e) {}
+            // নতুন ম্যাচ শুরু করার জন্য বা আগের ম্যাচ শেষ হলে সব ফিল্ড একদম খালি/ডিফল্ট করে দেওয়া হলো
+            document.getElementById('runs').value = 0;
+            document.getElementById('wickets').value = 0;
+            document.getElementById('overs').value = "0.0";
+            document.getElementById('innings').value = "1";
+            document.getElementById('targetMsg').value = "1st Innings is going on...";
+            document.getElementById('bat1Select').value = "";
+            document.getElementById('bat1Name').value = "";
+            setVal('bat1Runs', 0);
+            setVal('bat1Balls', 0);
+            document.getElementById('bat2Select').value = "";
+            document.getElementById('bat2Name').value = "";
+            setVal('bat2Runs', 0);
+            setVal('bat2Balls', 0);
+            document.getElementById('bowlerSelect').value = "";
+            document.getElementById('bowlerName').value = "";
+            setVal('bWickets', 0);
+            setVal('bRuns', 0);
+            document.getElementById('bowlerOvers').value = "0.0";
+            
+            outPlayersList = [];
+            currentOverBalls = [];
+            overHistoryList = [];
+            matchEnded = false;
+            autoInningsSwitched = false;
+            firstInningsRunsStored = 0;
+            firstInningsOversStored = "0.0";
 
             if (!squad1 || squad1.trim() === "") squad1 = loadedBatTeam;
             if (!squad2 || squad2.trim() === "") squad2 = loadedBowlTeam;
@@ -1731,4 +1743,6 @@
 </script>
 </body>
 </html>
+
+
 
