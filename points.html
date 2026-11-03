@@ -35,7 +35,7 @@
     </div>
 
     <select id="tournamentSelector" class="select-box" onchange="window.changeTournament()">
-        <option value="">⏳ Loading Tournaments...</option>
+        <option value="">⏳ Checking Authentication...</option>
     </select>
 
     <div style="overflow-x: auto;">
@@ -51,7 +51,7 @@
                 </tr>
             </thead>
             <tbody id="pointsTableBody">
-                <tr><td colspan="6" class="loading-text">Please select a tournament from above.</td></tr>
+                <tr><td colspan="6" class="loading-text">Please wait...</td></tr>
             </tbody>
         </table>
     </div>
@@ -114,14 +114,11 @@
         tbody.innerHTML = `<tr><td colspan="6" class="loading-text">Loading points table...</td></tr>`;
 
         try {
-            // শুধুমাত্র নির্দিষ্ট লাইভ/কারেন্ট ম্যাচ ডাটাবেস থেকে পয়েন্ট টেবিল ফেচ করা হবে
             const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${activeTournamentId}/teams/`);
             let snap = await get(pointsRef);
             let teamsData = snap.val() || {};
 
             let teamsArray = Object.keys(teamsData).map(key => teamsData[key]);
-
-            // পুরনো হিস্ট্রি বা ইউজার টুর্নামেন্টস থেকে স্বয়ংক্রিয়ভাবে ডাটা নিয়ে এসে টেবিল তৈরি করার ব্লকটি সম্পূর্ণ বাদ দেওয়া হয়েছে।
 
             if (teamsArray.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="loading-text" style="color:#dc3545;">No points table data found for this tournament!</td></tr>`;
@@ -149,8 +146,10 @@
         }
     }
 
+    // ফায়ারবেস অথেন্টিকেশন স্টেট চেকার (লগইন করা না থাকলে পেজ ব্লক করে রিডাইরেক্ট করবে)
     onAuthStateChanged(auth, async (user) => {
         if (user) {
+            // ইউজার লগইন করা আছে
             currentUserId = user.uid;
             if (!currentMatchUser) {
                 currentMatchUser = localStorage.getItem('proCricketUsername') || "user";
@@ -184,18 +183,16 @@
                     }
                 } else {
                     selector.innerHTML = '<option value="">No Tournaments Found</option>';
+                    document.getElementById('pointsTableBody').innerHTML = `<tr><td colspan="6" class="loading-text">No tournaments available.</td></tr>`;
                 }
             } catch(e) {
                 console.error("Error fetching tournaments:", e);
                 document.getElementById('tournamentSelector').innerHTML = '<option value="">Error loading tournaments</option>';
             }
         } else {
-            if (activeTournamentId) {
-                loadPointsTable();
-            } else {
-                alert("⚠️ Please login first.");
-                window.location.href = "index.html";
-            }
+            // ইউজার লগইন করা নেই - তাই পয়েন্ট টেবিল দেখতে পারবে না এবং লগইন পেজে পাঠিয়ে দেওয়া হবে
+            alert("⚠️ আপনাকে পয়েন্ট টেবিল দেখতে হলে অবশ্যই লগইন বা সাইন-আপ করতে হবে।");
+            window.location.href = "index.html"; // আপনার লগইন পেজের ফাইল নেম অনুযায়ী এটি পরিবর্তন করতে পারেন
         }
     });
 </script>
