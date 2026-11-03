@@ -60,7 +60,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-    import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyABphVo2kWvqHEkxWSsZuDvnyXk05XzX-0",
@@ -114,58 +114,17 @@
         tbody.innerHTML = `<tr><td colspan="6" class="loading-text">Loading points table...</td></tr>`;
 
         try {
+            // শুধুমাত্র নির্দিষ্ট লাইভ/কারেন্ট ম্যাচ ডাটাবেস থেকে পয়েন্ট টেবিল ফেচ করা হবে
             const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${activeTournamentId}/teams/`);
             let snap = await get(pointsRef);
             let teamsData = snap.val() || {};
 
             let teamsArray = Object.keys(teamsData).map(key => teamsData[key]);
 
-            if (teamsArray.length === 0 && currentUserId) {
-                const tourSnap = await get(ref(db, `users/${currentUserId}/tournaments/${activeTournamentId}/`));
-                if (tourSnap.exists()) {
-                    let tourInfo = tourSnap.val();
-                    let teamNamesList = [];
-
-                    if (tourInfo.teams) {
-                        if (Array.isArray(tourInfo.teams)) {
-                            teamNamesList = tourInfo.teams.map(t => typeof t === 'string' ? t : (t.name || ''));
-                        } else {
-                            teamNamesList = Object.keys(tourInfo.teams).map(k => (tourInfo.teams[k] && tourInfo.teams[k].name) ? tourInfo.teams[k].name : k);
-                        }
-                    } else if (tourInfo.squads) {
-                        teamNamesList = Object.keys(tourInfo.squads);
-                    }
-
-                    let newTeamsObj = {};
-                    teamNamesList.forEach(tName => {
-                        if (tName && tName.trim() !== '' && tName !== 'team1' && tName !== 'team2') {
-                            let cleanKey = tName.trim().replace(/[.#$\[\]]/g, '_');
-                            newTeamsObj[cleanKey] = {
-                                name: tName.trim(),
-                                matchesPlayed: 0,
-                                won: 0,
-                                lost: 0,
-                                tied: 0,
-                                points: 0,
-                                totalRunsScored: 0,
-                                totalBallsFaced: 0,
-                                totalRunsConceded: 0,
-                                totalBallsBowled: 0,
-                                netRunRate: "+0.000"
-                            };
-                        }
-                    });
-
-                    if (Object.keys(newTeamsObj).length > 0) {
-                        await set(pointsRef, newTeamsObj);
-                        teamsData = newTeamsObj;
-                        teamsArray = Object.keys(teamsData).map(key => teamsData[key]);
-                    }
-                }
-            }
+            // পুরনো হিস্ট্রি বা ইউজার টুর্নামেন্টস থেকে স্বয়ংক্রিয়ভাবে ডাটা নিয়ে এসে টেবিল তৈরি করার ব্লকটি সম্পূর্ণ বাদ দেওয়া হয়েছে।
 
             if (teamsArray.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="loading-text" style="color:#dc3545;">No teams found for this tournament!</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="loading-text" style="color:#dc3545;">No points table data found for this tournament!</td></tr>`;
                 return;
             }
 
@@ -231,7 +190,6 @@
                 document.getElementById('tournamentSelector').innerHTML = '<option value="">Error loading tournaments</option>';
             }
         } else {
-            // যদি ফায়ারবেস অথেন্টিকেশন পেতে দেরি হয়, তবুও লোকালস্টোরেজ থেকে ডাটা লোড করার চেষ্টা করবে
             if (activeTournamentId) {
                 loadPointsTable();
             } else {
