@@ -35,7 +35,7 @@
     </div>
 
     <select id="tournamentSelector" class="select-box" onchange="window.changeTournament()">
-        <option value="">⏳ Checking Authentication...</option>
+        <option value="">⏳ Loading Tournaments...</option>
     </select>
 
     <div style="overflow-x: auto;">
@@ -51,7 +51,7 @@
                 </tr>
             </thead>
             <tbody id="pointsTableBody">
-                <tr><td colspan="6" class="loading-text">Please wait...</td></tr>
+                <tr><td colspan="6" class="loading-text">Please select a tournament from above.</td></tr>
             </tbody>
         </table>
     </div>
@@ -149,7 +149,6 @@
                 return;
             }
 
-            // সর্টিং (পয়েন্ট এবং এনআরআর অনুযায়ী)
             teamsArray.sort((a, b) => {
                 let ptsA = Number(a.points) || 0;
                 let ptsB = Number(b.points) || 0;
@@ -229,7 +228,8 @@
                 }
             }
         } else {
-            alert("⚠️ আপনাকে পয়েন্ট টেবিল দেখতে হলে অবশ্যই লগইন বা সাইন-আপ করতে হবে।");
+            // আপনার অন্য পেজের মতো হুবহু ইংরেজি অ্যালার্ট এবং রিডাইরেক্ট
+            alert("Please login first.");
             window.location.href = "index.html";
         }
     });
@@ -237,5 +237,6 @@
 
 </body>
 </html>
+
 
 
