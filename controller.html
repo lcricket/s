@@ -439,7 +439,7 @@
             let winBallsFaced = oversToBalls(winOvers); let loseBallsFaced = oversToBalls(loseOvers);
             
             winObj.totalRunsScored += winRuns; winObj.totalRunsConceded += loseRuns; winObj.totalBallsFaced += winBallsFaced; winObj.totalBallsBowled += loseBallsFaced;
-            loseObj.totalRunsScored += loseRuns; loseObj.totalRunsConceded += winRuns; loseObj.totalBallsFaced += loseBallsFaced; loseObj.totalBallsBowled += winBallsFaced;
+            loseObj.totalRunsScored += loseRuns; loseObj.totalRunsConceded += winRuns; loseObj.totalBallsFaced += loseBallsFaced; loseObj.totalBallsBowled += loseBallsFaced;
             
             winObj.netRunRate = calculateNRR(winObj.totalRunsScored, winObj.totalBallsFaced, winObj.totalRunsConceded, winObj.totalBallsBowled);
             loseObj.netRunRate = calculateNRR(loseObj.totalRunsScored, loseObj.totalBallsFaced, loseObj.totalRunsConceded, loseObj.totalBallsBowled);
@@ -1446,29 +1446,44 @@
             
             let tourTeamNames = [];
             if (tData.teams) {
-                if (Array.isArray(tData.teams)) { tourTeamNames = tData.teams.map(t => typeof t === 'string' ? t : (t.name || '')); } 
-                else { tourTeamNames = Object.keys(tData.teams); }
+                if (Array.isArray(tData.teams)) { 
+                    tourTeamNames = tData.teams.map(t => typeof t === 'string' ? t : (t.name || '')); 
+                } else { 
+                    tourTeamNames = Object.keys(tData.teams).map(k => (tData.teams[k] && tData.teams[k].name) ? tData.teams[k].name : k); 
+                }
             } else if (tData.squads) {
                 tourTeamNames = Object.keys(tData.squads);
             }
-            
+
+            let bTeam = document.getElementById('batTeamName').value;
+            let bwTeam = document.getElementById('bowlTeamName').value;
+            if(bTeam && !tourTeamNames.includes(bTeam)) tourTeamNames.push(bTeam);
+            if(bwTeam && !tourTeamNames.includes(bwTeam)) tourTeamNames.push(bwTeam);
+
             tourTeamNames.forEach(teamName => {
                 if (!teamName || typeof teamName !== 'string' || teamName.trim() === '' || teamName === 'team1' || teamName === 'team2') return; 
                 
-                let formattedName = teamName.trim().toUpperCase().replace(/[.#$\[\]]/g, '_');
-                let existingKey = Object.keys(teamsData).find(k => k.trim().toUpperCase().replace(/[.#$\[\]]/g, '_') === formattedName);
+                let formattedKey = teamName.trim().replace(/[.#$\[\]]/g, '_');
                 
-                if (!existingKey) {
-                    let sKey = teamName.trim().replace(/[.#$\[\]]/g, '_');
-                    teamsData[sKey] = { 
-                        name: teamName.trim(), matchesPlayed: 0, won: 0, lost: 0, tied: 0, points: 0, 
-                        totalRunsScored: 0, totalBallsFaced: 0, totalRunsConceded: 0, totalBallsBowled: 0, netRunRate: "+0.000" 
+                if (!teamsData[formattedKey]) {
+                    teamsData[formattedKey] = { 
+                        name: teamName.trim(), 
+                        matchesPlayed: 0, 
+                        won: 0, 
+                        lost: 0, 
+                        tied: 0, 
+                        points: 0, 
+                        totalRunsScored: 0, 
+                        totalBallsFaced: 0, 
+                        totalRunsConceded: 0, 
+                        totalBallsBowled: 0, 
+                        netRunRate: "+0.000" 
                     };
                     isUpdated = true;
                 }
             });
 
-            if (isUpdated) {
+            if (isUpdated || Object.keys(teamsData).length === 0) {
                 await set(pointsRef, teamsData);
             }
         } catch(e) {}
@@ -1490,7 +1505,7 @@
             localStorage.setItem('activeMatchId', activeMatchId);
         }
 
-        if (activeTournamentId && activeMatchId && !hasSavedState) {
+        if (activeTournamentId && activeMatchId) {
             try {
                 if(currentUserId) {
                     const tourSnap = await get(ref(db, `users/${currentUserId}/tournaments/${activeTournamentId}`));
