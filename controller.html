@@ -310,7 +310,6 @@
     let detailedStats = {};
     let scheduledMatchOvers = null;
 
-    // --- পুরোনো ক্যাশ ক্লিয়ার করার ফাংশন ---
     function clearOldMatchCache() {
         localStorage.removeItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
         localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}_${activeMatchId}`);
@@ -753,7 +752,6 @@
         await saveMatchStatsToTournament();
         await markMatchCompletedInDatabase(details, winnerTeam);
 
-        // ম্যাচ শেষে ক্যাশ পরিষ্কার করে দেওয়া
         clearOldMatchCache();
 
         let currentMatchStats = JSON.parse(localStorage.getItem(`currentMatchPlayers_${currentMatchUser}_${activeMatchId}`) || '{}');
@@ -1513,7 +1511,6 @@
         if (storedData) {
             const data = JSON.parse(storedData);
             
-            // ম্যাচ শেষ হয়ে গেলে ক্যাশ রিমুভ করে ফ্রেস স্টেট রিটার্ন করবে
             if (data.matchEnded) {
                 clearOldMatchCache();
                 return false;
