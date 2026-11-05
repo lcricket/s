@@ -258,8 +258,8 @@
     const urlParams = new URLSearchParams(window.location.search);
     let currentMatchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername');
     let currentUserId = ""; 
-    const activeTournamentId = urlParams.get('t');
-    const activeMatchId = urlParams.get('m') || "default_match";
+    const activeTournamentId = urlParams.get('t') || localStorage.getItem('activeTournamentId');
+    const activeMatchId = urlParams.get('m') || localStorage.getItem('activeMatchId') || "default_match";
 
     let isLeagueMatchGlobal = true;
     let tournamentPointsUpdated = false;
@@ -285,6 +285,8 @@
     let scheduledMatchOvers = null;
 
     window.returnToTournamentImmediately = async function() {
+        localStorage.removeItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
+        localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}_${activeMatchId}`);
         let targetTourId = activeTournamentId;
         if (!targetTourId || targetTourId === "null" || targetTourId === "undefined") {
             try {
@@ -1481,6 +1483,13 @@
 
         let hasSavedState = getControllerState();
 
+        if (activeTournamentId) {
+            localStorage.setItem('activeTournamentId', activeTournamentId);
+        }
+        if (activeMatchId && activeMatchId !== "default_match") {
+            localStorage.setItem('activeMatchId', activeMatchId);
+        }
+
         if (activeTournamentId && activeMatchId && !hasSavedState) {
             try {
                 if(currentUserId) {
@@ -1585,5 +1594,4 @@
 </script>
 </body>
 </html>
-
 
