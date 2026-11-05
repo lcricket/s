@@ -285,7 +285,9 @@
     let currentMatchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername');
     let currentUserId = ""; 
     let activeTournamentId = urlParams.get('t') || localStorage.getItem('activeTournamentId');
-    const activeMatchId = urlParams.get('m') || "default_match";
+    
+    // 🔥 সমাধান: URL-এ ম্যাচ আইডি না থাকলে localStorage থেকে বা Firebase থেকে active match ID উদ্ধার করার লজিক
+    let activeMatchId = urlParams.get('m') || localStorage.getItem('activeMatchId') || "default_match";
 
     let isLeagueMatchGlobal = true;
     let tournamentPointsUpdated = false;
@@ -310,7 +312,6 @@
     let detailedStats = {};
     let scheduledMatchOvers = null;
 
-    // --- পুরোনো ক্যাশ ক্লিয়ার করার ফাংশন ---
     function clearOldMatchCache() {
         localStorage.removeItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
         localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}_${activeMatchId}`);
@@ -753,7 +754,6 @@
         await saveMatchStatsToTournament();
         await markMatchCompletedInDatabase(details, winnerTeam);
 
-        // ম্যাচ শেষে ক্যাশ পরিষ্কার করে দেওয়া
         clearOldMatchCache();
 
         let currentMatchStats = JSON.parse(localStorage.getItem(`currentMatchPlayers_${currentMatchUser}_${activeMatchId}`) || '{}');
@@ -1513,7 +1513,6 @@
         if (storedData) {
             const data = JSON.parse(storedData);
             
-            // ম্যাচ শেষ হয়ে গেলে ক্যাশ রিমুভ করে ফ্রেস স্টেট রিটার্ন করবে
             if (data.matchEnded) {
                 clearOldMatchCache();
                 return false;
@@ -1640,6 +1639,9 @@
 
         if (activeTournamentId) {
             localStorage.setItem('activeTournamentId', activeTournamentId);
+        }
+        if (activeMatchId && activeMatchId !== "default_match") {
+            localStorage.setItem('activeMatchId', activeMatchId);
         }
 
         if (activeTournamentId && activeMatchId) {
