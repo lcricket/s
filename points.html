@@ -77,7 +77,6 @@
     const db = getDatabase(app);
 
     const urlParams = new URLSearchParams(window.location.search);
-    let currentMatchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername');
     let currentUserId = "";
     let activeTournamentId = urlParams.get('t') || localStorage.getItem('activeTournamentId');
 
@@ -96,7 +95,6 @@
             try {
                 const newUrl = new URL(window.location);
                 newUrl.searchParams.set('t', activeTournamentId);
-                if(currentMatchUser) newUrl.searchParams.set('u', currentMatchUser);
                 window.history.pushState({}, '', newUrl);
             } catch(err) {
                 console.error("History push state error:", err);
@@ -124,14 +122,15 @@
             return;
         }
 
-        if (!currentMatchUser) {
-            currentMatchUser = localStorage.getItem('proCricketUsername') || "user";
+        if (!currentUserId) {
+            return; // ইউজার আইডি না থাকলে অপেক্ষা করবে
         }
 
         tbody.innerHTML = `<tr><td colspan="6" class="loading-text">Loading points table...</td></tr>`;
 
         try {
-            const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${activeTournamentId}/teams/`);
+            // সঠিক পাথ: যেখানে আপনার টুর্নামেন্ট ও দলগুলো সেভ করা আছে
+            const pointsRef = ref(db, `users/${currentUserId}/tournaments/${activeTournamentId}/teams/`);
             let snap = await get(pointsRef);
             
             if (!snap.exists()) {
@@ -141,8 +140,15 @@
 
             let teamsData = snap.val() || {};
             let teamsArray = Object.keys(teamsData)
-                .map(key => teamsData[key])
-                .filter(item => item !== null && typeof item === 'object' && item.name);
+                .map(key => {
+                    let item = teamsData[key];
+                    // যদি ডেটা অবজেক্ট না হয়ে সরাসরি স্ট্রিং বা অন্য কিছু হয়, তবে নাম সেট করে নেওয়া
+                    if (typeof item === 'string') {
+                        return { name: item, matchesPlayed: 0, won: 0, lost: 0, points: 0, netRunRate: '+0.000' };
+                    }
+                    return item;
+                })
+                .filter(item => item !== null && (typeof item === 'object'));
 
             if (teamsArray.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="loading-text" style="color:#dc3545;">No teams registered in this tournament yet!</td></tr>`;
@@ -162,7 +168,7 @@
             teamsArray.forEach((team, index) => {
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="team-name">${index + 1}. ${team.name}</td>
+                    <td class="team-name">${index + 1}. ${team.name || "Unknown Team"}</td>
                     <td>${team.matchesPlayed || 0}</td>
                     <td>${team.won || 0}</td>
                     <td>${team.lost || 0}</td>
@@ -180,9 +186,6 @@
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserId = user.uid;
-            if (!currentMatchUser) {
-                currentMatchUser = localStorage.getItem('proCricketUsername') || "user";
-            }
             
             try {
                 const toursSnap = await get(ref(db, `users/${currentUserId}/tournaments/`));
@@ -228,7 +231,6 @@
                 }
             }
         } else {
-            // আপনার অন্য পেজের মতো হুবহু ইংরেজি অ্যালার্ট এবং রিডাইরেক্ট
             alert("Please login first.");
             window.location.href = "index.html";
         }
@@ -237,6 +239,3 @@
 
 </body>
 </html>
-
-
-
