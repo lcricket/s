@@ -8,13 +8,13 @@
     <style>
         body { font-family: Arial, sans-serif; background: #eef2f3; padding: 15px; margin: 0; }
         .container { max-width: 750px; margin: auto; background: #fff; padding: 18px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .header-box { text-align: center; margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .header-box { text-align: center; margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; display: flex; justify-content: center; align-items: center; }
         h2 { color: #333; margin: 0; font-size: 20px; }
         .sub-header-bar { display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px; flex-wrap: wrap; gap: 8px; }
         .sub-header-item { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: bold; color: #444; }
         .sub-header-item select, .sub-header-item input[type="number"] { padding: 4px 6px; font-size: 13px; font-weight: bold; border: 1px solid #ccc; border-radius: 4px; width: 60px; background: #fff; }
         .btn-sub-action { padding: 5px 12px; font-size: 12px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; color: white; }
-        .btn-winner-sub { background: #f39c12; } .btn-dash { background: #6c757d; }
+        .btn-winner-sub { background: #f39c12; }
         .box { background: #f9f9f9; padding: 14px; border: 1px solid #ddd; border-radius: 8px; }
         h3 { margin-top: 0; margin-bottom: 8px; color: #0056b3; font-size: 16px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
         label { font-weight: bold; display: block; margin-top: 8px; font-size: 14px; color: #444; }
@@ -114,8 +114,7 @@
         <label style="font-size: 13px;">Performance Summary:</label>
         <input type="text" id="momReasonInput" value="Outstanding all-round performance!">
         
-        <button class="btn-main" style="background: #27ae60; cursor: pointer; margin-top: 15px;" onclick="window.confirmAndBroadcastMOM()">🌟 Confirm MOM & Return to Tournament ➔</button>
-        <button class="btn-main" style="background: #6c757d; cursor: pointer; margin-top: 8px;" onclick="window.returnToTournamentImmediately()">🏆 Skip MOM & Back to Tournament</button>
+        <button class="btn-main" style="background: #27ae60; cursor: pointer; margin-top: 15px;" onclick="window.confirmAndBroadcastMOM()">🌟 Confirm MOM & Finish ➔</button>
     </div>
 </div>
 
@@ -145,7 +144,6 @@
 <div class="container" id="mainContainerBox">
     <div class="header-box">
         <h2>🏏 Live Match Controller</h2>
-        <button class="btn-sub-action btn-dash" id="backToTourBtn" onclick="window.returnToTournamentImmediately()">🏆 Tournament</button>
     </div>
 
     <div class="sub-header-bar">
@@ -283,30 +281,6 @@
     let firstInningsOversStored = "0.0";
     let detailedStats = {};
     let scheduledMatchOvers = null;
-
-    window.returnToTournamentImmediately = async function() {
-        // 🔥 ক্যাশ এবং ফায়ারবেস থেকে লাইভ স্কোর রিমুভ করা যাতে টুর্নামেন্ট বা ম্যাচ না থাকলে কন্ট্রোলার ডেটা ধরে না থাকে
-        localStorage.removeItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
-        localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}_${activeMatchId}`);
-        localStorage.removeItem('activeMatchId');
-        
-        try {
-            await remove(ref(db, `live_matches/${currentMatchUser}/score`));
-        } catch (e) {}
-
-        let targetTourId = activeTournamentId;
-        if (!targetTourId || targetTourId === "null" || targetTourId === "undefined") {
-            try {
-                const snapshot = await get(ref(db, `live_matches/${currentMatchUser}/score/tournamentId`));
-                if (snapshot.exists()) targetTourId = snapshot.val();
-            } catch (err) {}
-        }
-        if (targetTourId && targetTourId !== "null" && targetTourId !== "undefined") {
-            window.location.href = `tournament.html?t=${targetTourId}`;
-        } else {
-            window.location.href = "index.html";
-        }
-    };
 
     function sendToFirebase(scoreData) {
         const btn = document.getElementById('updateBtn');
@@ -597,7 +571,7 @@
     function setVal(id, val) { document.getElementById(id).value = val; }
 
     function validateMandatorySelections() {
-        if(matchEnded) { alert("⚠️ Match has ended! Return to tournament."); return false; }
+        if(matchEnded) { alert("⚠️ Match has ended!"); return false; }
         let bat1 = document.getElementById('bat1Name').value; let bat2 = document.getElementById('bat2Name').value; let bowler = document.getElementById('bowlerName').value;
         if (!bat1 || !bat2) { alert("⚠️ Selecting both batters is mandatory!"); document.getElementById('playerPanel').open = true; return false; }
         if (!bowler) { alert("⚠️ Selecting the current bowler is mandatory!"); document.getElementById('playerPanel').open = true; return false; }
@@ -614,7 +588,7 @@
         });
         const updateBtn = document.getElementById('updateBtn');
         if(updateBtn) {
-            updateBtn.innerText = "🛑 Match Ended - Redirecting...";
+            updateBtn.innerText = "🛑 Match Ended";
             updateBtn.style.background = "#6c757d";
         }
     }
@@ -1110,7 +1084,7 @@
         updateSuggestions(); 
         processAndUpdate();
         highlightPlayerBox('striker');
-        alert("ℹ️ 2nd Innings started! Teams and squads swapped successfully.");
+        alert("ℹ️ 2nd Innings started!");
     };
 
     window.declareWinnerManually = function() {
@@ -1147,7 +1121,7 @@
                 tournamentPointsUpdated = true;
             }
         } else if (firstInningsRunsStored > 0) {
-            document.getElementById('targetMsg').value = (runs >= tNum) ? `${bTeam} Won by target chase! 🎉` : `${bwTeam} Won! 🏆`;
+            document.getElementById('targetMsg').value = (runs >= tNum) ? `${bTeam} Won! 🎉` : `${bwTeam} Won! 🏆`;
             if(isLeagueMatchGlobal && !tournamentPointsUpdated) {
                 if (runs >= tNum) {
                     updateTournamentStandings(bTeam, bwTeam, runs, document.getElementById('overs').value, firstInningsRunsStored, firstInningsOversStored, false);
@@ -1164,7 +1138,7 @@
         showMatchResultPopup(document.getElementById('targetMsg').value, winTeam);
     };
 
-    window.confirmAndBroadcastMOM = function() {
+    window.confirmAndBroadcastMOM = async function() {
         let momName = document.getElementById('momPlayerSelect').value;
         let momReason = document.getElementById('momReasonInput').value;
         let momData = { name: momName, reason: momReason };
@@ -1193,16 +1167,19 @@
         };
 
         sendToFirebase(finalScoreData); 
+        
+        // 🔥 ফায়ারবেস লাইভ স্কোর এবং লোকালস্টোরেজ থেকে ম্যাচ ডেটা পুরোপুরি মুছে দেওয়া হলো যাতে পরবর্তী সময়ে আর কোনো ক্যাশ বা পুরোনো ম্যাচ ডেটা ধরে না থাকে
         localStorage.removeItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
         localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}_${activeMatchId}`);
         localStorage.removeItem('activeMatchId');
+        localStorage.removeItem('activeTournamentId');
         
-        alert(`🏆 Match Completed! Man of the Match: ${momName}. Returning to Tournament...`);
-        if (activeTournamentId) {
-            window.location.href = `tournament.html?t=${activeTournamentId}`;
-        } else {
-            window.location.href = "index.html";
-        }
+        try {
+            await remove(ref(db, `live_matches/${currentMatchUser}/score`));
+        } catch(e) {}
+        
+        alert(`🏆 Match Completed! Man of the Match: ${momName}.`);
+        document.getElementById('matchResultModal').style.display = 'none';
     };
 
     window.onBowlerNameChange = function() {
@@ -1242,7 +1219,7 @@
     };
 
     window.undoAction = function() {
-        if(matchEnded) { alert("⚠️ Match has ended! Undo not available."); return; }
+        if(matchEnded) { alert("⚠️ Match has ended!"); return; }
         if(historyStack.length > 0) {
             const state = historyStack.pop();
             document.getElementById('innings').value = state.innings; document.getElementById('totalOvers').value = state.totalOvers;
@@ -1362,7 +1339,7 @@
         let scoreData = JSON.parse(localStorage.getItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`) || "{}");
         scoreData.triggerEvent = "SHOW_PLAYER_STAT"; scoreData.triggerId = Date.now() + Math.random(); scoreData.broadcastPlayerStat = pStat;
         sendToFirebase(scoreData); 
-        alert(`📺 ${playerName}'s stats casted to Scoreboard!`); document.getElementById('leaderboardModal').style.display = 'none';
+        alert(`📺 ${playerName}'s stats casted!`); document.getElementById('leaderboardModal').style.display = 'none';
     };
 
     function parseSquadData(obj, teamName) {
@@ -1387,7 +1364,6 @@
         if (storedData) {
             const data = JSON.parse(storedData);
             
-            // 🔥 যদি ম্যাচ ইতিমধ্যে শেষ হয়ে গিয়ে থাকে, তবে ক্যাশ ডিলিট করে ফলস রিটার্ন করবে
             if (data.matchEnded) {
                 localStorage.removeItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
                 localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}_${activeMatchId}`);
@@ -1505,14 +1481,23 @@
     }
 
     async function initPage() {
-        // 🔥 নিরাপত্তা চেক: টুর্নামেন্ট আইডি বা ম্যাচ আইডি না থাকলে এবং সেভড স্টেট না থাকলে কন্ট্রোলার লক করে টুর্নামেন্টে পাঠিয়ে দেবে
-        if ((!activeTournamentId || activeTournamentId === "null" || activeTournamentId === "undefined") && (!activeMatchId || activeMatchId === "default_match")) {
-            let localLive = localStorage.getItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
-            if (!localLive) {
-                alert("⚠️ কোনোভ্যালিড ম্যাচ বা টুর্নামেন্ট সিলেক্ট করা নেই! দয়া করে প্রথমে একটি ম্যাচ সিলেক্ট করুন।");
-                window.location.href = "index.html";
-                return;
-            }
+        // 🔥 কঠোর ভ্যালিউয়েশন: যদি ফায়ারবেস বা টুর্নামেন্টে বর্তমান ম্যাচ বা টুর্নামেন্ট আইডি আর না থাকে, তবে ক্যাশ ও ফায়ারবেস লাইভ স্কোর পুরোপুরি ডিলিট করে ব্ল্যাঙ্ক করে দেওয়া হবে
+        if (activeTournamentId && activeTournamentId !== "null" && activeTournamentId !== "undefined") {
+            try {
+                const tourSnap = await get(ref(db, `users/${currentUserId}/tournaments/${activeTournamentId}`));
+                if (!tourSnap.exists() || !tourSnap.val().matches || !tourSnap.val().matches[activeMatchId]) {
+                    // টুর্নামেন্ট বা ম্যাচ ডিলিট হয়ে গেছে
+                    localStorage.removeItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
+                    localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}_${activeMatchId}`);
+                    localStorage.removeItem('activeMatchId');
+                    localStorage.removeItem('activeTournamentId');
+                    await remove(ref(db, `live_matches/${currentMatchUser}/score`));
+                    
+                    document.getElementById('batTeamName').value = "";
+                    document.getElementById('bowlTeamName').value = "";
+                    return;
+                }
+            } catch(e) {}
         }
 
         let loadedBatTeam = "";
@@ -1544,8 +1529,6 @@
                             if (matchInfo.status === 'completed') {
                                 localStorage.removeItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
                                 localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}_${activeMatchId}`);
-                                alert("⚠️ এই ম্যাচটি ইতিমধ্যে সম্পন্ন হয়ে গেছে!");
-                                window.location.href = `tournament.html?t=${activeTournamentId}`;
                                 return;
                             }
 
@@ -1607,12 +1590,10 @@
             initPage();
         } else {
             alert("⚠️ Please login from dashboard first.");
-            window.location.href = "index.html";
         }
     });
 
 </script>
 </body>
 </html>
-
 
