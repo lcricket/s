@@ -102,6 +102,7 @@
                 console.error("History push state error:", err);
             }
         } else {
+            localStorage.removeItem('activeTournamentId');
             document.getElementById('tourTitle').innerText = "📊 Points Table";
             try {
                 const newUrl = new URL(window.location);
@@ -127,6 +128,21 @@
         if (!currentMatchUser) {
             currentMatchUser = localStorage.getItem('proCricketUsername') || "user";
         }
+
+        // 🔥 নিরাপত্তা চেক: বর্তমান activeTournamentId টি ইউজারের টুর্নামেন্ট লিস্টে আসলেই আছে কি না যাচাই করা
+        try {
+            const checkSnap = await get(ref(db, `users/${currentUserId}/tournaments/${activeTournamentId}`));
+            if (!checkSnap.exists()) {
+                // যদি টুর্নামেন্ট ডিলিট করা হয়ে থাকে, তবে ক্যাশ ক্লিয়ার করে টেবিল ফাঁকা করে দেওয়া হবে
+                localStorage.removeItem('activeTournamentId');
+                activeTournamentId = "";
+                const selector = document.getElementById('tournamentSelector');
+                if(selector) selector.value = "";
+                document.getElementById('tourTitle').innerText = "📊 Points Table";
+                tbody.innerHTML = `<tr><td colspan="6" class="loading-text" style="color:#dc3545;">This tournament has been deleted!</td></tr>`;
+                return;
+            }
+        } catch(e) {}
 
         tbody.innerHTML = `<tr><td colspan="6" class="loading-text">Loading points table...</td></tr>`;
 
@@ -193,6 +209,12 @@
                     const toursData = toursSnap.val();
                     selector.innerHTML = '<option value="">-- Select a Tournament --</option>';
                     
+                    // 🔥 যদি ক্যাশের activeTournamentId ডাটাবেজে আর না থাকে, তবে সেটি রিমুভ করা
+                    if (activeTournamentId && !toursData[activeTournamentId]) {
+                        localStorage.removeItem('activeTournamentId');
+                        activeTournamentId = "";
+                    }
+
                     for (let tId in toursData) {
                         if (toursData[tId]) {
                             let opt = document.createElement('option');
@@ -212,8 +234,14 @@
                         window.changeTournament(); 
                     } else if (activeTournamentId) {
                         loadPointsTable();
+                    } else {
+                        const tbodyElem = document.getElementById('pointsTableBody');
+                        if (tbodyElem) {
+                            tbodyElem.innerHTML = `<tr><td colspan="6" class="loading-text">Please select a tournament from above.</td></tr>`;
+                        }
                     }
                 } else {
+                    localStorage.removeItem('activeTournamentId');
                     selector.innerHTML = '<option value="">No Tournaments Found</option>';
                     const tbodyElem = document.getElementById('pointsTableBody');
                     if (tbodyElem) {
@@ -228,7 +256,6 @@
                 }
             }
         } else {
-            // আপনার অন্য পেজের মতো হুবহু ইংরেজি অ্যালার্ট এবং রিডাইরেক্ট
             alert("Please login first.");
             window.location.href = "index.html";
         }
@@ -237,6 +264,5 @@
 
 </body>
 </html>
-
 
 
