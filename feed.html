@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pro Cricket - Public Feed</title>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Official Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Poppins', sans-serif; background: #eef2f3; padding: 15px; margin: 0; }
         .container { max-width: 600px; margin: auto; }
         
-        /* ছোট মোবাইল ফ্রেন্ডলি হেডার স্টাইল */
+        /* ক্রিকেট ফিড হেডার */
         .app-header { 
             background: #ffffff; 
             padding: 12px 15px; 
@@ -32,8 +34,7 @@
         
         /* পোস্ট আপলোড বক্স */
         .upload-box { background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 15px; }
-        .upload-box input[type="text"], .upload-box textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: 'Poppins', sans-serif; font-size: 14px; margin-bottom: 10px; box-sizing: border-box; }
-        .upload-box textarea { resize: none; height: 65px; }
+        .upload-box input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: 'Poppins', sans-serif; font-size: 14px; margin-bottom: 10px; box-sizing: border-box; }
         .upload-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; flex-wrap: wrap; gap: 10px; }
         
         /* ফিড পোস্ট কার্ড */
@@ -52,26 +53,27 @@
         .action-btn:hover { background: #f0f0f0; }
         
         .photo-title { font-size: 15px; font-weight: bold; color: #1e3c72; margin-bottom: 5px; font-family: 'Oswald', sans-serif; letter-spacing: 0.5px; }
-        .post-text { font-size: 13px; color: #444; margin-bottom: 8px; white-space: pre-wrap; }
         .post-image { width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px; margin-top: 5px; }
         
-        /* গোল বৃত্তাকার সোশ্যাল মিডিয়া শেয়ার বাটন */
+        /* গোল বৃত্তাকার সোশ্যাল মিডিয়া অফিশিয়াল লোগো বাটন */
         .post-footer { margin-top: 10px; border-top: 1px solid #eee; padding-top: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
         .share-label { font-size: 11px; color: #666; font-weight: bold; }
-        .share-buttons { display: flex; gap: 6px; align-items: center; }
+        .share-buttons { display: flex; gap: 8px; align-items: center; }
         
         .social-icon-btn { 
-            width: 32px; 
-            height: 32px; 
+            width: 34px; 
+            height: 34px; 
             border-radius: 50%; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-size: 14px; 
+            font-size: 15px; 
             color: white; 
             text-decoration: none; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.15); 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15); 
             transition: transform 0.2s, opacity 0.2s; 
+            border: none;
+            cursor: pointer;
         }
         .social-icon-btn:hover { transform: scale(1.1); opacity: 0.9; }
 
@@ -80,6 +82,7 @@
         .btn-twitter { background-color: #000000; }
         .btn-instagram { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); }
         .btn-youtube { background-color: #ff0000; }
+        .btn-native-share { background-color: #0056b3; }
 
         .limit-notice { font-size: 11px; color: #e67e22; background: #fef5e7; padding: 6px 8px; border-radius: 4px; margin-bottom: 8px; }
         .auth-prompt { background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; font-size: 12px; margin-bottom: 15px; border: 1px solid #ffeeba; text-align: center; display: none; }
@@ -89,7 +92,7 @@
 
 <div class="container">
 
-    <!-- ছোট মোবাইল ফ্রেন্ডলি হেডার -->
+    <!-- ক্রিকেট ফিড হেডার -->
     <div class="app-header">
         <h2>🏏 Cricket Feed</h2>
     </div>
@@ -102,9 +105,8 @@
     <!-- পোস্ট আপলোড বক্স -->
     <div class="upload-box" id="uploadBoxSection">
         <input type="text" id="photoTitleInput" placeholder="Post Title">
-        <textarea id="postCaption" placeholder="Write something about this moment..."></textarea>
         
-        <div class="limit-notice">ℹ️ Rule: Max 10 normal photos. Favorited posts will stay permanently and won't auto-delete.</div>
+        <div class="limit-notice">ℹ️ Rule: Max 5 normal photos. Favorited posts will stay permanently and won't auto-delete.</div>
 
         <div class="upload-controls">
             <input type="file" id="postImageFile" accept="image/*" style="font-size: 12px;">
@@ -212,8 +214,12 @@
         }
 
         const photoTitle = document.getElementById('photoTitleInput').value.trim();
-        const caption = document.getElementById('postCaption').value.trim();
         const statusEl = document.getElementById('uploadStatus');
+
+        if (!photoTitle) {
+            alert("⚠️ Please enter a post title!");
+            return;
+        }
 
         if (!compressedImageBase64) {
             alert("⚠️ Please select an image to post!");
@@ -241,7 +247,7 @@
                     }
                 }
 
-                if (normalPosts.length >= 10) {
+                if (normalPosts.length >= 5) {
                     normalPosts.sort((a, b) => a.timestamp - b.timestamp);
                     const oldestNormalPostKey = normalPosts[0].id;
                     
@@ -254,8 +260,7 @@
                 uid: userId,
                 username: currentUsername,
                 userPhoto: userProfilePhoto,
-                title: photoTitle || "",
-                caption: caption,
+                title: photoTitle,
                 image: compressedImageBase64,
                 favorite: false,
                 timestamp: Date.now()
@@ -268,7 +273,6 @@
             await set(ref(db, `user_posts/${userId}/${postId}`), true);
 
             document.getElementById('photoTitleInput').value = "";
-            document.getElementById('postCaption').value = "";
             document.getElementById('postImageFile').value = "";
             compressedImageBase64 = "";
             statusEl.innerText = "✅ Posted successfully!";
@@ -312,6 +316,27 @@
         }
     };
 
+    // ইউনিভার্সাল শেয়ার ফাংশন (মোবাইল ও পিসির জন্য পারফেক্ট)
+    window.sharePost = async function(title, username) {
+        const shareData = {
+            title: 'Cricket Feed',
+            text: `🏏 ${title} - Shared by ${username} on Cricket Feed`,
+            url: window.location.href
+        };
+
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                // যদি ব্রাউজার শেয়ার API সাপোর্ট না করে, তবে লিংক কপি হয়ে যাবে
+                navigator.clipboard.writeText(window.location.href);
+                alert("📋 Post link copied to clipboard! You can now paste it anywhere.");
+            }
+        } catch (err) {
+            console.log("Error sharing:", err);
+        }
+    };
+
     function loadPublicFeed() {
         const feedRef = ref(db, 'public_feed');
         onValue(feedRef, (snapshot) => {
@@ -350,7 +375,6 @@
 
                 let shareText = `🏏 Check out this moment on Cricket Feed!\n`;
                 if (post.title) shareText += `Title: ${post.title}\n`;
-                if (post.caption) shareText += `Caption: ${post.caption}\n`;
                 shareText += `Shared by: ${post.username}\nLink: ${window.location.href}`;
                 
                 let encodedText = encodeURIComponent(shareText);
@@ -378,17 +402,17 @@
                             </div>
                         </div>
                         ${titleHtml}
-                        ${post.caption ? `<div class="post-text">${post.caption}</div>` : ""}
                         ${imageHtml}
                         
                         <div class="post-footer">
                             <span class="share-label">Share:</span>
                             <div class="share-buttons">
-                                <a href="${whatsappUrl}" target="_blank" class="social-icon-btn btn-whatsapp" title="WhatsApp">💬</a>
-                                <a href="${facebookUrl}" target="_blank" class="social-icon-btn btn-facebook" title="Facebook">📘</a>
-                                <a href="${twitterUrl}" target="_blank" class="social-icon-btn btn-twitter" title="X (Twitter)">✖️</a>
-                                <a href="${instagramUrl}" target="_blank" class="social-icon-btn btn-instagram" title="Instagram">📷</a>
-                                <a href="${youtubeUrl}" target="_blank" class="social-icon-btn btn-youtube" title="YouTube">▶️</a>
+                                <a href="${whatsappUrl}" target="_blank" class="social-icon-btn btn-whatsapp" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                                <a href="${facebookUrl}" target="_blank" class="social-icon-btn btn-facebook" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                                <a href="${twitterUrl}" target="_blank" class="social-icon-btn btn-twitter" title="X (Twitter)"><i class="fab fa-x-twitter"></i></a>
+                                <a href="${instagramUrl}" target="_blank" class="social-icon-btn btn-instagram" title="Instagram"><i class="fab fa-instagram"></i></a>
+                                <a href="${youtubeUrl}" target="_blank" class="social-icon-btn btn-youtube" title="YouTube"><i class="fab fa-youtube"></i></a>
+                                <button onclick="window.sharePost('${post.title}', '${post.username}')" class="social-icon-btn btn-native-share" title="More Share Options"><i class="fas fa-share-nodes"></i></button>
                             </div>
                         </div>
                     </div>
