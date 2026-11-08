@@ -24,6 +24,19 @@
 
         .box { background: #f9f9f9; padding: 18px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
         
+        /* ক্রেডিট বক্স স্টাইল (প্রথম কোড থেকে যুক্ত করা হয়েছে) */
+        .credit-box { 
+            background: #e8f5e9;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 17px; 
+            font-weight: bold; 
+            color: #2e7d32; 
+            margin-bottom: 15px; 
+            border: 1px solid #c8e6c9;
+            text-align: center;
+        }
+
         /* স্ট্যাটস গ্রিড (মাই পারফরম্যান্স) */
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
         @media(max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -34,6 +47,13 @@
 </head>
 <body>
 
+<div class="container">
+
+    <!-- হেডার ও ড্যাশবোর্ড ব্যাক বাটন -->
+    <div class="header-nav">
+        <h2>User Profile</h2>
+        <a href="index.html" class="btn-dash-link">🏠 Go to Dashboard</a>
+    </div>
 
     <!-- প্রোফাইল কার্ড -->
     <div class="profile-card">
@@ -43,6 +63,11 @@
             <p>Pro Cricket Career Performance Hub</p>
         </div>
         <button class="btn-dash-link" style="background: #28a745; padding: 8px 14px;" onclick="window.toggleEditMode()">✏️ Edit Profile</button>
+    </div>
+
+    <!-- ক্রেডিট দেখার অপশন (নতুন যুক্ত করা হয়েছে) -->
+    <div class="credit-box">
+        Available Balance: <span id="user-credits">0</span> Match Credit(s)
     </div>
 
     <!-- প্রোফাইল এডিট ফর্ম -->
@@ -97,7 +122,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-    import { getDatabase, ref, get, update, set } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+    import { getDatabase, ref, get, update, set, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyABphVo2kWvqHEkxWSsZuDvnyXk05XzX-0",
@@ -132,12 +157,29 @@
 
             loadProfileData();
             loadCareerStats();
+            loadUserCredits(); // ক্রেডিটের ডাটা লোড করার ফাংশন কল
         } catch (err) {
             console.error("Error initializing profile:", err);
             currentUserId = currentUsername;
             loadProfileData();
             loadCareerStats();
+            loadUserCredits();
         }
+    }
+
+    // ফায়ারবেজ থেকে লাইভ ক্রেডিট রিড করার ফাংশন
+    function loadUserCredits() {
+        if (!currentUserId) return;
+        
+        // বর্তমান ইউজারের UID দিয়ে credits পাথ চেক করা
+        const creditRef = ref(db, `users/${currentUserId}/credits`);
+        onValue(creditRef, (snapshot) => {
+            if (snapshot.exists()) {
+                document.getElementById('user-credits').innerText = snapshot.val();
+            } else {
+                document.getElementById('user-credits').innerText = "0";
+            }
+        });
     }
 
     async function loadProfileData() {
