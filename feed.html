@@ -72,8 +72,6 @@
             text-decoration: none; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.15); 
             transition: transform 0.2s, opacity 0.2s; 
-            border: none;
-            cursor: pointer;
         }
         .social-icon-btn:hover { transform: scale(1.1); opacity: 0.9; }
 
@@ -82,7 +80,6 @@
         .btn-twitter { background-color: #000000; }
         .btn-instagram { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); }
         .btn-youtube { background-color: #ff0000; }
-        .btn-native-share { background-color: #0056b3; }
 
         .limit-notice { font-size: 11px; color: #e67e22; background: #fef5e7; padding: 6px 8px; border-radius: 4px; margin-bottom: 8px; }
         .auth-prompt { background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; font-size: 12px; margin-bottom: 15px; border: 1px solid #ffeeba; text-align: center; display: none; }
@@ -105,8 +102,6 @@
     <!-- পোস্ট আপলোড বক্স -->
     <div class="upload-box" id="uploadBoxSection">
         <input type="text" id="photoTitleInput" placeholder="Post Title">
-        
-        <div class="limit-notice">ℹ️ Rule: Max 5 normal photos. Favorited posts will stay permanently and won't auto-delete.</div>
 
         <div class="upload-controls">
             <input type="file" id="postImageFile" accept="image/*" style="font-size: 12px;">
@@ -207,6 +202,7 @@
         }
     });
 
+    // পোস্ট আপলোড এবং ৫টি ছবির লিমিট (FIFO Auto-delete) লজিক
     window.createPost = async function() {
         if (!currentUser) {
             alert("⚠️ Please sign in first!");
@@ -247,6 +243,7 @@
                     }
                 }
 
+                // যদি ৫ বা তার বেশি নরমাল পোস্ট থাকে, তবে সবচেয়ে পুরোনো নরমাল পোস্টটি ডিলিট হবে
                 if (normalPosts.length >= 5) {
                     normalPosts.sort((a, b) => a.timestamp - b.timestamp);
                     const oldestNormalPostKey = normalPosts[0].id;
@@ -313,27 +310,6 @@
             });
         } catch (err) {
             console.error("Error updating favorite status:", err);
-        }
-    };
-
-    // ইউনিভার্সাল শেয়ার ফাংশন (মোবাইল ও পিসির জন্য পারফেক্ট)
-    window.sharePost = async function(title, username) {
-        const shareData = {
-            title: 'Cricket Feed',
-            text: `🏏 ${title} - Shared by ${username} on Cricket Feed`,
-            url: window.location.href
-        };
-
-        try {
-            if (navigator.share) {
-                await navigator.share(shareData);
-            } else {
-                // যদি ব্রাউজার শেয়ার API সাপোর্ট না করে, তবে লিংক কপি হয়ে যাবে
-                navigator.clipboard.writeText(window.location.href);
-                alert("📋 Post link copied to clipboard! You can now paste it anywhere.");
-            }
-        } catch (err) {
-            console.log("Error sharing:", err);
         }
     };
 
@@ -412,7 +388,6 @@
                                 <a href="${twitterUrl}" target="_blank" class="social-icon-btn btn-twitter" title="X (Twitter)"><i class="fab fa-x-twitter"></i></a>
                                 <a href="${instagramUrl}" target="_blank" class="social-icon-btn btn-instagram" title="Instagram"><i class="fab fa-instagram"></i></a>
                                 <a href="${youtubeUrl}" target="_blank" class="social-icon-btn btn-youtube" title="YouTube"><i class="fab fa-youtube"></i></a>
-                                <button onclick="window.sharePost('${post.title}', '${post.username}')" class="social-icon-btn btn-native-share" title="More Share Options"><i class="fas fa-share-nodes"></i></button>
                             </div>
                         </div>
                     </div>
