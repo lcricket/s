@@ -9,7 +9,8 @@
         body { font-family: 'Poppins', sans-serif; background: #eef2f3; padding: 20px; margin: 0; }
         .container { max-width: 650px; margin: auto; }
         
-        .header-nav { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 15px 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        /* হেডার স্টাইল (বাটন রিমুভ করার পর এখন মাঝখানে বা সুন্দরভাবে সেট করা) */
+        .header-nav { background: #fff; padding: 15px 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; text-align: center; }
         .header-nav h2 { margin: 0; font-family: 'Oswald', sans-serif; color: #1e3c72; }
         .btn-link { background: #0056b3; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; }
         
@@ -46,10 +47,9 @@
 
 <div class="container">
 
-    <!-- হেডার নেভিগেশন -->
+    <!-- হেডার (বাটনগুলো সম্পূর্ণ রিমুভ করা হয়েছে) -->
     <div class="header-nav">
         <h2>🏏 Pro Cricket Feed</h2>
-        <div id="nav-buttons"></div>
     </div>
 
     <!-- লগইন রিমাইন্ডার -->
@@ -105,7 +105,6 @@
     let compressedImageBase64 = "";
 
     onAuthStateChanged(auth, async (user) => {
-        const navButtons = document.getElementById('nav-buttons');
         const authPrompt = document.getElementById('authPrompt');
         const uploadBox = document.getElementById('uploadBoxSection');
 
@@ -120,16 +119,9 @@
                 if (pData.photo) userProfilePhoto = pData.photo;
             }
 
-            navButtons.innerHTML = `
-                <a href="profile.html" class="btn-link" style="background: #28a745;">👤 Profile</a>
-                <a href="dashboard.html" class="btn-link" style="background: #4a5568;">⚙️ Dashboard</a>
-            `;
             authPrompt.style.display = "none";
             uploadBox.style.display = "block";
         } else {
-            navButtons.innerHTML = `
-                <a href="login.html" class="btn-link" style="background: #28a745;">🔑 Sign In</a>
-            `;
             authPrompt.style.display = "block";
             uploadBox.style.display = "none";
         }
@@ -172,7 +164,6 @@
         }
     });
 
-    // পোস্ট আপলোড এবং ফেভারিট সুরক্ষা সহ FIFO লিমিট লজিক
     window.createPost = async function() {
         if (!currentUser) {
             alert("⚠️ Please sign in first!");
@@ -194,7 +185,6 @@
             const userId = currentUser.uid;
             const userPostsRef = ref(db, `user_posts/${userId}`);
             
-            // চেক করা যাক ইউজারের কয়টি নরমাল (অ-ফেভারিট) পোস্ট আছে
             const postsSnap = await get(userPostsRef);
             if (postsSnap.exists()) {
                 const postsObj = postsSnap.val();
@@ -204,13 +194,12 @@
                     const pSnap = await get(ref(db, `public_feed/${postId}`));
                     if (pSnap.exists()) {
                         const pData = pSnap.val();
-                        if (!pData.favorite) { // শুধু ফেভারিট নয় এমন পোস্টগুলো ফিল্টার করা
+                        if (!pData.favorite) {
                             normalPosts.push({ id: postId, timestamp: pData.timestamp });
                         }
                     }
                 }
 
-                // যদি ১০ বা তার বেশি নরমাল পোস্ট থাকে, তবে সবচেয়ে পুরোনো নরমাল পোস্টটি ডিলিট হবে
                 if (normalPosts.length >= 10) {
                     normalPosts.sort((a, b) => a.timestamp - b.timestamp);
                     const oldestNormalPostKey = normalPosts[0].id;
@@ -227,7 +216,7 @@
                 title: photoTitle || "",
                 caption: caption,
                 image: compressedImageBase64,
-                favorite: false, // বাই ডিফল্ট ফেভারিট ফলস থাকবে
+                favorite: false,
                 timestamp: Date.now()
             };
 
@@ -237,7 +226,6 @@
             await set(newPostRef, newPostData);
             await set(ref(db, `user_posts/${userId}/${postId}`), true);
 
-            // ফর্ম রিসেট
             document.getElementById('photoTitleInput').value = "";
             document.getElementById('postCaption').value = "";
             document.getElementById('postImageFile').value = "";
@@ -251,7 +239,6 @@
         }
     };
 
-    // পোস্ট ডিলিট ফাংশন
     window.deletePost = async function(postId, postUid) {
         if (!currentUser || currentUser.uid !== postUid) {
             alert("⚠️ You can only delete your own posts!");
@@ -269,7 +256,6 @@
         }
     };
 
-    // ফেভারিট টগল ফাংশন (পিন করা বা আনপিন করা)
     window.toggleFavorite = async function(postId, currentStatus) {
         if (!currentUser) {
             alert("⚠️ Please sign in first!");
@@ -285,7 +271,6 @@
         }
     };
 
-    // পাবলিক ফিড রিয়েলটাইমে লোড করা (ফেভারিট পোস্টগুলো সর্বদা ওপরে থাকবে)
     function loadPublicFeed() {
         const feedRef = ref(db, 'public_feed');
         onValue(feedRef, (snapshot) => {
@@ -302,7 +287,6 @@
                 postsArray.push({ id: childSnap.key, ...childSnap.val() });
             });
 
-            // সোর্টিং লজিক: ১. প্রথমে ফেভারিট পোস্টগুলো ওপরে থাকবে, ২. এরপর নতুন পোস্টগুলো
             postsArray.sort((a, b) => {
                 if (a.favorite && !b.favorite) return -1;
                 if (!a.favorite && b.favorite) return 1;
@@ -314,13 +298,11 @@
                 let titleHtml = post.title ? `<div class="photo-title">📌 ${post.title}</div>` : "";
                 let imageHtml = post.image ? `<img src="${post.image}" class="post-image" alt="Post Image">` : "";
 
-                // ডিলিট বাটন শুধু পোস্টের মালিক দেখতে পাবে
                 let deleteButtonHtml = "";
                 if (currentUser && currentUser.uid === post.uid) {
                     deleteButtonHtml = `<button class="action-btn" title="Delete Post" onclick="window.deletePost('${post.id}', '${post.uid}')">🗑️</button>`;
                 }
 
-                // ফেভারিট আইকন (যদি ফেভারিট হয় তাহলে ভরা স্টার ⭐, না হলে খালি ☆)
                 let favIcon = post.favorite ? "⭐" : "☆";
                 let favTitle = post.favorite ? "Unfavorite (Allow Auto-delete)" : "Favorite (Pin to Top & Protect from Deletion)";
                 let favButtonHtml = `<button class="action-btn" title="${favTitle}" onclick="window.toggleFavorite('${post.id}', ${post.favorite || false})">${favIcon}</button>`;
