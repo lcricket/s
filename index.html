@@ -99,26 +99,6 @@
             white-space: nowrap;
         }
         .hidden { display: none !important; }
-        .welcome-gift {
-            background: #e3f2fd;
-            border: 1px dashed #2196f3;
-            color: #0d47a1;
-            padding: 8px;
-            border-radius: 6px;
-            font-size: 13px;
-            margin-bottom: 12px;
-            font-weight: bold;
-        }
-        .credit-box { 
-            background: #e8f5e9;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 17px; 
-            font-weight: bold; 
-            color: #2e7d32; 
-            margin: 12px 0; 
-            border: 1px solid #c8e6c9;
-        }
         .link-box { 
             background: #f8f9fa; 
             padding: 12px; 
@@ -173,7 +153,6 @@
     <!-- Sign-Up Form -->
     <div id="signup-section" class="hidden">
         <h2>Create Account</h2>
-        <div class="welcome-gift">🎁 Sign up & Verify Email to get 1 FREE credit!</div>
         <input type="text" id="signup-username" placeholder="Short Username (e.g. rakib)" maxlength="15" required>
         <input type="email" id="signup-email" placeholder="Enter your email" required>
         
@@ -196,7 +175,7 @@
     <div id="verify-section" class="hidden">
         <h2>Verify Your Email</h2>
         <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; font-size: 14px; margin-bottom: 15px; border: 1px solid #ffeeba;">
-            ⚠️ We've sent a verification link to <b><span id="verify-email-display"></span></b>. <br><br>Please check your inbox (and spam folder) and click the link to activate your account and claim your free credit.
+            ⚠️ We've sent a verification link to <b><span id="verify-email-display"></span></b>. <br><br>Please check your inbox (and spam folder) and click the link to activate your account.
         </div>
         <button class="btn-login" onclick="checkVerification()">✅ I have verified my email</button>
         <button class="btn-signup" onclick="resendVerification()">📩 Resend Link</button>
@@ -212,10 +191,6 @@
                 <div class="dashboard-profile-avatar">
                     <img id="dashboardLargeAvatar" src="https://via.placeholder.com/110" alt="Profile Avatar" class="dashboard-large-avatar">
                 </div>
-            </div>
-
-            <div class="credit-box">
-                Available Balance: <span id="user-credits">0</span> Match Credit(s)
             </div>
 
             <div class="link-box">
@@ -288,7 +263,7 @@
 
                 if (username) {
                     await remove(ref(db, 'usernames/' + username));
-                    await remove(ref(db, 'users/' + username)); // Cleanup for old profile format
+                    await remove(ref(db, 'users/' + username)); 
                 }
                 
                 await remove(ref(db, `users/${uid}`));
@@ -367,17 +342,14 @@
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            // Database Save
             await set(ref(db, 'usernames/' + username), user.uid);
             await set(ref(db, 'registered_emails/' + encodedEmail), user.uid);
             
             await set(ref(db, `users/${user.uid}`), { 
                 email: email, 
-                username: username, 
-                credits: 0 
+                username: username 
             });
 
-            // Set profile data perfectly aligned with your profile.html code
             await set(ref(db, `users/${user.uid}/profile`), {
                 name: username,
                 photo: "" 
@@ -400,7 +372,7 @@
 
         if (!email || !password) {
             msg.style.color = "red";
-            return msg.innerText = "Please provide email and password.";
+            return msg.identifier = "Please provide email and password.";
         }
 
         setPersistence(auth, browserLocalPersistence)
@@ -449,7 +421,6 @@
             if (user.emailVerified) {
                 document.getElementById('verify-section').classList.add('hidden');
                 document.getElementById('dashboard-section').classList.remove('hidden');
-                await claimCreditIfEligible(user);
                 loadUserData(user);
             } else {
                 alert("Email not verified yet. Please check your inbox or spam folder.");
@@ -469,52 +440,22 @@
         }
     };
 
-    window.claimCreditIfEligible = async (user) => {
-        const encodedEmail = encodeEmailForDb(normalizeEmail(user.email));
-        const claimRef = ref(db, 'claimed_emails/' + encodedEmail);
-        const claimSnap = await get(claimRef);
-        if (!claimSnap.exists()) {
-            await set(claimRef, true); 
-            const userCreditRef = ref(db, `users/${user.uid}/credits`);
-            const currentCreditSnap = await get(userCreditRef);
-            let credits = currentCreditSnap.exists() ? currentCreditSnap.val() : 0;
-            await set(userCreditRef, credits + 1);
-            alert("🎉 Email verified successfully! 1 Free Credit added.");
-        }
-    };
-
-    // =======================================================
-    // 100% SYNCED PHOTO FETCHER (Matches your profile.html)
-    // =======================================================
     async function loadUserData(user) {
         const userId = user.uid;
         
         let username = localStorage.getItem('proCricketUsername') || "user";
-        let credits = 0;
 
-        // Fetch user basic details
         const userRef = ref(db, `users/${userId}`);
         const snapshot = await get(userRef);
         if (snapshot.exists()) {
             const userData = snapshot.val();
             if (userData.username) username = userData.username;
-            credits = userData.credits !== undefined ? userData.credits : 0;
         }
 
-        // Set base info
         localStorage.setItem('proCricketUsername', username);
-        document.getElementById('user-credits').innerText = credits;
         document.getElementById('display-username').innerText = username;
         document.getElementById('viewer-link-input').value = `https://lcricket.github.io/s/viewer.html?u=${username}`;
 
-        // Live credits listener
-        onValue(userRef, (snap) => {
-            if (snap.exists() && snap.val().credits !== undefined) {
-                document.getElementById('user-credits').innerText = snap.val().credits;
-            }
-        });
-
-        // Function to apply fetched photo
         const applyProfileData = (profileData) => {
             if (profileData.name) {
                 document.getElementById('display-username').innerText = profileData.name;
@@ -524,12 +465,10 @@
             }
         };
 
-        // Listen for Profile changes exactly where profile.html saves it
         onValue(ref(db, `users/${userId}/profile`), (snap) => {
             if (snap.exists()) {
                 applyProfileData(snap.val());
             } else if (username !== "user") {
-                // FALLBACK: For old accounts that saved directly under username
                 get(ref(db, `users/${username}/profile`)).then(oldSnap => {
                     if (oldSnap.exists()) applyProfileData(oldSnap.val());
                 });
@@ -554,7 +493,6 @@
                 
                 document.getElementById('dashboard-section').classList.remove('hidden');
 
-                await claimCreditIfEligible(user); 
                 loadUserData(user); 
             }
         } else {
@@ -568,3 +506,4 @@
 
 </body>
 </html>
+
