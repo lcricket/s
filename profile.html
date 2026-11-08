@@ -48,9 +48,10 @@
 
 <div class="container">
 
-    <!-- হেডার (ব্যাক বাটন সরানো হয়েছে) -->
-    <div style="border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 20px;">
+    <!-- হেডার -->
+    <div style="border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
         <h2>User Profile</h2>
+        <a href="index.html" class="btn-dash-link">🏠 Dashboard</a>
     </div>
 
     <!-- প্রোফাইল কার্ড -->
@@ -136,69 +137,62 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    let currentUsername = urlParams.get('u') || localStorage.getItem('proCricketUsername');
-
     let currentUserId = "";
+    let currentUsername = localStorage.getItem('proCricketUsername') || "";
     let selectedImageBase64 = "";
 
-    async function initProfile() {
-        try {
-            const userRef = ref(db, 'usernames/' + currentUsername);
-            const snap = await get(userRef);
+    // প্রথম কোডের মতো ঠিক একইভাবে ইউজার ও ক্রেডিটের লোকেশন হ্যান্ডেল করা হয়েছে
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUserId = user.uid;
             
-            if (snap.exists()) {
-                currentUserId = snap.val();
-            } else {
-                currentUserId = currentUsername;
-            }
+            // প্রথম কোডের ডাটাবেজ স্ট্রাকচার অনুযায়ী পাথ সেট করা হলো
+            const userRef = ref(db, `users/${currentUserId}`);
+            
+            // রিয়েলটাইমে ক্রেডিট এবং ইউনেম লোড করার জন্য onValue ব্যবহার করা হলো
+            onValue(userRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    if (userData.username) {
+                        currentUsername = userData.username;
+                        localStorage.setItem('proCricketUsername', currentUsername);
+                    }
+                    // প্রথম কোডের মতো সরাসরি credits ডেটা রিড করা
+                    const credits = userData.credits !== undefined ? userData.credits : 0;
+                    document.getElementById('user-credits').innerText = credits;
+                }
+            });
 
-            loadProfileData();
+            loadProfileData(currentUserId);
             loadCareerStats();
-            loadUserCredits();
-        } catch (err) {
-            console.error("Error initializing profile:", err);
-            currentUserId = currentUsername;
-            loadProfileData();
-            loadCareerStats();
-            loadUserCredits();
+        } else {
+            alert("⚠️ Please login from dashboard first.");
+            window.location.href = "index.html";
         }
-    }
+    });
 
-    // লাইভ ক্রেডিট লোড করার ফাংশন
-    function loadUserCredits() {
-        if (!currentUserId) return;
-        const creditRef = ref(db, `users/${currentUserId}/credits`);
-        onValue(creditRef, (snapshot) => {
-            if (snapshot.exists()) {
-                document.getElementById('user-credits').innerText = snapshot.val();
-            } else {
-                document.getElementById('user-credits').innerText = "0";
-            }
-        });
-    }
-
-    function loadProfileData() {
-        const profileRef = ref(db, `users/${currentUserId}/profile`);
+    function loadProfileData(userId) {
+        const profileRef = ref(db, `users/${userId}/profile`);
         onValue(profileRef, (profileSnap) => {
             if (profileSnap.exists()) {
                 const data = profileSnap.val();
-                document.getElementById('displayName').innerText = data.name || currentUsername;
+                document.getElementById('displayName').innerText = data.name || currentUsername || "User";
                 if (data.photo && data.photo.trim() !== "") {
                     document.getElementById('displayAvatar').src = data.photo;
                 }
             } else {
                 set(profileRef, {
-                    name: currentUsername,
+                    name: currentUsername || "User",
                     photo: ""
                 });
-                document.getElementById('displayName').innerText = currentUsername;
+                document.getElementById('displayName').innerText = currentUsername || "User";
             }
         });
     }
 
     async function loadCareerStats() {
         try {
+            if (!currentUsername) return;
             const tournamentsSnap = await get(ref(db, `live_matches/${currentUsername}/tournaments_data/`));
             let tMatches = 0, tRuns = 0, tWickets = 0, tFours = 0, tSixes = 0, tMOM = 0;
 
@@ -242,7 +236,7 @@
         }
     };
 
-    // ইমেজ সিলেক্ট এবং অটো রিসাইজ / কম্প্রেশন ফাংশন
+    // ইমেজ কম্প্রেশন ও সিলেক্ট
     document.getElementById('inputProfileFile').addEventListener('change', function(event) {
         const file = event.target.files[0];
         if (file) {
@@ -294,25 +288,13 @@
             }
 
             await update(ref(db, `users/${currentUserId}/profile`), updateData);
-            alert("✅ Profile updated successfully! It will instantly update across all your pages.");
+            alert("✅ Profile updated successfully!");
             window.toggleEditMode();
         } catch (err) {
             console.error("Error updating profile:", err);
-            alert("❌ Failed to update profile. Image might be too large.");
+            alert("❌ Failed to update profile.");
         }
     };
-
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            if (!currentUsername) {
-                currentUsername = localStorage.getItem('proCricketUsername') || "user";
-            }
-            initProfile();
-        } else {
-            alert("⚠️ Please login from dashboard first.");
-            window.location.href = "index.html";
-        }
-    });
 </script>
 
 </body>
