@@ -48,10 +48,9 @@
 
 <div class="container">
 
-    <!-- হেডার -->
-    <div style="border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+    <!-- হেডার (কোনো ব্যাক বাটন নেই) -->
+    <div style="border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 20px;">
         <h2>User Profile</h2>
-        <a href="index.html" class="btn-dash-link">🏠 Dashboard</a>
     </div>
 
     <!-- প্রোফাইল কার্ড -->
@@ -141,15 +140,12 @@
     let currentUsername = localStorage.getItem('proCricketUsername') || "";
     let selectedImageBase64 = "";
 
-    // প্রথম কোডের মতো ঠিক একইভাবে ইউজার ও ক্রেডিটের লোকেশন হ্যান্ডেল করা হয়েছে
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserId = user.uid;
             
-            // প্রথম কোডের ডাটাবেজ স্ট্রাকচার অনুযায়ী পাথ সেট করা হলো
             const userRef = ref(db, `users/${currentUserId}`);
             
-            // রিয়েলটাইমে ক্রেডিট এবং ইউনেম লোড করার জন্য onValue ব্যবহার করা হলো
             onValue(userRef, (snapshot) => {
                 if (snapshot.exists()) {
                     const userData = snapshot.val();
@@ -157,7 +153,6 @@
                         currentUsername = userData.username;
                         localStorage.setItem('proCricketUsername', currentUsername);
                     }
-                    // প্রথম কোডের মতো সরাসরি credits ডেটা রিড করা
                     const credits = userData.credits !== undefined ? userData.credits : 0;
                     document.getElementById('user-credits').innerText = credits;
                 }
@@ -236,7 +231,6 @@
         }
     };
 
-    // ইমেজ কম্প্রেশন ও সিলেক্ট
     document.getElementById('inputProfileFile').addEventListener('change', function(event) {
         const file = event.target.files[0];
         if (file) {
