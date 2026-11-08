@@ -9,9 +9,6 @@
         body { font-family: 'Poppins', sans-serif; background: #eef2f3; padding: 20px; margin: 0; }
         .container { max-width: 650px; margin: auto; }
         
-        /* হেডার স্টাইল (বাটন রিমুভ করার পর এখন মাঝখানে বা সুন্দরভাবে সেট করা) */
-        .header-nav { background: #fff; padding: 15px 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; text-align: center; }
-        .header-nav h2 { margin: 0; font-family: 'Oswald', sans-serif; color: #1e3c72; }
         .btn-link { background: #0056b3; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; }
         
         /* পোস্ট আপলোড বক্স */
@@ -30,7 +27,7 @@
         .post-user-info h4 { margin: 0; font-size: 16px; color: #333; }
         .post-user-info span { font-size: 11px; color: #777; }
         
-        /* অ্যাকশন বাটনস (ডিলিট ও ফেভারিট) */
+        /* অ্যাকশন বাটনস */
         .post-actions { display: flex; gap: 8px; }
         .action-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 4px; border-radius: 4px; transition: 0.2s; }
         .action-btn:hover { background: #f0f0f0; }
@@ -39,6 +36,18 @@
         .post-text { font-size: 14px; color: #444; margin-bottom: 10px; white-space: pre-wrap; }
         .post-image { width: 100%; max-height: 450px; object-fit: cover; border-radius: 8px; margin-top: 5px; }
         
+        /* সোশ্যাল মিডিয়া শেয়ার ফুটার ও বাটন */
+        .post-footer { margin-top: 12px; border-top: 1px solid #eee; padding-top: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+        .share-label { font-size: 12px; color: #666; font-weight: bold; }
+        .share-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+        .social-btn { padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: 0.2s; }
+        
+        .btn-whatsapp { background-color: #25d366; }
+        .btn-facebook { background-color: #1877f2; }
+        .btn-twitter { background-color: #000000; }
+        .btn-instagram { background-color: #e4405f; }
+        .btn-youtube { background-color: #ff0000; }
+
         .limit-notice { font-size: 12px; color: #e67e22; background: #fef5e7; padding: 6px 10px; border-radius: 4px; margin-bottom: 10px; }
         .auth-prompt { background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 20px; border: 1px solid #ffeeba; text-align: center; display: none; }
     </style>
@@ -47,11 +56,6 @@
 
 <div class="container">
 
-    <!-- হেডার (বাটনগুলো সম্পূর্ণ রিমুভ করা হয়েছে) -->
-    <div class="header-nav">
-        <h2>🏏 Pro Cricket Feed</h2>
-    </div>
-
     <!-- লগইন রিমাইন্ডার -->
     <div id="authPrompt" class="auth-prompt">
         ⚠️ You need to be logged in to share match moments. <a href="login.html" style="color: #0056b3; font-weight: bold;">Sign In Here</a>
@@ -59,8 +63,7 @@
 
     <!-- পোস্ট আপলোড বক্স -->
     <div class="upload-box" id="uploadBoxSection">
-        <h3 style="margin-top: 0; font-size: 16px; color: #333;">✍️ Share a Match Moment</h3>
-        <input type="text" id="photoTitleInput" placeholder="Photo Title (e.g. Winning Six in Final Over)">
+        <input type="text" id="photoTitleInput" placeholder="Post Title">
         <textarea id="postCaption" placeholder="Write something about this moment..."></textarea>
         
         <div class="limit-notice">ℹ️ Rule: Max 10 normal photos. Favorited posts will stay permanently and won't auto-delete.</div>
@@ -278,7 +281,7 @@
             feedContainer.innerHTML = "";
 
             if (!snapshot.exists()) {
-                feedContainer.innerHTML = `<p style="text-align: center; color: #777; background: #fff; padding: 20px; border-radius: 8px;">No posts yet. Be the first to share!</p>`;
+                feedContainer.innerHTML = `<p style="text-align: center; color: #777; background: #fff; padding: 20px; border-radius: 8px;">No posts yet. The feed is waiting for your match moments!</p>`;
                 return;
             }
 
@@ -307,6 +310,22 @@
                 let favTitle = post.favorite ? "Unfavorite (Allow Auto-delete)" : "Favorite (Pin to Top & Protect from Deletion)";
                 let favButtonHtml = `<button class="action-btn" title="${favTitle}" onclick="window.toggleFavorite('${post.id}', ${post.favorite || false})">${favIcon}</button>`;
 
+                // সোশ্যাল মিডিয়া শেয়ার টেক্সট ও লিংক তৈরি
+                let shareText = `🏏 Check out this moment on Pro Cricket Feed!\n`;
+                if (post.title) shareText += `Title: ${post.title}\n`;
+                if (post.caption) shareText += `Caption: ${post.caption}\n`;
+                shareText += `Shared by: ${post.username}\nLink: ${window.location.href}`;
+                
+                let encodedText = encodeURIComponent(shareText);
+                let pageUrl = encodeURIComponent(window.location.href);
+
+                // বিভিন্ন সোশ্যাল মিডিয়ার শেয়ার লিংক
+                let whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+                let facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`;
+                let twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
+                let instagramUrl = `https://www.instagram.com/`; // ইনস্টাগ্রাম ডিরেক্ট ওয়েব শেয়ার সাপোর্ট করে না, তাই প্রোফাইল বা হোমপেজে রিডাইরেক্ট করবে
+                let youtubeUrl = `https://www.youtube.com/`; // ইউটিউব ভিডিও শেয়ারের জন্য মূল সাইট
+
                 const postHTML = `
                     <div class="post-card ${post.favorite ? 'favorite-post' : ''}">
                         <div class="post-header">
@@ -325,6 +344,17 @@
                         ${titleHtml}
                         ${post.caption ? `<div class="post-text">${post.caption}</div>` : ""}
                         ${imageHtml}
+                        
+                        <div class="post-footer">
+                            <span class="share-label">Share:</span>
+                            <div class="share-buttons">
+                                <a href="${whatsappUrl}" target="_blank" class="social-btn btn-whatsapp">💬 WhatsApp</a>
+                                <a href="${facebookUrl}" target="_blank" class="social-btn btn-facebook">📘 Facebook</a>
+                                <a href="${twitterUrl}" target="_blank" class="social-btn btn-twitter">✖️ X (Twitter)</a>
+                                <a href="${instagramUrl}" target="_blank" class="social-btn btn-instagram">📷 Instagram</a>
+                                <a href="${youtubeUrl}" target="_blank" class="social-btn btn-youtube">▶️ YouTube</a>
+                            </div>
+                        </div>
                     </div>
                 `;
                 feedContainer.innerHTML += postHTML;
@@ -335,4 +365,5 @@
 
 </body>
 </html>
+
 
