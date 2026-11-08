@@ -15,22 +15,30 @@
         
         /* পোস্ট আপলোড বক্স */
         .upload-box { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 20px; }
-        .upload-box textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-family: 'Poppins', sans-serif; font-size: 14px; resize: none; height: 80px; box-sizing: border-box; }
+        .upload-box input[type="text"], .upload-box textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: 'Poppins', sans-serif; font-size: 14px; margin-bottom: 10px; box-sizing: border-box; }
+        .upload-box textarea { resize: none; height: 70px; }
         .upload-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; flex-wrap: wrap; gap: 10px; }
         
         /* ফিড পোস্ট কার্ড */
-        .post-card { background: #fff; border-radius: 10px; box-shadow: 0 3px 12px rgba(0,0,0,0.06); margin-bottom: 20px; overflow: hidden; padding: 15px; }
-        .post-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .post-card { background: #fff; border-radius: 10px; box-shadow: 0 3px 12px rgba(0,0,0,0.06); margin-bottom: 20px; overflow: hidden; padding: 15px; position: relative; border-left: 4px solid transparent; }
+        .post-card.favorite-post { border-left-color: #f39c12; background: #fffdf5; }
+        
+        .post-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .post-user-profile { display: flex; align-items: center; gap: 12px; }
         .post-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; background: #ccc; }
         .post-user-info h4 { margin: 0; font-size: 16px; color: #333; }
         .post-user-info span { font-size: 11px; color: #777; }
         
+        /* অ্যাকশন বাটনস (ডিলিট ও ফেভারিট) */
+        .post-actions { display: flex; gap: 8px; }
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 4px; border-radius: 4px; transition: 0.2s; }
+        .action-btn:hover { background: #f0f0f0; }
+        
+        .photo-title { font-size: 16px; font-weight: bold; color: #1e3c72; margin-bottom: 6px; font-family: 'Oswald', sans-serif; letter-spacing: 0.5px; }
         .post-text { font-size: 14px; color: #444; margin-bottom: 10px; white-space: pre-wrap; }
         .post-image { width: 100%; max-height: 450px; object-fit: cover; border-radius: 8px; margin-top: 5px; }
         
         .limit-notice { font-size: 12px; color: #e67e22; background: #fef5e7; padding: 6px 10px; border-radius: 4px; margin-bottom: 10px; }
-        
-        /* লগইন পপআপ বা প্রম্পট */
         .auth-prompt { background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 20px; border: 1px solid #ffeeba; text-align: center; display: none; }
     </style>
 </head>
@@ -41,22 +49,21 @@
     <!-- হেডার নেভিগেশন -->
     <div class="header-nav">
         <h2>🏏 Pro Cricket Feed</h2>
-        <div id="nav-buttons">
-            <!-- ডাইনামিক বাটন এখানে লোড হবে -->
-        </div>
+        <div id="nav-buttons"></div>
     </div>
 
-    <!-- লগইন রিমাইন্ডার (যদি লগইন না থাকে) -->
+    <!-- লগইন রিমাইন্ডার -->
     <div id="authPrompt" class="auth-prompt">
         ⚠️ You need to be logged in to share match moments. <a href="login.html" style="color: #0056b3; font-weight: bold;">Sign In Here</a>
     </div>
 
-    <!-- পোস্ট করার বক্স (লগইন ছাড়া ডিজেবল বা হিডেন থাকবে) -->
+    <!-- পোস্ট আপলোড বক্স -->
     <div class="upload-box" id="uploadBoxSection">
         <h3 style="margin-top: 0; font-size: 16px; color: #333;">✍️ Share a Match Moment</h3>
-        <textarea id="postCaption" placeholder="What's happening in your match today?"></textarea>
+        <input type="text" id="photoTitleInput" placeholder="Photo Title (e.g. Winning Six in Final Over)">
+        <textarea id="postCaption" placeholder="Write something about this moment..."></textarea>
         
-        <div class="limit-notice">ℹ️ Rule: Maximum 10 photos allowed per user. Uploading an 11th photo will auto-delete your oldest photo.</div>
+        <div class="limit-notice">ℹ️ Rule: Max 10 normal photos. Favorited posts will stay permanently and won't auto-delete.</div>
 
         <div class="upload-controls">
             <input type="file" id="postImageFile" accept="image/*" style="font-size: 13px;">
@@ -65,7 +72,7 @@
         <p id="uploadStatus" style="font-size: 13px; margin: 8px 0 0 0; color: #0056b3;"></p>
     </div>
 
-    <!-- সমস্ত ইউজারের পোস্ট ফিড লিস্ট -->
+    <!-- ফিড লিস্ট -->
     <div id="feedContainer">
         <p style="text-align: center; color: #666;">Loading public feed...</p>
     </div>
@@ -76,7 +83,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-    import { getDatabase, ref, get, set, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+    import { getDatabase, ref, get, set, push, remove, update, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyABphVo2kWvqHEkxWSsZuDvnyXk05XzX-0",
@@ -97,7 +104,6 @@
     let userProfilePhoto = "https://via.placeholder.com/45";
     let compressedImageBase64 = "";
 
-    // ফায়ারবেজ অথেন্টিকেশন চেক
     onAuthStateChanged(auth, async (user) => {
         const navButtons = document.getElementById('nav-buttons');
         const authPrompt = document.getElementById('authPrompt');
@@ -107,7 +113,6 @@
             currentUser = user;
             currentUsername = localStorage.getItem('proCricketUsername') || "user";
             
-            // ইউজারের নাম ও প্রোফাইল ছবি ফেচ করা
             const userSnap = await get(ref(db, `users/${user.uid}/profile`));
             if (userSnap.exists()) {
                 const pData = userSnap.val();
@@ -115,7 +120,6 @@
                 if (pData.photo) userProfilePhoto = pData.photo;
             }
 
-            // লগইন থাকলে নেভিগেশনে প্রোফাইল ও ড্যাশবোর্ড দেখাবে
             navButtons.innerHTML = `
                 <a href="profile.html" class="btn-link" style="background: #28a745;">👤 Profile</a>
                 <a href="dashboard.html" class="btn-link" style="background: #4a5568;">⚙️ Dashboard</a>
@@ -123,17 +127,15 @@
             authPrompt.style.display = "none";
             uploadBox.style.display = "block";
         } else {
-            // লগইন না থাকলে সাইন-ইন / রেজিস্টার বাটন দেখাবে
             navButtons.innerHTML = `
                 <a href="login.html" class="btn-link" style="background: #28a745;">🔑 Sign In</a>
             `;
             authPrompt.style.display = "block";
-            uploadBox.style.display = "none"; // লগইন ছাড়া পোস্ট বক্স লুকিয়ে থাকবে
+            uploadBox.style.display = "none";
         }
         loadPublicFeed();
     });
 
-    // ছবি সিলেক্ট এবং অটো-রিসাইজ (সর্বোচ্চ ৮০০x৮০০ পিক্সেল)
     document.getElementById('postImageFile').addEventListener('change', function(event) {
         const file = event.target.files[0];
         if (file) {
@@ -143,7 +145,7 @@
                 img.src = e.target.result;
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const MAX_SIZE = 800; // স্ট্যান্ডার্ড অপ্টিমাইজড রেজুলেশন
+                    const MAX_SIZE = 800;
                     let width = img.width;
                     let height = img.height;
 
@@ -163,8 +165,6 @@
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-                    
-                    // কোয়ালিটি ০.৭ রেখে সাইজ ছোট রাখা হলো
                     compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
                 };
             };
@@ -172,18 +172,19 @@
         }
     });
 
-    // পোস্ট আপলোড এবং ১০টি ছবির লিমিট (FIFO Auto-delete) লজিক
+    // পোস্ট আপলোড এবং ফেভারিট সুরক্ষা সহ FIFO লিমিট লজিক
     window.createPost = async function() {
         if (!currentUser) {
             alert("⚠️ Please sign in first!");
             return;
         }
 
+        const photoTitle = document.getElementById('photoTitleInput').value.trim();
         const caption = document.getElementById('postCaption').value.trim();
         const statusEl = document.getElementById('uploadStatus');
 
-        if (!caption && !compressedImageBase64) {
-            alert("⚠️ Please write something or select an image!");
+        if (!compressedImageBase64) {
+            alert("⚠️ Please select an image to post!");
             return;
         }
 
@@ -193,33 +194,43 @@
             const userId = currentUser.uid;
             const userPostsRef = ref(db, `user_posts/${userId}`);
             
-            // ১. ইউজারের পূর্ববর্তী পোস্টগুলো চেক করা (সর্বোচ্চ ১০টি লিমিট বজায় রাখতে)
+            // চেক করা যাক ইউজারের কয়টি নরমাল (অ-ফেভারিট) পোস্ট আছে
             const postsSnap = await get(userPostsRef);
             if (postsSnap.exists()) {
                 const postsObj = postsSnap.val();
-                const postIds = Object.keys(postsObj);
-                
-                if (postIds.length >= 10) {
-                    postIds.sort();
-                    const oldestPostKey = postIds[0];
+                let normalPosts = [];
+
+                for (let postId of Object.keys(postsObj)) {
+                    const pSnap = await get(ref(db, `public_feed/${postId}`));
+                    if (pSnap.exists()) {
+                        const pData = pSnap.val();
+                        if (!pData.favorite) { // শুধু ফেভারিট নয় এমন পোস্টগুলো ফিল্টার করা
+                            normalPosts.push({ id: postId, timestamp: pData.timestamp });
+                        }
+                    }
+                }
+
+                // যদি ১০ বা তার বেশি নরমাল পোস্ট থাকে, তবে সবচেয়ে পুরোনো নরমাল পোস্টটি ডিলিট হবে
+                if (normalPosts.length >= 10) {
+                    normalPosts.sort((a, b) => a.timestamp - b.timestamp);
+                    const oldestNormalPostKey = normalPosts[0].id;
                     
-                    // সবচেয়ে পুরোনো পোস্টটি ডাটাবেজ থেকে মুছে ফেলা
-                    await remove(ref(db, `user_posts/${userId}/${oldestPostKey}`));
-                    await remove(ref(db, `public_feed/${oldestPostKey}`));
+                    await remove(ref(db, `user_posts/${userId}/${oldestNormalPostKey}`));
+                    await remove(ref(db, `public_feed/${oldestNormalPostKey}`));
                 }
             }
 
-            // ২. নতুন পোস্টের ডাটা
             const newPostData = {
                 uid: userId,
                 username: currentUsername,
                 userPhoto: userProfilePhoto,
+                title: photoTitle || "",
                 caption: caption,
-                image: compressedImageBase64 || "",
+                image: compressedImageBase64,
+                favorite: false, // বাই ডিফল্ট ফেভারিট ফলস থাকবে
                 timestamp: Date.now()
             };
 
-            // ৩. পাবলিক ফিড এবং ইউজারের নিজস্ব নোডে সেভ করা
             const newPostRef = push(ref(db, 'public_feed'));
             const postId = newPostRef.key;
 
@@ -227,6 +238,7 @@
             await set(ref(db, `user_posts/${userId}/${postId}`), true);
 
             // ফর্ম রিসেট
+            document.getElementById('photoTitleInput').value = "";
             document.getElementById('postCaption').value = "";
             document.getElementById('postImageFile').value = "";
             compressedImageBase64 = "";
@@ -239,7 +251,41 @@
         }
     };
 
-    // পাবলিক ফিড রিয়েলটাইমে লোড করা
+    // পোস্ট ডিলিট ফাংশন
+    window.deletePost = async function(postId, postUid) {
+        if (!currentUser || currentUser.uid !== postUid) {
+            alert("⚠️ You can only delete your own posts!");
+            return;
+        }
+
+        if (confirm("🗑️ Are you sure you want to delete this post?")) {
+            try {
+                await remove(ref(db, `public_feed/${postId}`));
+                await remove(ref(db, `user_posts/${currentUser.uid}/${postId}`));
+            } catch (err) {
+                console.error("Error deleting post:", err);
+                alert("❌ Failed to delete post.");
+            }
+        }
+    };
+
+    // ফেভারিট টগল ফাংশন (পিন করা বা আনপিন করা)
+    window.toggleFavorite = async function(postId, currentStatus) {
+        if (!currentUser) {
+            alert("⚠️ Please sign in first!");
+            return;
+        }
+
+        try {
+            await update(ref(db, `public_feed/${postId}`), {
+                favorite: !currentStatus
+            });
+        } catch (err) {
+            console.error("Error updating favorite status:", err);
+        }
+    };
+
+    // পাবলিক ফিড রিয়েলটাইমে লোড করা (ফেভারিট পোস্টগুলো সর্বদা ওপরে থাকবে)
     function loadPublicFeed() {
         const feedRef = ref(db, 'public_feed');
         onValue(feedRef, (snapshot) => {
@@ -256,22 +302,45 @@
                 postsArray.push({ id: childSnap.key, ...childSnap.val() });
             });
 
-            // নতুন পোস্টগুলো সবার ওপরে দেখানোর জন্য সর্টিং
-            postsArray.sort((a, b) => b.timestamp - a.timestamp);
+            // সোর্টিং লজিক: ১. প্রথমে ফেভারিট পোস্টগুলো ওপরে থাকবে, ২. এরপর নতুন পোস্টগুলো
+            postsArray.sort((a, b) => {
+                if (a.favorite && !b.favorite) return -1;
+                if (!a.favorite && b.favorite) return 1;
+                return b.timestamp - a.timestamp;
+            });
 
             postsArray.forEach(post => {
                 const dateStr = new Date(post.timestamp).toLocaleString();
+                let titleHtml = post.title ? `<div class="photo-title">📌 ${post.title}</div>` : "";
                 let imageHtml = post.image ? `<img src="${post.image}" class="post-image" alt="Post Image">` : "";
 
+                // ডিলিট বাটন শুধু পোস্টের মালিক দেখতে পাবে
+                let deleteButtonHtml = "";
+                if (currentUser && currentUser.uid === post.uid) {
+                    deleteButtonHtml = `<button class="action-btn" title="Delete Post" onclick="window.deletePost('${post.id}', '${post.uid}')">🗑️</button>`;
+                }
+
+                // ফেভারিট আইকন (যদি ফেভারিট হয় তাহলে ভরা স্টার ⭐, না হলে খালি ☆)
+                let favIcon = post.favorite ? "⭐" : "☆";
+                let favTitle = post.favorite ? "Unfavorite (Allow Auto-delete)" : "Favorite (Pin to Top & Protect from Deletion)";
+                let favButtonHtml = `<button class="action-btn" title="${favTitle}" onclick="window.toggleFavorite('${post.id}', ${post.favorite || false})">${favIcon}</button>`;
+
                 const postHTML = `
-                    <div class="post-card">
+                    <div class="post-card ${post.favorite ? 'favorite-post' : ''}">
                         <div class="post-header">
-                            <img src="${post.userPhoto || 'https://via.placeholder.com/45'}" class="post-avatar" alt="Avatar">
-                            <div class="post-user-info">
-                                <h4>${post.username}</h4>
-                                <span>${dateStr}</span>
+                            <div class="post-user-profile">
+                                <img src="${post.userPhoto || 'https://via.placeholder.com/45'}" class="post-avatar" alt="Avatar">
+                                <div class="post-user-info">
+                                    <h4>${post.username}</h4>
+                                    <span>${dateStr}</span>
+                                </div>
+                            </div>
+                            <div class="post-actions">
+                                ${favButtonHtml}
+                                ${deleteButtonHtml}
                             </div>
                         </div>
+                        ${titleHtml}
                         ${post.caption ? `<div class="post-text">${post.caption}</div>` : ""}
                         ${imageHtml}
                     </div>
@@ -284,3 +353,4 @@
 
 </body>
 </html>
+
