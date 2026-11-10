@@ -25,6 +25,8 @@
             width: 100%; 
             max-width: 650px; 
             text-align: center; 
+            max-height: 95vh; /* স্ক্রিনের বাইরে যাতে না যায় */
+            overflow-y: auto;  /* প্রয়োজনে স্ক্রোল করার সুবিধা */
         }
         h2 { color: #1e3c72; margin-top: 0; margin-bottom: 15px; font-family: 'Oswald', sans-serif; letter-spacing: 1px; text-transform: uppercase; }
         input, select, textarea { 
@@ -232,7 +234,10 @@
                 </div>
             </div>
 
-            
+            <!-- ক্রেডিট দেখার অপশন -->
+            <div class="credit-box">
+                Available Balance: <span id="user-credits">0</span> Match Credit(s)
+            </div>
 
             <div style="margin-top: 15px; display: flex; gap: 10px;">
                 <button class="btn-logout" style="flex: 1;" onclick="logout()">Logout</button>
@@ -349,7 +354,7 @@
             return msg.innerText = "Please fill in all fields.";
         }
 
-        // ইউজারনেম স্বয়ংক্রিয়ভাবে ক্লিন ও ফরম্যাট করা (স্পেস বা স্পেশাল ক্যারেক্টার রিমুভ করে ছোট হাতের অক্ষরে রূপান্তর)
+        // ইউজারনেম স্বয়ংক্রিয়ভাবে ক্লিন ও ফরম্যাট করা (স্পেস বা স্পেশাল ক্যারেক্টার রিমুভ করে ছোট হাতের অক্ষরে রূপান্তর)
         let username = rawInputName
             .toLowerCase()
             .replace(/\s+/g, '')
@@ -384,7 +389,7 @@
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            // সঠিক ইউজারনেম দিয়ে usernames ইনডেক্স তৈরি করা হলো
+            // সঠিক ইউজারনেম দিয়ে usernames ইনডেক্স তৈরি করা হলো
             await set(ref(db, 'usernames/' + username), user.uid);
             
             // claimed_emails এ রেকর্ড সেভ করা হলো
@@ -495,7 +500,7 @@
         const userId = user.uid;
         const userRef = ref(db, `users/${userId}`);
         
-        // রিয়েলটাইমে ডেটাবেজ থেকে ইউজারের লেটেস্ট তথ্য ও ইউজারনেম ফেচ করা
+        // রিয়েলটাইমে ডেটাবেজ থেকে ইউজারের লেটেস্ট তথ্য ও ইউজারনেম ফেচ করা
         onValue(userRef, (snapshot) => {
             if (snapshot.exists()) {
                 const userData = snapshot.val();
@@ -504,7 +509,7 @@
                 localStorage.setItem('proCricketUsername', username);
                 document.getElementById('display-username').innerText = username;
                 
-                // ভিউয়ার লিংক রিয়েলটাইমে আপডেট করা
+                // ভিউয়ার লিংক রিয়েলটাইমে আপডেট করা
                 const linkInput = document.getElementById('viewer-link-input');
                 if (linkInput) {
                     linkInput.value = `https://lcricket.github.io/s/viewer.html?u=${username}`;
