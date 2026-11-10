@@ -127,7 +127,6 @@
         }
         .msg { font-size: 13px; margin-top: 6px; }
         
-        /* নোটিফিকেশন ব্যানার স্টাইল */
         .promo-banner {
             background: #e2f0d9;
             color: #385723;
@@ -166,12 +165,11 @@
     <div id="signup-section" class="hidden">
         <h2>Create Account</h2>
         
-        <!-- সাইন আপ করার নোটিফিকেশন ব্যানার -->
         <div class="promo-banner">
-            🎉 Sign up now and get <b>1 Free Credit</b> instantly!
+            🎉 Sign up now and get <b>1 Free Credit</b> instantly (One time per email)!
         </div>
 
-        <input type="text" id="signup-username" placeholder="Short Username (e.g. rakib)" maxlength="15" required>
+        <input type="text" id="signup-username" placeholder="Short Username (e.g. ypur name)" maxlength="15" required>
         <input type="email" id="signup-email" placeholder="Enter your email" required>
         
         <div class="password-container">
@@ -277,7 +275,6 @@
             if(user) {
                 const uid = user.uid;
                 let username = localStorage.getItem('proCricketUsername');
-                const encodedEmail = encodeEmailForDb(normalizeEmail(user.email));
 
                 if (username) {
                     await remove(ref(db, 'usernames/' + username));
@@ -285,7 +282,8 @@
                 }
                 
                 await remove(ref(db, `users/${uid}`));
-                await remove(ref(db, 'registered_emails/' + encodedEmail)); 
+                // খেয়াল রাখবেন: account delete করা হলেও registered_emails ডাটাবেজ থেকে মুছা হচ্ছে না, 
+                // যাতে একই ইমেইল দিয়ে পুনরায় সাইন আপ করে আবার ক্রেডিট নেওয়া আটকানো যায়।
 
                 await deleteUser(user);
                 
@@ -352,18 +350,26 @@
             const encodedEmail = encodeEmailForDb(normalizeEmail(email));
             const emailCheckRef = ref(db, 'registered_emails/' + encodedEmail);
             const emailSnap = await get(emailCheckRef);
+            
+            // একই ইমেইল দিয়ে আগে অ্যাকাউন্ট খোলা হয়েছিল কিনা তা চেক করা হচ্ছে
             if (emailSnap.exists()) {
                 msg.style.color = "red";
-                return msg.innerText = "This email is already registered!";
+                return msg.innerText = "This email has already claimed a free signup credit before!";
             }
 
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
             await set(ref(db, 'usernames/' + username), user.uid);
-            await set(ref(db, 'registered_emails/' + encodedEmail), user.uid);
             
-            // সাইন আপ করার সাথে সাথে ডেটাবেজে ১ ক্রেডিট যোগ করা হলো
+            // registered_emails এ রেকর্ড সেভ করা হচ্ছে (অ্যাকাউন্ট ডিলিট করলেও এটি থাকবে)
+            await set(ref(db, 'registered_emails/' + encodedEmail), {
+                uid: user.uid,
+                claimed_credit: true,
+                signup_date: new Date().toISOString()
+            });
+            
+            // ১ ক্রেডিটসহ ইউজার ডাটাবেজ তৈরি
             await set(ref(db, `users/${user.uid}`), { 
                 email: email, 
                 username: username,
@@ -526,4 +532,3 @@
 
 </body>
 </html>
-
