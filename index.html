@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scoreboard - Dashboard</title>
+    <title>Scoreboard - Authentication & Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            font-family: 'Poppins', sans-serif; 
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
             display: flex; 
             justify-content: center; 
@@ -25,7 +26,7 @@
             max-width: 650px; 
             text-align: center; 
         }
-        h2 { color: #1e3c72; margin-top: 0; margin-bottom: 15px; font-size: 22px; }
+        h2 { color: #1e3c72; margin-top: 0; margin-bottom: 15px; font-family: 'Oswald', sans-serif; letter-spacing: 1px; text-transform: uppercase; }
         input, select, textarea { 
             width: 100%; 
             padding: 10px; 
@@ -65,6 +66,7 @@
         .btn-signup { background-color: #007bff; }
         .btn-logout { background-color: #4a5568; }
         .btn-delete-acc { background-color: #dc3545; }
+        .btn-dash-link { background: #0056b3; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 5px; }
         
         .dashboard-profile-container {
             margin: 15px 0;
@@ -137,6 +139,18 @@
             border: 1px solid #c8e1b9;
             font-weight: 500;
         }
+        
+        .credit-box { 
+            background: #e8f5e9;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 17px; 
+            font-weight: bold; 
+            color: #2e7d32; 
+            margin-bottom: 15px; 
+            border: 1px solid #c8e6c9;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -169,7 +183,7 @@
             🎉 Sign up now and get <b>1 Free Credit</b> instantly (One time per email)!
         </div>
 
-        <input type="text" id="signup-username" placeholder="Short Username (e.g. ypur name)" maxlength="15" required>
+        <input type="text" id="signup-username" placeholder="Short Username (e.g. rakib)" maxlength="15" required>
         <input type="email" id="signup-email" placeholder="Enter your email" required>
         
         <div class="password-container">
@@ -207,6 +221,11 @@
                 <div class="dashboard-profile-avatar">
                     <img id="dashboardLargeAvatar" src="https://via.placeholder.com/110" alt="Profile Avatar" class="dashboard-large-avatar">
                 </div>
+            </div>
+
+            <!-- ক্রেডিট দেখার অপশন -->
+            <div class="credit-box">
+                Available Balance: <span id="user-credits">0</span> Match Credit(s)
             </div>
 
             <div class="link-box">
@@ -250,6 +269,7 @@
     const db = getDatabase(app);
 
     window.normalizeEmail = function(email) {
+        if (!email) return "";
         email = email.trim().toLowerCase();
         if (email.endsWith('@gmail.com')) {
             let parts = email.split('@');
@@ -268,7 +288,7 @@
     };
 
     window.deleteMyAccount = async () => {
-        if(!confirm("⚠️ WARNING: Are you sure you want to permanently delete your account and all data? This cannot be undone.")) return;
+        if(!confirm("⚠️ WARNING: Are you sure you want to permanently delete your account and all data? Note that your email will remain in our claimed list, so you cannot get a free credit again with this email.")) return;
         
         try {
             const user = auth.currentUser;
@@ -282,8 +302,7 @@
                 }
                 
                 await remove(ref(db, `users/${uid}`));
-                // খেয়াল রাখবেন: account delete করা হলেও registered_emails ডাটাবেজ থেকে মুছা হচ্ছে না, 
-                // যাতে একই ইমেইল দিয়ে পুনরায় সাইন আপ করে আবার ক্রেডিট নেওয়া আটকানো যায়।
+                // 'claimed_emails' নোডটি মোছা হবে না, যাতে একই ইমেইল দিয়ে পুনরায় সাইন আপ করলেও আর ফ্রি ক্রেডিট না পায়।
 
                 await deleteUser(user);
                 
@@ -348,10 +367,10 @@
             }
 
             const encodedEmail = encodeEmailForDb(normalizeEmail(email));
-            const emailCheckRef = ref(db, 'registered_emails/' + encodedEmail);
+            const emailCheckRef = ref(db, 'claimed_emails/' + encodedEmail);
             const emailSnap = await get(emailCheckRef);
             
-            // একই ইমেইল দিয়ে আগে অ্যাকাউন্ট খোলা হয়েছিল কিনা তা চেক করা হচ্ছে
+            // চেক করা হচ্ছে এই ইমেইল দিয়ে আগে ফ্রি ক্রেডিট নেওয়া হয়েছে কি না
             if (emailSnap.exists()) {
                 msg.style.color = "red";
                 return msg.innerText = "This email has already claimed a free signup credit before!";
@@ -362,14 +381,14 @@
 
             await set(ref(db, 'usernames/' + username), user.uid);
             
-            // registered_emails এ রেকর্ড সেভ করা হচ্ছে (অ্যাকাউন্ট ডিলিট করলেও এটি থাকবে)
-            await set(ref(db, 'registered_emails/' + encodedEmail), {
+            // claimed_emails এ রেকর্ড সেভ করা হচ্ছে (অ্যাকাউন্ট ডিলিট করলেও এটি থাকবে)
+            await set(ref(db, 'claimed_emails/' + encodedEmail), {
                 uid: user.uid,
                 claimed_credit: true,
                 signup_date: new Date().toISOString()
             });
             
-            // ১ ক্রেডিটসহ ইউজার ডাটাবেজ তৈরি
+            // নতুন অ্যাকাউন্ট তৈরির সময় ১ ক্রেডিট যুক্ত করা হলো
             await set(ref(db, `users/${user.uid}`), { 
                 email: email, 
                 username: username,
@@ -468,7 +487,6 @@
 
     async function loadUserData(user) {
         const userId = user.uid;
-        
         let username = localStorage.getItem('proCricketUsername') || "user";
 
         const userRef = ref(db, `users/${userId}`);
@@ -476,6 +494,10 @@
         if (snapshot.exists()) {
             const userData = snapshot.val();
             if (userData.username) username = userData.username;
+            
+            // ক্রেডিট ব্যালেন্স ড্যাশবোর্ডে শো করানো হচ্ছে
+            const credits = userData.credits !== undefined ? userData.credits : 0;
+            document.getElementById('user-credits').innerText = credits;
         }
 
         localStorage.setItem('proCricketUsername', username);
@@ -532,3 +554,5 @@
 
 </body>
 </html>
+
+
