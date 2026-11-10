@@ -35,6 +35,41 @@
             text-align: center;
         }
 
+        .link-box { 
+            background: #f8f9fa; 
+            padding: 12px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+            border: 1px dashed #ced4da;
+            text-align: left;
+        }
+        .link-input-group { display: flex; gap: 8px; margin-top: 6px; }
+        .link-input-group input {
+            width: 100%;
+            margin: 0;
+            padding: 8px 10px;
+            font-size: 13px;
+            background: #ffffff;
+            cursor: pointer;
+            color: #007bff;
+            font-weight: 500;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+        }
+        .btn-copy { 
+            background-color: #17a2b8; 
+            padding: 8px 14px; 
+            font-size: 14px; 
+            margin: 0; 
+            width: auto; 
+            white-space: nowrap;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
         /* স্ট্যাটস গ্রিড */
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
         @media(max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -64,6 +99,15 @@
     <!-- ক্রেডিট দেখার অপশন -->
     <div class="credit-box">
         Available Balance: <span id="user-credits">0</span> Match Credit(s)
+    </div>
+
+    <!-- ক্যামেরা লাইভ ও OBS লিংক বক্স (নতুন যোগ করা হয়েছে) -->
+    <div class="link-box">
+        <b style="font-size: 13px; color: #333;">Copy this Link for CameraFi LIVE & OBS Studio:</b>
+        <div class="link-input-group">
+            <input type="text" id="viewer-link-input" readonly onclick="this.select()" placeholder="Generating link...">
+            <button class="btn-copy" onclick="copyLink()">📋 Copy</button>
+        </div>
     </div>
 
     <!-- প্রোফাইল এডিট ফর্ম -->
@@ -157,6 +201,12 @@
                     }
                     const credits = userData.credits !== undefined ? userData.credits : 0;
                     document.getElementById('user-credits').innerText = credits;
+                    
+                    // ড্যাশবোর্ড বা প্রোফাইল পেজে লিংকটি সরাসরি আপডেট করার জন্য
+                    const linkInput = document.getElementById('viewer-link-input');
+                    if (linkInput && currentUsername) {
+                        linkInput.value = `https://lcricket.github.io/s/viewer.html?u=${currentUsername}`;
+                    }
                 }
             });
 
@@ -167,6 +217,15 @@
             window.location.href = "index.html";
         }
     });
+
+    window.copyLink = () => {
+        const inputField = document.getElementById('viewer-link-input');
+        if (!inputField.value) return alert("No link available!");
+        inputField.select();
+        inputField.setSelectionRange(0, 99999);
+        document.execCommand('copy');
+        alert("Viewer link copied!");
+    };
 
     function loadProfileData(userId) {
         const profileRef = ref(db, `users/${userId}/profile`);
@@ -198,7 +257,7 @@
                 Object.keys(tournaments).forEach(tourId => {
                     const tourData = tournaments[tourId];
                     if (tourData && tourData.players) {
-                        const myStats = tourData.players[document.getElementById('displayName'].innerText] || tourData.players[currentUsername];
+                        const myStats = tourData.players[document.getElementById('displayName').innerText] || tourData.players[currentUsername];
                         if (myStats) {
                             tMatches += (myStats.matchesPlayed || 0);
                             tRuns += (myStats.runs || 0);
@@ -227,7 +286,7 @@
         if (box.style.display === 'none') {
             box.style.display = 'block';
             document.getElementById('inputProfileName').value = document.getElementById('displayName').innerText;
-            document.getElementById('inputProfileUsername').value = currentUsername; // বর্তমান ইউজারনেম ইনপুটে লোড হবে
+            document.getElementById('inputProfileUsername').value = currentUsername; 
             selectedImageBase64 = "";
         } else {
             box.style.display = 'none';
@@ -286,7 +345,6 @@
         }
 
         try {
-            // যদি ইউজারনেম পরিবর্তন করা হয়
             if (newUsername !== currentUsername) {
                 const usernameRef = ref(db, 'usernames/' + newUsername);
                 const snapshot = await get(usernameRef);
@@ -295,11 +353,11 @@
                     return;
                 }
 
-                // নতুন ইউজারনেম ডাটাবেজে রেজিস্টার করা এবং পুরনোটি মুছে ফেলা
+                // নতুন ইউজারনেম ডাটাবেজে সেট এবং পুরনোটি রিমুভ করা
                 await set(ref(db, 'usernames/' + newUsername), currentUserId);
                 await remove(ref(db, 'usernames/' + currentUsername));
                 
-                // ইউজার নোডে ইউজারনেম আপডেট করা
+                // মূল ইউজার নোডে ইউজারনেম আপডেট করা
                 await update(ref(db, `users/${currentUserId}`), { username: newUsername });
                 
                 currentUsername = newUsername;
@@ -314,7 +372,7 @@
             await update(ref(db, `users/${currentUserId}/profile`), updateData);
             alert("✅ Profile updated successfully!");
             window.toggleEditMode();
-            window.location.reload(); // পেজ রিফ্রেশ করে নতুন ডাটা লোড করা
+            window.location.reload(); // পেজ রিফ্রেশ করে নতুন ইউজারনেম ও লিংক আপডেট নিশ্চিত করা
         } catch (err) {
             console.error("Error updating profile:", err);
             alert("❌ Failed to update profile.");
@@ -324,5 +382,4 @@
 
 </body>
 </html>
-
 
