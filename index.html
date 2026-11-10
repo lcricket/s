@@ -126,6 +126,18 @@
             display: inline-block;
         }
         .msg { font-size: 13px; margin-top: 6px; }
+        
+        /* নোটিফিকেশন ব্যানার স্টাইল */
+        .promo-banner {
+            background: #e2f0d9;
+            color: #385723;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            border: 1px solid #c8e1b9;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -153,6 +165,12 @@
     <!-- Sign-Up Form -->
     <div id="signup-section" class="hidden">
         <h2>Create Account</h2>
+        
+        <!-- সাইন আপ করার নোটিফিকেশন ব্যানার -->
+        <div class="promo-banner">
+            🎉 Sign up now and get <b>1 Free Credit</b> instantly!
+        </div>
+
         <input type="text" id="signup-username" placeholder="Short Username (e.g. rakib)" maxlength="15" required>
         <input type="email" id="signup-email" placeholder="Enter your email" required>
         
@@ -345,7 +363,7 @@
             await set(ref(db, 'usernames/' + username), user.uid);
             await set(ref(db, 'registered_emails/' + encodedEmail), user.uid);
             
-            // নতুন অ্যাকাউন্ট তৈরির সময় ১ ক্রেডিট যুক্ত করা হয়েছে
+            // সাইন আপ করার সাথে সাথে ডেটাবেজে ১ ক্রেডিট যোগ করা হলো
             await set(ref(db, `users/${user.uid}`), { 
                 email: email, 
                 username: username,
@@ -359,7 +377,7 @@
 
             await sendEmailVerification(user);
             msg.style.color = "green";
-            msg.innerText = "Account created! Redirecting to verification...";
+            msg.innerText = "Account created & 1 Free Credit added! Redirecting to verification...";
             
         } catch (error) {
             msg.style.color = "red";
