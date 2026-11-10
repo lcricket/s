@@ -3,145 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scoreboard - Authentication & Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
-        body { 
-            font-family: 'Poppins', sans-serif; 
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            margin: 0; 
-            padding: 15px;
-        }
-        .container { 
-            background: #ffffff; 
-            padding: 25px; 
-            border-radius: 12px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
-            width: 100%; 
-            max-width: 650px; 
-            text-align: center; 
-            max-height: 95vh; /* স্ক্রিনের বাইরে যাতে না যায় */
-            overflow-y: auto;  /* প্রয়োজনে স্ক্রোল করার সুবিধা */
-        }
-        h2 { color: #1e3c72; margin-top: 0; margin-bottom: 15px; font-family: 'Oswald', sans-serif; letter-spacing: 1px; text-transform: uppercase; }
-        input, select, textarea { 
-            width: 100%; 
-            padding: 10px; 
-            margin: 6px 0; 
-            border: 1px solid #ddd; 
-            border-radius: 6px; 
-            font-size: 14px;
-        }
-        input:focus, select:focus, textarea:focus { border-color: #2a5298; outline: none; }
+        body { font-family: 'Poppins', sans-serif; background: #eef2f3; padding: 20px; margin: 0; }
+        .container { max-width: 850px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         
-        .password-container { position: relative; width: 100%; }
-        .password-container input { padding-right: 40px; }
-        .toggle-password {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            user-select: none;
-            font-size: 18px;
-            color: #777;
-        }
-
-        button { 
-            width: 100%; 
-            padding: 11px; 
-            margin: 8px 0; 
-            border: none; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-size: 15px; 
-            font-weight: bold;
-            color: #fff; 
-            transition: 0.3s;
-        }
-        .btn-login { background-color: #28a745; }
-        .btn-signup { background-color: #007bff; }
-        .btn-logout { background-color: #4a5568; }
-        .btn-delete-acc { background-color: #dc3545; }
         .btn-dash-link { background: #0056b3; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 5px; }
-        
-        .dashboard-profile-container {
-            margin: 15px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .dashboard-profile-avatar {
-            display: block;
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 4px solid #1e3c72;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            margin: 0 auto;
-            background: #ccc;
-        }
-        .dashboard-large-avatar {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        .btn-dash-link:hover { background: #004085; }
 
-        .btn-copy { 
-            background-color: #17a2b8; 
-            padding: 8px 14px; 
-            font-size: 14px; 
-            margin: 0; 
-            width: auto; 
-            white-space: nowrap;
-        }
-        .hidden { display: none !important; }
-        .link-box { 
-            background: #f8f9fa; 
-            padding: 12px; 
-            border-radius: 8px; 
-            margin-bottom: 15px; 
-            border: 1px dashed #ced4da;
-            text-align: left;
-        }
-        .link-input-group { display: flex; gap: 8px; margin-top: 6px; }
-        .link-input-group input {
-            margin: 0;
-            padding: 8px 10px;
-            font-size: 13px;
-            background: #ffffff;
-            cursor: pointer;
-            color: #007bff;
-            font-weight: 500;
-        }
-        .toggle-text { 
-            color: #007bff; 
-            cursor: pointer; 
-            font-size: 13px; 
-            text-decoration: underline; 
-            margin-top: 10px; 
-            display: inline-block;
-        }
-        .msg { font-size: 13px; margin-top: 6px; }
+        h2 { color: #333; margin: 0; font-family: 'Oswald', sans-serif; letter-spacing: 1px; text-transform: uppercase; }
         
-        .promo-banner {
-            background: #e2f0d9;
-            color: #385723;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 13px;
-            margin-bottom: 15px;
-            border: 1px solid #c8e1b9;
-            font-weight: 500;
-        }
+        /* প্রোফাইল কার্ড স্টাইল */
+        .profile-card { display: flex; align-items: center; gap: 20px; background: #e8f4fd; border: 1px solid #b8daff; padding: 20px; border-radius: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: #ccc; object-fit: cover; border: 3px solid #0056b3; flex-shrink: 0; }
+        .profile-details { flex: 1; }
+        .profile-details h3 { margin: 0 0 5px 0; color: #0056b3; font-size: 22px; word-break: break-word; }
+        .profile-details p { margin: 0; color: #555; font-size: 14px; }
+
+        .box { background: #f9f9f9; padding: 18px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
         
+        /* ক্রেডিট বক্স স্টাইল */
         .credit-box { 
             background: #e8f5e9;
             padding: 12px;
@@ -153,109 +34,134 @@
             border: 1px solid #c8e6c9;
             text-align: center;
         }
+
+        .link-box { 
+            background: #f8f9fa; 
+            padding: 12px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+            border: 1px dashed #ced4da;
+            text-align: left;
+        }
+        .link-input-group { display: flex; gap: 8px; margin-top: 6px; }
+        .link-input-group input {
+            width: 100%;
+            margin: 0;
+            padding: 8px 10px;
+            font-size: 13px;
+            background: #ffffff;
+            cursor: pointer;
+            color: #007bff;
+            font-weight: 500;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+        }
+        .btn-copy { 
+            background-color: #17a2b8; 
+            padding: 8px 14px; 
+            font-size: 14px; 
+            margin: 0; 
+            width: auto; 
+            white-space: nowrap;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* স্ট্যাটস গ্রিড */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
+        @media(max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        .stat-card { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .stat-card span { font-size: 13px; color: #666; display: block; margin-bottom: 5px; }
+        .stat-card strong { font-size: 20px; color: #0056b3; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    
-    <!-- Login Form -->
-    <div id="login-section" class="hidden">
-        <h2>Sign In</h2>
-        <input type="email" id="login-email" placeholder="Enter your email" required>
+
+    <!-- হেডার -->
+    <div style="border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 20px;">
+        <h2>Profile</h2>
+    </div>
+
+    <!-- প্রোফাইল কার্ড -->
+    <div class="profile-card">
+        <img id="displayAvatar" src="https://via.placeholder.com/90" alt="Avatar" class="profile-avatar">
+        <div class="profile-details">
+            <h3 id="displayName">Loading User...</h3> 
+        </div>
+        <button class="btn-dash-link" style="background: #28a745; padding: 8px 14px;" onclick="window.toggleEditMode()">✏️ Edit Profile</button>
+    </div> 
+
+    <!-- ক্যামেরা লাইভ ও OBS লিংক বক্স (নতুন যোগ করা হয়েছে) -->
+    <div class="link-box">
+        <b style="font-size: 13px; color: #333;">Copy this Link for CameraFi LIVE & OBS Studio:</b>
+        <div class="link-input-group">
+            <input type="text" id="viewer-link-input" readonly onclick="this.select()" placeholder="Generating link...">
+            <button class="btn-copy" onclick="copyLink()">📋 Copy</button>
+        </div>
+    </div>
+
+    <!-- প্রোফাইল এডিট ফর্ম -->
+    <div class="box" id="profileEditBox" style="display: none;">
+        <h3>✏️ Edit Profile Details</h3>
         
-        <div class="password-container">
-            <input type="password" id="login-password" placeholder="Enter password" required>
-            <span class="toggle-password" onclick="togglePasswordVisibility('login-password', this)">👁</span>
-        </div>
-
-        <button class="btn-login" onclick="login()">Login</button>
-        <br>
-        <span class="toggle-text" style="color: #666; font-size: 13px;" onclick="resetPassword()">Forgot Password?</span>
-        <br>
-        <span class="toggle-text" onclick="toggleAuth('signup')">Don't have an account? Sign Up</span>
-        <p id="login-message" class="msg"></p>
-    </div>
-
-    <!-- Sign-Up Form -->
-    <div id="signup-section" class="hidden">
-        <h2>Create Account</h2>
+        <label style="font-weight: bold; font-size: 14px; color: #444;">Your Name</label>
+        <input type="text" id="inputProfileName" placeholder="Enter your full name" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px;">
         
-        <div class="promo-banner">
-            🎉 Sign up now and get <b>1 Free Credit</b> instantly!
-        </div>
+        <label style="font-weight: bold; font-size: 14px; color: #444; margin-top: 10px; display: block;">Username (Lowercase letters & numbers only)</label>
+        <input type="text" id="inputProfileUsername" placeholder="Enter new username" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px;" maxlength="15">
 
-        <input type="text" id="signup-username" placeholder="Username (e.g. indronil)" maxlength="15" required>
-        <input type="email" id="signup-email" placeholder="Enter your email" required>
+        <label style="font-weight: bold; display: block; margin-top: 10px; font-size: 14px; color: #444;">Profile Picture (Choose from Gallery)</label>
+        <input type="file" id="inputProfileFile" accept="image/*" style="width: 100%; padding: 8px; margin-top: 5px; background: #fff; border: 1px solid #ccc; border-radius: 6px;">
         
-        <div class="password-container">
-            <input type="password" id="signup-password" placeholder="Create password" required>
-            <span class="toggle-password" onclick="togglePasswordVisibility('signup-password', this)">👁</span>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button class="btn-dash-link" style="background: #0056b3; width: 100%; justify-content: center; padding: 10px;" onclick="window.saveUserProfile()">Save Changes</button>
+            <button class="btn-dash-link" style="background: #6c757d; width: 100%; justify-content: center; padding: 10px;" onclick="window.toggleEditMode()">Cancel</button>
         </div>
-
-        <div style="margin-top: 12px; font-size: 12px; color: #555;">
-            By signing up, you agree to our <a href="#" style="color: #007bff; text-decoration: underline;">Privacy Policy</a> & Terms.
-        </div>
-
-        <button class="btn-signup" onclick="signup()">Register</button>
-        <br>
-        <span class="toggle-text" onclick="toggleAuth('login')">Already have an account? Sign In</span>
-        <p id="signup-message" class="msg" style="color: red;"></p>
     </div>
 
-    <!-- Email Verification Section -->
-    <div id="verify-section" class="hidden">
-        <h2>Verify Your Email</h2>
-        <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; font-size: 14px; margin-bottom: 15px; border: 1px solid #ffeeba;">
-            ⚠️ We've sent a verification link to <b><span id="verify-email-display"></span></b>. <br><br>Please check your inbox (and spam folder) and click the link to activate your account.
-        </div>
-        <button class="btn-login" onclick="checkVerification()">✅ I have verified my email</button>
-        <button class="btn-signup" onclick="resendVerification()">📩 Resend Link</button>
-        <button class="btn-logout" style="margin-top: 15px;" onclick="logout()">Logout</button>
-    </div>
-
-    <!-- User Dashboard -->
-    <div id="dashboard-section" class="hidden">
-        <div id="homeMainView">
-            <h2 style="text-align: center; margin-bottom: 5px;">Welcome, <span id="display-username" style="color: #ff9800;">Loading...</span>!</h2>
-            
-            <div class="dashboard-profile-container">
-                <div class="dashboard-profile-avatar">
-                    <img id="dashboardLargeAvatar" src="https://via.placeholder.com/110" alt="Profile Avatar" class="dashboard-large-avatar">
-                </div>
+    <!-- ক্রিকেট ক্যারিয়ার পারফরম্যান্স সেকশন -->
+    <div class="box">
+        <h3 style="color: #0056b3; border-bottom: 1px solid #ddd; padding-bottom: 8px; margin-top: 0;">🏏 Cricket Career Performance</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span>Matches Played</span>
+                <strong id="statMatches">0</strong>
             </div>
-
-            <!-- ক্যামেরা লাইভ ও OBS লিংক বক্স -->
-            <div class="link-box">
-                <b style="font-size: 13px; color: #333;">Copy this Link for CameraFi LIVE & OBS Studio:</b>
-                <div class="link-input-group">
-                    <input type="text" id="viewer-link-input" readonly onclick="this.select()" placeholder="Generating link...">
-                    <button class="btn-copy" onclick="copyLink()">📋 Copy</button>
-                </div>
+            <div class="stat-card">
+                <span>Total Runs</span>
+                <strong id="statRuns" style="color: #28a745;">0</strong>
             </div>
-
-            <!-- ক্রেডিট দেখার অপশন -->
-            <div class="credit-box">
-                Available Balance: <span id="user-credits">0</span> Match Credit(s)
+            <div class="stat-card">
+                <span>Total Wickets</span>
+                <strong id="statWickets" style="color: #dc3545;">0</strong>
             </div>
-
-            <div style="margin-top: 15px; display: flex; gap: 10px;">
-                <button class="btn-logout" style="flex: 1;" onclick="logout()">Logout</button>
-                <button class="btn-delete-acc" style="flex: 1; padding: 11px; margin: 8px 0; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; color: #fff; transition: 0.3s;" onclick="deleteMyAccount()">🗑️ Delete Account</button>
+            <div class="stat-card">
+                <span>Total Fours (4s)</span>
+                <strong id="statFours">0</strong>
+            </div>
+            <div class="stat-card">
+                <span>Total Sixes (6s)</span>
+                <strong id="statSixes">0</strong>
+            </div>
+            <div class="stat-card">
+                <span>Man of the Match</span>
+                <strong id="statMOM" style="color: #f39c12;">0</strong>
             </div>
         </div>
     </div>
+
 </div>
 
 <!-- Firebase Scripts -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import {  
-        getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
-        sendPasswordResetEmail, onAuthStateChanged, signOut, deleteUser, 
-        setPersistence, browserLocalPersistence, sendEmailVerification
-    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-    import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getDatabase, ref, get, update, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyABphVo2kWvqHEkxWSsZuDvnyXk05XzX-0",
@@ -271,195 +177,41 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    window.normalizeEmail = function(email) {
-        if (!email) return "";
-        email = email.trim().toLowerCase();
-        if (email.endsWith('@gmail.com')) {
-            let parts = email.split('@');
-            let username = parts[0];
-            if (username.includes('+')) {
-                username = username.split('+')[0];
-            }
-            username = username.replace(/\./g, '');
-            return username + '@gmail.com';
-        }
-        return email;
-    };
+    let currentUserId = "";
+    let currentUsername = localStorage.getItem('proCricketUsername') || "";
+    let selectedImageBase64 = "";
 
-    window.encodeEmailForDb = function(email) {
-        return email.replace(/\./g, ',');
-    };
-
-    window.deleteMyAccount = async () => {
-        if(!confirm("⚠️ WARNING: Are you sure you want to permanently delete your account and all data? Note that your email will remain in our claimed list, so you cannot get a free credit again with this email.")) return;
-        
-        try {
-            const user = auth.currentUser;
-            if(user) {
-                const uid = user.uid;
-                let username = localStorage.getItem('proCricketUsername');
-
-                if (username) {
-                    await remove(ref(db, 'usernames/' + username));
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUserId = user.uid;
+            
+            const userRef = ref(db, `users/${currentUserId}`);
+            
+            onValue(userRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    if (userData.username) {
+                        currentUsername = userData.username;
+                        localStorage.setItem('proCricketUsername', currentUsername);
+                    }
+                    const credits = userData.credits !== undefined ? userData.credits : 0;
+                    document.getElementById('user-credits').innerText = credits;
+                    
+                    // ড্যাশবোর্ড বা প্রোফাইল পেজে লিংকটি সরাসরি আপডেট করার জন্য
+                    const linkInput = document.getElementById('viewer-link-input');
+                    if (linkInput && currentUsername) {
+                        linkInput.value = `https://lcricket.github.io/s/viewer.html?u=${currentUsername}`;
+                    }
                 }
-                
-                await remove(ref(db, `users/${uid}`));
+            });
 
-                await deleteUser(user);
-                
-                alert("✅ Account deleted successfully.");
-                localStorage.removeItem('proCricketUsername');
-                window.location.reload();
-            }
-        } catch(error) {
-            if (error.code === 'auth/requires-recent-login') {
-                alert("⚠️ Please log out and log in again before deleting your account.");
-            } else {
-                alert("❌ Error deleting account: " + error.message);
-            }
-        }
-    };
-
-    window.togglePasswordVisibility = (inputId, iconElement) => {
-        const passwordInput = document.getElementById(inputId);
-        if (passwordInput.type === "password") {
-            passwordInput.type = "text";
-            iconElement.innerText = "🙈";
+            loadProfileData(currentUserId);
+            loadCareerStats();
         } else {
-            passwordInput.type = "password";
-            iconElement.innerText = "👁";
+            alert("⚠️ Please login from dashboard first.");
+            window.location.href = "index.html";
         }
-    };
-
-    window.toggleAuth = (view) => {
-        document.getElementById('login-message').innerText = "";
-        document.getElementById('signup-message').innerText = "";
-        if(view === 'signup') {
-            document.getElementById('login-section').classList.add('hidden');
-            document.getElementById('signup-section').classList.remove('hidden');
-        } else {
-            document.getElementById('signup-section').classList.add('hidden');
-            document.getElementById('login-section').classList.remove('hidden');
-        }
-    };
-
-    window.signup = async () => {
-        let rawInputName = document.getElementById('signup-username').value.trim();
-        const email = document.getElementById('signup-email').value.trim();
-        const password = document.getElementById('signup-password').value;
-        const msg = document.getElementById('signup-message');
-
-        if (!rawInputName || !email || !password) {
-            msg.style.color = "red";
-            return msg.innerText = "Please fill in all fields.";
-        }
-
-        // ইউজারনেম স্বয়ংক্রিয়ভাবে ক্লিন ও ফরম্যাট করা (স্পেস বা স্পেশাল ক্যারেক্টার রিমুভ করে ছোট হাতের অক্ষরে রূপান্তর)
-        let username = rawInputName
-            .toLowerCase()
-            .replace(/\s+/g, '')
-            .replace(/[^a-z0-9]/g, '');
-
-        if (!username) {
-            msg.style.color = "red";
-            return msg.innerText = "Please enter a valid username using English letters or numbers.";
-        }
-
-        if (username.length > 15) {
-            username = username.substring(0, 15);
-        }
-
-        try {
-            const usernameRef = ref(db, 'usernames/' + username);
-            const snapshot = await get(usernameRef);
-            if (snapshot.exists()) {
-                msg.style.color = "red";
-                return msg.innerText = "Username (" + username + ") is already taken! Choose another.";
-            }
-
-            const encodedEmail = encodeEmailForDb(normalizeEmail(email));
-            const emailCheckRef = ref(db, 'claimed_emails/' + encodedEmail);
-            const emailSnap = await get(emailCheckRef);
-            
-            if (emailSnap.exists()) {
-                msg.style.color = "red";
-                return msg.innerText = "This email has already claimed a free signup credit before!";
-            }
-
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
-
-            // সঠিক ইউজারনেম দিয়ে usernames ইনডেক্স তৈরি করা হলো
-            await set(ref(db, 'usernames/' + username), user.uid);
-            
-            // claimed_emails এ রেকর্ড সেভ করা হলো
-            await set(ref(db, 'claimed_emails/' + encodedEmail), {
-                uid: user.uid,
-                claimed_credit: true,
-                signup_date: new Date().toISOString()
-            });
-            
-            // users/{uid} এ সঠিক ইউজারনেম ও ক্রেডিট সেট করা হলো
-            await set(ref(db, `users/${user.uid}`), { 
-                email: email, 
-                username: username,
-                credits: 1 
-            });
-
-            await set(ref(db, `users/${user.uid}/profile`), {
-                name: rawInputName,
-                photo: "" 
-            });
-
-            await sendEmailVerification(user);
-            msg.style.color = "green";
-            msg.innerText = "Account created as '@" + username + "'! 1 Free Credit added. Redirecting...";
-            
-        } catch (error) {
-            msg.style.color = "red";
-            msg.innerText = error.message;
-        }
-    };
-
-    window.login = () => {
-        const email = document.getElementById('login-email').value.trim();
-        const password = document.getElementById('login-password').value;
-        const msg = document.getElementById('login-message');
-
-        if (!email || !password) {
-            msg.style.color = "red";
-            return msg.innerText = "Please provide email and password.";
-        }
-
-        setPersistence(auth, browserLocalPersistence)
-            .then(() => signInWithEmailAndPassword(auth, email, password))
-            .catch(() => {
-                msg.style.color = "red";
-                msg.innerText = "Invalid email or password.";
-            });
-    };
-
-    window.resetPassword = async () => {
-        const email = document.getElementById('login-email').value.trim();
-        const msg = document.getElementById('login-message');
-        if (!email) {
-            msg.style.color = "red";
-            return msg.innerText = "Please enter your email above to reset password.";
-        }
-        try {
-            await sendPasswordResetEmail(auth, email);
-            msg.style.color = "green";
-            msg.innerText = "Password reset link sent! Check your email inbox/spam.";
-        } catch (error) {
-            msg.style.color = "red";
-            msg.innerText = error.code === 'auth/user-not-found' ? "No account found." : error.message;
-        }
-    };
-
-    window.logout = () => { 
-        localStorage.removeItem('proCricketUsername');
-        signOut(auth); 
-    };
+    });
 
     window.copyLink = () => {
         const inputField = document.getElementById('viewer-link-input');
@@ -470,97 +222,158 @@
         alert("Viewer link copied!");
     };
 
-    window.checkVerification = async () => {
-        const user = auth.currentUser;
-        if(user) {
-            await user.reload(); 
-            if (user.emailVerified) {
-                document.getElementById('verify-section').classList.add('hidden');
-                document.getElementById('dashboard-section').classList.remove('hidden');
-                loadUserData(user);
+    function loadProfileData(userId) {
+        const profileRef = ref(db, `users/${userId}/profile`);
+        onValue(profileRef, (profileSnap) => {
+            if (profileSnap.exists()) {
+                const data = profileSnap.val();
+                document.getElementById('displayName').innerText = data.name || currentUsername || "User";
+                if (data.photo && data.photo.trim() !== "") {
+                    document.getElementById('displayAvatar').src = data.photo;
+                }
             } else {
-                alert("Email not verified yet. Please check your inbox or spam folder.");
-            }
-        }
-    };
-
-    window.resendVerification = async () => {
-        const user = auth.currentUser;
-        if(user) {
-            try {
-                await sendEmailVerification(user);
-                alert("Verification email resent!");
-            } catch(error) {
-                alert(error.message);
-            }
-        }
-    };
-
-    async function loadUserData(user) {
-        const userId = user.uid;
-        const userRef = ref(db, `users/${userId}`);
-        
-        // রিয়েলটাইমে ডেটাবেজ থেকে ইউজারের লেটেস্ট তথ্য ও ইউজারনেম ফেচ করা
-        onValue(userRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const userData = snapshot.val();
-                const username = userData.username || "user";
-                
-                localStorage.setItem('proCricketUsername', username);
-                document.getElementById('display-username').innerText = username;
-                
-                // ভিউয়ার লিংক রিয়েলটাইমে আপডেট করা
-                const linkInput = document.getElementById('viewer-link-input');
-                if (linkInput) {
-                    linkInput.value = `https://lcricket.github.io/s/viewer.html?u=${username}`;
-                }
-                
-                const credits = userData.credits !== undefined ? userData.credits : 0;
-                document.getElementById('user-credits').innerText = credits;
-            }
-        });
-
-        onValue(ref(db, `users/${userId}/profile`), (snap) => {
-            if (snap.exists()) {
-                const profileData = snap.val();
-                if (profileData.name) {
-                    document.getElementById('display-username').innerText = profileData.name;
-                }
-                if (profileData.photo && profileData.photo.trim() !== "") {
-                    document.getElementById('dashboardLargeAvatar').src = profileData.photo;
-                }
+                set(profileRef, {
+                    name: currentUsername || "User",
+                    photo: ""
+                });
+                document.getElementById('displayName').innerText = currentUsername || "User";
             }
         });
     }
 
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            await user.reload(); 
-            if (!user.emailVerified) {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('signup-section').classList.add('hidden');
-                document.getElementById('dashboard-section').classList.add('hidden');
-                
-                document.getElementById('verify-section').classList.remove('hidden');
-                document.getElementById('verify-email-display').innerText = user.email;
-            } else {
-                document.getElementById('verify-section').classList.add('hidden');
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('signup-section').classList.add('hidden');
-                
-                document.getElementById('dashboard-section').classList.remove('hidden');
+    async function loadCareerStats() {
+        try {
+            if (!currentUsername) return;
+            const tournamentsSnap = await get(ref(db, `live_matches/${currentUsername}/tournaments_data/`));
+            let tMatches = 0, tRuns = 0, tWickets = 0, tFours = 0, tSixes = 0, tMOM = 0;
 
-                loadUserData(user); 
+            if (tournamentsSnap.exists()) {
+                const tournaments = tournamentsSnap.val();
+                Object.keys(tournaments).forEach(tourId => {
+                    const tourData = tournaments[tourId];
+                    if (tourData && tourData.players) {
+                        const myStats = tourData.players[document.getElementById('displayName').innerText] || tourData.players[currentUsername];
+                        if (myStats) {
+                            tMatches += (myStats.matchesPlayed || 0);
+                            tRuns += (myStats.runs || 0);
+                            tWickets += (myStats.wickets || 0);
+                            tFours += (myStats.fours || 0);
+                            tSixes += (myStats.sixes || 0);
+                            tMOM += (myStats.mom || 0);
+                        }
+                    }
+                });
             }
+
+            document.getElementById('statMatches').innerText = tMatches;
+            document.getElementById('statRuns').innerText = tRuns;
+            document.getElementById('statWickets').innerText = tWickets;
+            document.getElementById('statFours').innerText = tFours;
+            document.getElementById('statSixes').innerText = tSixes;
+            document.getElementById('statMOM').innerText = tMOM;
+        } catch (err) {
+            console.error("Error loading career stats:", err);
+        }
+    }
+
+    window.toggleEditMode = function() {
+        const box = document.getElementById('profileEditBox');
+        if (box.style.display === 'none') {
+            box.style.display = 'block';
+            document.getElementById('inputProfileName').value = document.getElementById('displayName').innerText;
+            document.getElementById('inputProfileUsername').value = currentUsername; 
+            selectedImageBase64 = "";
         } else {
-            document.getElementById('dashboard-section').classList.add('hidden');
-            document.getElementById('verify-section').classList.add('hidden');
-            document.getElementById('signup-section').classList.add('hidden');
-            document.getElementById('login-section').classList.remove('hidden');
+            box.style.display = 'none';
+        }
+    };
+
+    document.getElementById('inputProfileFile').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 200;
+                    const MAX_HEIGHT = 200;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    selectedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                };
+            };
+            reader.readAsDataURL(file);
         }
     });
+
+    window.saveUserProfile = async function() {
+        const newName = document.getElementById('inputProfileName').value.trim();
+        const newUsername = document.getElementById('inputProfileUsername').value.trim().toLowerCase();
+
+        if (!newName || !newUsername) {
+            alert("⚠️ Name and Username cannot be empty!");
+            return;
+        }
+
+        if (!/^[a-z0-9]+$/.test(newUsername)) {
+            alert("⚠️ Username must contain only lowercase letters and numbers.");
+            return;
+        }
+
+        try {
+            if (newUsername !== currentUsername) {
+                const usernameRef = ref(db, 'usernames/' + newUsername);
+                const snapshot = await get(usernameRef);
+                if (snapshot.exists()) {
+                    alert("❌ Username already taken! Choose another.");
+                    return;
+                }
+
+                // নতুন ইউজারনেম ডাটাবেজে সেট এবং পুরনোটি রিমুভ করা
+                await set(ref(db, 'usernames/' + newUsername), currentUserId);
+                await remove(ref(db, 'usernames/' + currentUsername));
+                
+                // মূল ইউজার নোডে ইউজারনেম আপডেট করা
+                await update(ref(db, `users/${currentUserId}`), { username: newUsername });
+                
+                currentUsername = newUsername;
+                localStorage.setItem('proCricketUsername', currentUsername);
+            }
+
+            let updateData = { name: newName };
+            if (selectedImageBase64) {
+                updateData.photo = selectedImageBase64;
+            }
+
+            await update(ref(db, `users/${currentUserId}/profile`), updateData);
+            alert("✅ Profile updated successfully!");
+            window.toggleEditMode();
+            window.location.reload(); // পেজ রিফ্রেশ করে নতুন ইউজারনেম ও লিংক আপডেট নিশ্চিত করা
+        } catch (err) {
+            console.error("Error updating profile:", err);
+            alert("❌ Failed to update profile.");
+        }
+    };
 </script>
 
 </body>
 </html>
-
