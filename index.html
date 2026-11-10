@@ -212,7 +212,7 @@
 <!-- Firebase Scripts -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { 
+    import {  
         getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
         sendPasswordResetEmail, onAuthStateChanged, signOut, deleteUser, 
         setPersistence, browserLocalPersistence, sendEmailVerification
@@ -345,9 +345,11 @@
             await set(ref(db, 'usernames/' + username), user.uid);
             await set(ref(db, 'registered_emails/' + encodedEmail), user.uid);
             
+            // নতুন অ্যাকাউন্ট তৈরির সময় ১ ক্রেডিট যুক্ত করা হয়েছে
             await set(ref(db, `users/${user.uid}`), { 
                 email: email, 
-                username: username 
+                username: username,
+                credits: 1 
             });
 
             await set(ref(db, `users/${user.uid}/profile`), {
@@ -372,7 +374,7 @@
 
         if (!email || !password) {
             msg.style.color = "red";
-            return msg.identifier = "Please provide email and password.";
+            return msg.innerText = "Please provide email and password.";
         }
 
         setPersistence(auth, browserLocalPersistence)
