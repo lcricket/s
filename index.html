@@ -183,7 +183,7 @@
             🎉 Sign up now and get <b>1 Free Credit</b> instantly!
         </div>
 
-        <input type="text" id="signup-username" placeholder="Username" maxlength="15" required>
+        <input type="text" id="signup-username" placeholder="Username (lowercase & numbers only)" maxlength="15" required>
         <input type="email" id="signup-email" placeholder="Enter your email" required>
         
         <div class="password-container">
@@ -298,7 +298,6 @@
 
                 if (username) {
                     await remove(ref(db, 'usernames/' + username));
-                    await remove(ref(db, 'users/' + username)); 
                 }
                 
                 await remove(ref(db, `users/${uid}`));
@@ -370,7 +369,6 @@
             const emailCheckRef = ref(db, 'claimed_emails/' + encodedEmail);
             const emailSnap = await get(emailCheckRef);
             
-            // চেক করা হচ্ছে এই ইমেইল দিয়ে আগে ফ্রি ক্রেডিট নেওয়া হয়েছে কি না
             if (emailSnap.exists()) {
                 msg.style.color = "red";
                 return msg.innerText = "This email has already claimed a free signup credit before!";
@@ -379,16 +377,17 @@
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
+            // সঠিক ইউজারনেম দিয়ে usernames ইনডেক্স তৈরি করা হলো
             await set(ref(db, 'usernames/' + username), user.uid);
             
-            // claimed_emails এ রেকর্ড সেভ করা হচ্ছে (অ্যাকাউন্ট ডিলিট করলেও এটি থাকবে)
+            // claimed_emails এ রেকর্ড সেভ করা হচ্ছে
             await set(ref(db, 'claimed_emails/' + encodedEmail), {
                 uid: user.uid,
                 claimed_credit: true,
                 signup_date: new Date().toISOString()
             });
             
-            // নতুন অ্যাকাউন্ট তৈরির সময় ১ ক্রেডিট যুক্ত করা হলো
+            // users/{uid} এ সঠিক ইউজারনেম ও ক্রেডিট সেট করা হলো
             await set(ref(db, `users/${user.uid}`), { 
                 email: email, 
                 username: username,
@@ -495,7 +494,6 @@
             const userData = snapshot.val();
             if (userData.username) username = userData.username;
             
-            // ক্রেডিট ব্যালেন্স ড্যাশবোর্ডে শো করানো হচ্ছে
             const credits = userData.credits !== undefined ? userData.credits : 0;
             document.getElementById('user-credits').innerText = credits;
         }
@@ -554,5 +552,4 @@
 
 </body>
 </html>
-
 
