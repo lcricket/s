@@ -183,7 +183,7 @@
             🎉 Sign up now and get <b>1 Free Credit</b> instantly!
         </div>
 
-        <input type="text" id="signup-username" placeholder="Username (lowercase & numbers only)" maxlength="15" required>
+        <input type="text" id="signup-username" placeholder="Username (e.g. indronil)" maxlength="15" required>
         <input type="email" id="signup-email" placeholder="Enter your email" required>
         
         <div class="password-container">
@@ -223,14 +223,19 @@
                 </div>
             </div>
 
-            <!-- ক্যামেরা লাইভ ও OBS লিংক বক্স (নতুন যোগ করা হয়েছে) -->
-    <div class="link-box">
-        <b style="font-size: 13px; color: #333;">Copy this Link for CameraFi LIVE & OBS Studio:</b>
-        <div class="link-input-group">
-            <input type="text" id="viewer-link-input" readonly onclick="this.select()" placeholder="Generating link...">
-            <button class="btn-copy" onclick="copyLink()">📋 Copy</button>
-        </div>
-    </div>
+            <!-- ক্যামেরা লাইভ ও OBS লিংক বক্স -->
+            <div class="link-box">
+                <b style="font-size: 13px; color: #333;">Copy this Link for CameraFi LIVE & OBS Studio:</b>
+                <div class="link-input-group">
+                    <input type="text" id="viewer-link-input" readonly onclick="this.select()" placeholder="Generating link...">
+                    <button class="btn-copy" onclick="copyLink()">📋 Copy</button>
+                </div>
+            </div>
+
+            <!-- ক্রেডিট দেখার অপশন -->
+            <div class="credit-box">
+                Available Balance: <span id="user-credits">0</span> Match Credit(s)
+            </div>
 
             <div style="margin-top: 15px; display: flex; gap: 10px;">
                 <button class="btn-logout" style="flex: 1;" onclick="logout()">Logout</button>
@@ -297,7 +302,6 @@
                 }
                 
                 await remove(ref(db, `users/${uid}`));
-                // 'claimed_emails' নোডটি মোছা হবে না, যাতে একই ইমেইল দিয়ে পুনরায় সাইন আপ করলেও আর ফ্রি ক্রেডিট না পায়।
 
                 await deleteUser(user);
                 
@@ -338,19 +342,29 @@
     };
 
     window.signup = async () => {
-        const username = document.getElementById('signup-username').value.trim().toLowerCase();
+        let rawInputName = document.getElementById('signup-username').value.trim();
         const email = document.getElementById('signup-email').value.trim();
         const password = document.getElementById('signup-password').value;
         const msg = document.getElementById('signup-message');
 
-        if (!username || !email || !password) {
+        if (!rawInputName || !email || !password) {
             msg.style.color = "red";
             return msg.innerText = "Please fill in all fields.";
         }
 
-        if (!/^[a-z0-9]+$/.test(username)) {
+        // ইউজারনেম স্বয়ংক্রিয়ভাবে ক্লিন ও ফরম্যাট করা (স্পেস বা স্পেশাল ক্যারেক্টার রিমুভ করে ছোট হাতের অক্ষরে রূপান্তর)
+        let username = rawInputName
+            .toLowerCase()
+            .replace(/\s+/g, '')
+            .replace(/[^a-z0-9]/g, '');
+
+        if (!username) {
             msg.style.color = "red";
-            return msg.innerText = "Username must contain only lowercase letters and numbers.";
+            return msg.innerText = "Please enter a valid username using English letters or numbers.";
+        }
+
+        if (username.length > 15) {
+            username = username.substring(0, 15);
         }
 
         try {
@@ -358,7 +372,7 @@
             const snapshot = await get(usernameRef);
             if (snapshot.exists()) {
                 msg.style.color = "red";
-                return msg.innerText = "Username already taken! Choose another.";
+                return msg.innerText = "Username (" + username + ") is already taken! Choose another.";
             }
 
             const encodedEmail = encodeEmailForDb(normalizeEmail(email));
@@ -376,7 +390,7 @@
             // সঠিক ইউজারনেম দিয়ে usernames ইনডেক্স তৈরি করা হলো
             await set(ref(db, 'usernames/' + username), user.uid);
             
-            // claimed_emails এ রেকর্ড সেভ করা হচ্ছে
+            // claimed_emails এ রেকর্ড সেভ করা হলো
             await set(ref(db, 'claimed_emails/' + encodedEmail), {
                 uid: user.uid,
                 claimed_credit: true,
@@ -391,13 +405,13 @@
             });
 
             await set(ref(db, `users/${user.uid}/profile`), {
-                name: username,
+                name: rawInputName,
                 photo: "" 
             });
 
             await sendEmailVerification(user);
             msg.style.color = "green";
-            msg.innerText = "Account created & 1 Free Credit added! Redirecting to verification...";
+            msg.innerText = "Account created as '@" + username + "'! 1 Free Credit added. Redirecting...";
             
         } catch (error) {
             msg.style.color = "red";
@@ -482,38 +496,37 @@
 
     async function loadUserData(user) {
         const userId = user.uid;
-        let username = localStorage.getItem('proCricketUsername') || "user";
-
         const userRef = ref(db, `users/${userId}`);
-        const snapshot = await get(userRef);
-        if (snapshot.exists()) {
-            const userData = snapshot.val();
-            if (userData.username) username = userData.username;
-            
-            const credits = userData.credits !== undefined ? userData.credits : 0;
-            document.getElementById('user-credits').innerText = credits;
-        }
-
-        localStorage.setItem('proCricketUsername', username);
-        document.getElementById('display-username').innerText = username;
-        document.getElementById('viewer-link-input').value = `https://lcricket.github.io/s/viewer.html?u=${username}`;
-
-        const applyProfileData = (profileData) => {
-            if (profileData.name) {
-                document.getElementById('display-username').innerText = profileData.name;
+        
+        // রিয়েলটাইমে ডেটাবেজ থেকে ইউজারের লেটেস্ট তথ্য ও ইউজারনেম ফেচ করা
+        onValue(userRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                const username = userData.username || "user";
+                
+                localStorage.setItem('proCricketUsername', username);
+                document.getElementById('display-username').innerText = username;
+                
+                // ভিউয়ার লিংক রিয়েলটাইমে আপডেট করা
+                const linkInput = document.getElementById('viewer-link-input');
+                if (linkInput) {
+                    linkInput.value = `https://lcricket.github.io/s/viewer.html?u=${username}`;
+                }
+                
+                const credits = userData.credits !== undefined ? userData.credits : 0;
+                document.getElementById('user-credits').innerText = credits;
             }
-            if (profileData.photo && profileData.photo.trim() !== "") {
-                document.getElementById('dashboardLargeAvatar').src = profileData.photo;
-            }
-        };
+        });
 
         onValue(ref(db, `users/${userId}/profile`), (snap) => {
             if (snap.exists()) {
-                applyProfileData(snap.val());
-            } else if (username !== "user") {
-                get(ref(db, `users/${username}/profile`)).then(oldSnap => {
-                    if (oldSnap.exists()) applyProfileData(oldSnap.val());
-                });
+                const profileData = snap.val();
+                if (profileData.name) {
+                    document.getElementById('display-username').innerText = profileData.name;
+                }
+                if (profileData.photo && profileData.photo.trim() !== "") {
+                    document.getElementById('dashboardLargeAvatar').src = profileData.photo;
+                }
             }
         });
     }
