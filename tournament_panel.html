@@ -355,7 +355,7 @@ Player 3"></textarea>
                     // এখানে ডিলিট বাটনের আগে এডিট বাটন যুক্ত করা হয়েছে
                     li.innerHTML = `
                         <div class="team-header-row" onclick="window.toggleSquadDropdown(this)">
-                            <span class="team-name-text"> ${team.name} <span style="font-size:12px; color:#666; font-weight:normal;">▾</span></span>
+                            <span class="team-name-text"> ${team.name} <span style="font-size:20px; color:#666; font-weight:normal;">▾</span></span>
                             <div class="action-buttons">
                                 <button class="btn-edit-icon" onclick="event.stopPropagation(); window.editTeamName('${team.name}')" title="Edit Team Name">✏️</button>
                                 <button class="btn-delete-icon" onclick="event.stopPropagation(); window.deleteTeam('${team.name}')" title="Delete Team">🗑️</button>
