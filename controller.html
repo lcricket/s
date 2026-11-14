@@ -121,7 +121,7 @@
 <!-- Leaderboard Modal -->
 <div id="leaderboardModal" class="modal-overlay">
     <div class="modal-box" style="max-width: 500px;">
-        <span class="modal-close-x" onclick="document.getElementById('leaderboardModal').style.display='none'">&times;</span>
+        <span class="modal-close-x" onclick="document.getElementById('leaderboardModal').style.display='none'">×</span>
         <h3 style="color: #17a2b8; border-bottom: 2px solid #ddd; padding-bottom: 6px; margin-top: 0;">🏆 Leaderboard</h3>
         <div style="display: flex; background: #e2e8f0; padding: 4px; border-radius: 6px; margin-bottom: 12px;">
             <button id="btnTourLeaderboard" style="flex: 1; padding: 8px; border: none; background: #007bff; color: white; font-weight: bold; border-radius: 4px; cursor: pointer;" onclick="window.switchLeaderboardMode('tournament')">🏆 Tournament</button>
@@ -461,6 +461,8 @@
                 bowlerSelect.appendChild(opt);
             }
         });
+        // Add Empty / New Player Option
+        let bAdd = document.createElement('option'); bAdd.value = "ADD_NEW_PLAYER"; bAdd.innerText = "+ Add New Player..."; bAdd.style.fontWeight = "bold"; bAdd.style.color = "#0056b3"; bAdd.style.background = "#e8f4fd"; bowlerSelect.appendChild(bAdd);
         bowlerSelect.value = currentBowler;
 
         bat1Select.innerHTML = '<option value="">-- Striker --</option>';
@@ -472,6 +474,8 @@
                 bat1Select.appendChild(opt);
             }
         });
+        // Add Empty / New Player Option
+        let bat1Add = document.createElement('option'); bat1Add.value = "ADD_NEW_PLAYER"; bat1Add.innerText = "+ Add New Player..."; bat1Add.style.fontWeight = "bold"; bat1Add.style.color = "#0056b3"; bat1Add.style.background = "#e8f4fd"; bat1Select.appendChild(bat1Add);
         bat1Select.value = currentBat1;
 
         bat2Select.innerHTML = '<option value="">-- Non-Striker --</option>';
@@ -483,12 +487,43 @@
                 bat2Select.appendChild(opt);
             }
         });
+        // Add Empty / New Player Option
+        let bat2Add = document.createElement('option'); bat2Add.value = "ADD_NEW_PLAYER"; bat2Add.innerText = "+ Add New Player..."; bat2Add.style.fontWeight = "bold"; bat2Add.style.color = "#0056b3"; bat2Add.style.background = "#e8f4fd"; bat2Select.appendChild(bat2Add);
         bat2Select.value = currentBat2;
     }
 
+    // Helper for Instant Add Player
+    window.addNewPlayerPrompt = function(isBattingTeam) {
+        let newPlayer = prompt("Enter new player name:");
+        if (newPlayer && newPlayer.trim() !== "") {
+            newPlayer = newPlayer.trim();
+            let squadKey = isBattingTeam ? `tempBatSquad_${currentMatchUser}_${activeMatchId}` : `tempBowlSquad_${currentMatchUser}_${activeMatchId}`;
+            let squadData = localStorage.getItem(squadKey) || "";
+            
+            let playersList = squadData.split('\n').map(p => p.trim());
+            if (!playersList.includes(newPlayer)) {
+                squadData += "\n" + newPlayer;
+                localStorage.setItem(squadKey, squadData);
+            }
+            return newPlayer;
+        }
+        return "";
+    };
+
     window.onPlayerSelectionChanged = function(changedSide) {
-        const b1 = document.getElementById('bat1Name').value;
-        const b2 = document.getElementById('bat2Name').value;
+        let b1 = document.getElementById('bat1Name').value;
+        let b2 = document.getElementById('bat2Name').value;
+
+        // Process Add New Player
+        if (changedSide === 'striker' && b1 === 'ADD_NEW_PLAYER') {
+            b1 = window.addNewPlayerPrompt(true);
+            document.getElementById('bat1Name').innerHTML += `<option value="${b1}">${b1}</option>`;
+            document.getElementById('bat1Name').value = b1;
+        } else if (changedSide === 'nonStriker' && b2 === 'ADD_NEW_PLAYER') {
+            b2 = window.addNewPlayerPrompt(true);
+            document.getElementById('bat2Name').innerHTML += `<option value="${b2}">${b2}</option>`;
+            document.getElementById('bat2Name').value = b2;
+        }
 
         if (b1 !== "" && b2 !== "" && b1 === b2) {
             alert("⚠️ Same player cannot be in both striker and non-striker positions!");
@@ -504,16 +539,16 @@
         let cms = JSON.parse(localStorage.getItem(`currentMatchPlayers_${currentMatchUser}_${activeMatchId}`) || '{}');
         let b1 = document.getElementById('bat1Name').value; let b2 = document.getElementById('bat2Name').value; let bowler = document.getElementById('bowlerName').value;
 
-        if(b1) { 
+        if(b1 && b1 !== 'ADD_NEW_PLAYER') { 
             if(!cms[b1]) cms[b1] = { runs: 0, balls: 0, wickets: 0, oversBowled: "0.0", runsConceded: 0, catches: 0, stumpings: 0, runOuts: 0, fours: 0, sixes: 0, dotBalls: 0, dotBallsBowled: 0 }; 
             cms[b1].runs = getVal('bat1Runs'); cms[b1].balls = getVal('bat1Balls'); 
             cms[b1].fours = (detailedStats[b1]||{}).fours || 0; cms[b1].sixes = (detailedStats[b1]||{}).sixes || 0; cms[b1].dotBalls = (detailedStats[b1]||{}).dotBalls || 0;
         }
-        if(b2) { 
+        if(b2 && b2 !== 'ADD_NEW_PLAYER') { 
             if(!cms[b2]) cms[b2] = { runs: 0, balls: 0, wickets: 0, oversBowled: "0.0", runsConceded: 0, catches: 0, stumpings: 0, runOuts: 0, fours: 0, sixes: 0, dotBalls: 0, dotBallsBowled: 0 }; 
             cms[b2].fours = (detailedStats[b2]||{}).fours || 0; cms[b2].sixes = (detailedStats[b2]||{}).sixes || 0; cms[b2].dotBalls = (detailedStats[b2]||{}).dotBalls || 0;
         }
-        if(bowler) { 
+        if(bowler && bowler !== 'ADD_NEW_PLAYER') { 
             if(!cms[bowler]) cms[bowler] = { runs: 0, balls: 0, wickets: 0, oversBowled: "0.0", runsConceded: 0, catches: 0, stumpings: 0, runOuts: 0, fours: 0, sixes: 0, dotBalls: 0, dotBallsBowled: 0 }; 
             cms[bowler].wickets = getVal('bWickets'); cms[bowler].runsConceded = getVal('bRuns'); cms[bowler].oversBowled = document.getElementById('bowlerOvers').value; 
             cms[bowler].dotBallsBowled = (detailedStats[bowler]||{}).dotBallsBowled || 0;
@@ -563,7 +598,7 @@
     }
 
     function initDS(pName) {
-        if(!pName) return;
+        if(!pName || pName === 'ADD_NEW_PLAYER') return;
         if(!detailedStats[pName]) detailedStats[pName] = { fours: 0, sixes: 0, dotBalls: 0, dotBallsBowled: 0 };
     }
 
@@ -573,8 +608,8 @@
     function validateMandatorySelections() {
         if(matchEnded) { alert("⚠️ Match has ended!"); return false; }
         let bat1 = document.getElementById('bat1Name').value; let bat2 = document.getElementById('bat2Name').value; let bowler = document.getElementById('bowlerName').value;
-        if (!bat1 || !bat2) { alert("⚠️ Selecting both batters is mandatory!"); document.getElementById('playerPanel').open = true; return false; }
-        if (!bowler) { alert("⚠️ Selecting the current bowler is mandatory!"); document.getElementById('playerPanel').open = true; return false; }
+        if (!bat1 || !bat2 || bat1 === 'ADD_NEW_PLAYER' || bat2 === 'ADD_NEW_PLAYER') { alert("⚠️ Selecting both batters is mandatory!"); document.getElementById('playerPanel').open = true; return false; }
+        if (!bowler || bowler === 'ADD_NEW_PLAYER') { alert("⚠️ Selecting the current bowler is mandatory!"); document.getElementById('playerPanel').open = true; return false; }
         if (bowlerSelectionPending) { alert("⚠️ Over finished! Select a new bowler."); highlightPlayerBox('bowler'); return false; }
         return true;
     }
@@ -790,19 +825,8 @@
                 activeBowler = ""; 
                 
                 swapStrikeInternal();
-
-                const bowlingPlayers = getPlayersList(false);
-                const bowlerSelect = document.getElementById('bowlerName');
-                bowlerSelect.innerHTML = '<option value="">-- Bowler --</option>';
-                bowlingPlayers.forEach(player => {
-                    if (player !== lastBowler) {
-                        let opt = document.createElement('option');
-                        opt.value = player;
-                        opt.innerText = player;
-                        bowlerSelect.appendChild(opt);
-                    }
-                });
-
+                updateSuggestions();
+                
                 processAndUpdate();
                 highlightPlayerBox('bowler');
             } else { 
@@ -1168,7 +1192,6 @@
 
         sendToFirebase(finalScoreData); 
         
-        // 🔥 ফায়ারবেস লাইভ স্কোর এবং লোকালস্টোরেজ থেকে ম্যাচ ডেটা পুরোপুরি মুছে দেওয়া হলো যাতে পরবর্তী সময়ে আর কোনো ক্যাশ বা পুরোনো ম্যাচ ডেটা ধরে না থাকে
         localStorage.removeItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
         localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}_${activeMatchId}`);
         localStorage.removeItem('activeMatchId');
@@ -1184,6 +1207,12 @@
 
     window.onBowlerNameChange = function() {
         let bowler = document.getElementById('bowlerName').value;
+        if (bowler === 'ADD_NEW_PLAYER') {
+            bowler = window.addNewPlayerPrompt(false);
+            document.getElementById('bowlerName').innerHTML += `<option value="${bowler}">${bowler}</option>`;
+            document.getElementById('bowlerName').value = bowler;
+        }
+
         let bat1 = document.getElementById('bat1Name').value;
         let bat2 = document.getElementById('bat2Name').value;
 
@@ -1481,12 +1510,10 @@
     }
 
     async function initPage() {
-        // 🔥 কঠোর ভ্যালিউয়েশন: যদি ফায়ারবেস বা টুর্নামেন্টে বর্তমান ম্যাচ বা টুর্নামেন্ট আইডি আর না থাকে, তবে ক্যাশ ও ফায়ারবেস লাইভ স্কোর পুরোপুরি ডিলিট করে ব্ল্যাঙ্ক করে দেওয়া হবে
         if (activeTournamentId && activeTournamentId !== "null" && activeTournamentId !== "undefined") {
             try {
                 const tourSnap = await get(ref(db, `users/${currentUserId}/tournaments/${activeTournamentId}`));
                 if (!tourSnap.exists() || !tourSnap.val().matches || !tourSnap.val().matches[activeMatchId]) {
-                    // টুর্নামেন্ট বা ম্যাচ ডিলিট হয়ে গেছে
                     localStorage.removeItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
                     localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}_${activeMatchId}`);
                     localStorage.removeItem('activeMatchId');
@@ -1596,4 +1623,5 @@
 </script>
 </body>
 </html>
+
 
