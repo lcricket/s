@@ -920,6 +920,7 @@
 
         setVal('runs', getVal('runs') + rInput); setVal('bat1Balls', getVal('bat1Balls') + 1);
         let nOv = incrementOver(document.getElementById('overs').value);
+        setVal('overs', nOv); // Fixed missing update
         setVal('bowlerOvers', incrementOver(document.getElementById('bowlerOvers').value));
         if (rInput === 1 || rInput === 3) swapStrikeInternal();
         currentOverBalls.push(`LB${rInput}`); legalBallsInCurrentOver++; currentEvent = ""; 
@@ -1623,5 +1624,6 @@
 </script>
 </body>
 </html>
+
 
 
