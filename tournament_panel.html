@@ -41,6 +41,12 @@
         .match-item { background: #fff; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; }
         .match-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; color: #1e3c72; font-size: 14px; width: 100%; flex-wrap: wrap; gap: 10px; }
         
+        /* New Action Buttons Styling */
+        .action-buttons { display: flex; gap: 6px; }
+
+        .btn-edit-icon { background: rgba(0, 123, 255, 0.1); color: #007bff; border: 1px solid rgba(0, 123, 255, 0.3); width: 32px; height: 32px; border-radius: 5px; cursor: pointer; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-edit-icon:hover { background: #007bff; color: white; }
+
         .btn-delete-icon { background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.3); width: 32px; height: 32px; border-radius: 5px; cursor: pointer; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; }
         .btn-delete-icon:hover { background: #dc3545; color: white; }
 
@@ -79,7 +85,9 @@
             <input type="text" id="teamNameInput" placeholder="e.g. Kolkata Tigers">
 
             <label>Players List (Put (c) first, then (wk), each on a new line)</label>
-            <textarea id="squadInput" rows="4" placeholder="Player 1 (c)&#10;Player 2 (wk)&#10;Player 3"></textarea>
+            <textarea id="squadInput" rows="4" placeholder="Player 1 (c)
+Player 2 (wk)
+Player 3"></textarea>
 
             <button class="btn" style="background: #0056b3;" onclick="window.saveTeamWithSquad()">💾 Save Team & Squad</button>
             
@@ -268,6 +276,42 @@
         } catch (err) { alert("❌ Failed to delete team."); }
     };
 
+    // টিমের নাম এডিট করার নতুন ফাংশন
+    window.editTeamName = async function(oldTeamName) {
+        if (!auth.currentUser) return;
+        const newTeamName = prompt("✏️ Enter new team name:", oldTeamName);
+        
+        if (!newTeamName || newTeamName.trim() === "" || newTeamName.trim() === oldTeamName) {
+            return; // যদি নাম না দেয় বা একই নাম রাখে
+        }
+
+        const trimmedNewName = newTeamName.trim();
+
+        try {
+            // ১. পুরোনো টিমের ডেটা ফেচ করা
+            const oldTeamRef = ref(db, `users/${currentUserId}/tournaments/${tourId}/teams/${oldTeamName}`);
+            const snap = await get(oldTeamRef);
+            
+            if (snap.exists()) {
+                let teamData = snap.val();
+                teamData.name = trimmedNewName; // নাম আপডেট করা হলো
+
+                // ২. নতুন নামে ডেটা সেভ করা
+                const newTeamRef = ref(db, `users/${currentUserId}/tournaments/${tourId}/teams/${trimmedNewName}`);
+                await set(newTeamRef, teamData);
+
+                // ৩. পুরোনো নামের ডেটা ডিলিট করা
+                await remove(oldTeamRef);
+
+                alert("✅ Team name updated successfully!");
+                loadTeamsAndSquads(); // লিস্ট রিফ্রেশ করা
+            }
+        } catch (err) { 
+            alert("❌ Failed to update team name."); 
+            console.error(err);
+        }
+    };
+
     window.toggleSquadDropdown = function(element) {
         element.nextElementSibling.classList.toggle('open');
     };
@@ -307,10 +351,15 @@
 
                     let li = document.createElement('li');
                     li.className = "team-item";
+                    
+                    // এখানে ডিলিট বাটনের আগে এডিট বাটন যুক্ত করা হয়েছে
                     li.innerHTML = `
                         <div class="team-header-row" onclick="window.toggleSquadDropdown(this)">
                             <span class="team-name-text">🏏 ${team.name} <span style="font-size:12px; color:#666; font-weight:normal;">(Click to view squad ▾)</span></span>
-                            <button class="btn-delete-icon" onclick="event.stopPropagation(); window.deleteTeam('${team.name}')">🗑️</button>
+                            <div class="action-buttons">
+                                <button class="btn-edit-icon" onclick="event.stopPropagation(); window.editTeamName('${team.name}')" title="Edit Team Name">✏️</button>
+                                <button class="btn-delete-icon" onclick="event.stopPropagation(); window.deleteTeam('${team.name}')" title="Delete Team">🗑️</button>
+                            </div>
                         </div>
                         <div class="squad-dropdown-content">
                             <h5 style="margin: 0 0 8px 0; color: #1e3c72;">Player Squad:</h5>
@@ -387,15 +436,12 @@
                     const m = matches[mId];
                     let actionBtn = "";
 
-                    // যদি ম্যাচ ইতিমধ্যে completed হয়ে যায়, তবে লক করে Completed দেখাবে
                     if (m.status === "completed") {
                         actionBtn = `<span class="completed-badge">Completed (${m.winner || 'Finished'})</span>`;
                     } 
-                    // যদি ম্যাচ আগে থেকেই running থাকে, তবে ক্রেডিট না কেটে Resume Match দেখাবে
                     else if (m.status === "running") {
                         actionBtn = `<button class="btn-resume-match" onclick="window.resumeMatch('${mId}', '${m.team1}', '${m.team2}', '${m.overs || 10}', '${m.type || 'League'}')">▶️ Resume Match</button>`;
                     } 
-                    // যদি ম্যাচ একেবারে নতুন scheduled থাকে, তবে প্রথমবার Launch করবে এবং ক্রেডিট কাটবে
                     else {
                         actionBtn = `<button class="btn-launch-match" onclick="window.launchMatch('${mId}', '${m.team1}', '${m.team2}', '${m.overs || 10}', '${m.type || 'League'}')">🚀 Launch Match</button>`;
                     }
@@ -419,7 +465,6 @@
         } catch (e) { container.innerHTML = '<li style="color:red;">Error loading matches.</li>'; }
     }
 
-    // শুধুমাত্র প্রথমবার লঞ্চ করার সময় ক্রেডিট কাটবে
     window.launchMatch = async function(mId, t1, t2, overs, type) {
         if (!auth.currentUser) return;
         try {
@@ -429,7 +474,6 @@
 
             if (credits <= 0) { alert("❌ Insufficient credits! You have 0 credits."); return; }
 
-            // ক্রেডিট ১ কমানো হলো এবং স্ট্যাটাস 'running' করা হলো
             await update(userRef, { credits: credits - 1 });
             await update(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${mId}`), { status: 'running' });
 
@@ -437,7 +481,6 @@
         } catch (err) { alert("❌ Error: " + err.message); }
     };
 
-    // যদি ম্যাচ আগে থেকেই running থাকে, তবে হোমে বা ব্যাক করে এসে ক্লিক করলে কোনো ক্রেডিট কাটবে না, সরাসরি কন্ট্রোলারে চলে যাবে (Resume)
     window.resumeMatch = function(mId, t1, t2, overs, type) {
         window.location.href = `controller.html?t=${tourId}&u=${currentMatchUser}&m=${mId}&t1=${encodeURIComponent(t1)}&t2=${encodeURIComponent(t2)}&overs=${overs}&type=${encodeURIComponent(type)}`;
     };
