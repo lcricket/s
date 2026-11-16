@@ -160,7 +160,7 @@
 
 <div class="container" id="mainContainerBox">
     <div class="header-box">
-        <h2>🏏 Live Match Controller</h2>
+        <h2>🏏 Controller</h2>
     </div>
 
     <div class="sub-header-bar">
@@ -185,7 +185,7 @@
     </div>
 
     <details class="box player-toggle-box" id="playerPanel" open>
-        <summary>👥 Select Batters & Bowler (Mandatory)</summary>
+        <summary>👥 Select Batters & Bowler </summary>
         <div class="player-grid-3">
             <div class="box" id="strikerBox" style="background: #fff;">
                 <h3 style="color: #b78103;">Striker 🏏</h3>
@@ -222,7 +222,6 @@
 
     <!-- ACTION PANEL (Fixed to exactly 4 Lines) -->
     <div class="box action-panel" style="margin-bottom: 12px;" id="actionPanelBox">
-        <h3 style="margin-bottom: 5px;">⚡ Ball by Ball Update</h3>
         
         <!-- Score Buttons (Line 1 & Line 2: 5x2 = 10 Buttons) -->
         <div class="btn-grid">
@@ -231,7 +230,6 @@
             <button class="btn-action score-btn" onclick="window.addBall(2)">2</button>
             <button class="btn-action score-btn" onclick="window.addBall(3)">3</button>
             <button class="btn-action btn-4 score-btn" onclick="window.addBall(4)">4</button>
-            
             <button class="btn-action btn-6 score-btn" onclick="window.addBall(6)">6</button>
             <button class="btn-action btn-wd score-btn" onclick="window.addExtra('WD')">WD</button>
             <button class="btn-action btn-nb score-btn" onclick="window.addExtra('NB')">NB</button>
@@ -252,12 +250,12 @@
         <div class="btn-grid-4">
             <button class="btn-control-small btn-points-s" id="pointsShowBtn" onclick="window.togglePointsTableDisplay()">📊 Points</button>
             <button class="btn-control-small btn-summary-s" id="summaryShowBtn" onclick="window.toggleSummaryDisplay()">📋 Sum.</button>
-            <button class="btn-control-small btn-progression-s" id="progressionShowBtn" onclick="window.toggleProgressionDisplay()">📈 Overs</button>
+            <button class="btn-control-small btn-progression-s" id="progressionShowBtn" onclick="window.toggleProgressionDisplay()">📈 Graph</button>
             <button class="btn-control-small btn-ldb-s" onclick="window.openLeaderboardModal()">🏆 L.Brd</button>
         </div>
     </div>
 
-    <button id="updateBtn" class="btn-main" onclick="window.processAndUpdate()" style="cursor: pointer;">🟢 Live Auto-Update</button>
+    <button id="updateBtn" class="btn-main" onclick="window.processAndUpdate()" style="cursor: pointer;">Auto-Update</button>
 </div>
 
 <!-- Firebase Scripts -->
