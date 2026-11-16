@@ -225,7 +225,7 @@
         </div>
     </div>
 
-    <!-- NEW WORM GRAPH OVERLAY -->
+    <!-- WORM GRAPH OVERLAY -->
     <div id="progressionOverlay" class="summary-overlay">
         <div class="progression-container glass-panel">
             <div class="glass-header">Worm Graph Progression</div>
@@ -303,9 +303,253 @@
         const urlParams = new URLSearchParams(window.location.search);
         const currentMatchUser = urlParams.get('u');
 
+        let lastTriggerId = 0;
+        let eventQueue = [];
         let isEventPlaying = false;
+        let activeTourIdCache = null;
+        let activePointsRef = null;
+        let activePointsListener = null;
         let wormChartInstance = null;
-        
+
+        // --- QUEUE SYSTEM FOR ANIMATIONS (4, 6, OUT) ---
+        function enqueueEvent(eventData) {
+            eventQueue.push(eventData);
+            processQueue();
+        }
+
+        function processQueue() {
+            if (isEventPlaying || eventQueue.length === 0) {
+                if (!isEventPlaying && eventQueue.length === 0 && currentMatchUser) {
+                    document.getElementById('mainScoreboard').classList.remove('hidden');
+                }
+                return;
+            }
+            isEventPlaying = true;
+            let evt = eventQueue.shift();
+            playEventAnimation(evt);
+        }
+
+        function playEventAnimation(evt) {
+            const overlay = document.getElementById('eventScreen');
+            const textEl = document.getElementById('eventText');
+            const scoreboard = document.getElementById('mainScoreboard');
+            
+            scoreboard.classList.add('hidden');
+            textEl.className = 'event-text glass-animation-box'; 
+            void textEl.offsetWidth; 
+            
+            let timeoutDuration = 3500;
+            let type = evt.type;
+            
+            if(type === 'FOUR') { textEl.classList.add('color-four', 'animate-four'); textEl.innerText = '4'; }
+            else if(type === 'SIX') { textEl.classList.add('color-six', 'animate-six'); textEl.innerText = '6'; }
+            else if(type === 'OUT') { textEl.classList.add('color-out', 'animate-out'); textEl.innerText = 'OUT!'; }
+            else if(type === 'FREE_HIT') { textEl.classList.add('color-freehit', 'animate-freehit'); textEl.innerText = 'FREE HIT!'; }
+            else if(type === 'OVER_END' || type === 'INNINGS_BREAK') {
+                let list = evt.overHistory || [];
+                let lastOverInfo = list.length > 0 ? list[list.length - 1] : { over: '1', totalRuns: '0', totalWickets: '0' };
+                let isFirstInningsBreak = (type === 'INNINGS_BREAK');
+                
+                if (isFirstInningsBreak) {
+                    textEl.classList.add('color-innings', 'animate-innings');
+                    textEl.innerHTML = `
+                        <div style="font-size: 34px; color: #ffcc00; margin-bottom: 8px;">📊 End of Over ${lastOverInfo.over}</div>
+                        <div style="font-size: 46px; color: #00ff88; font-weight: bold;">Score: ${lastOverInfo.totalRuns}/${lastOverInfo.totalWickets}</div>
+                        <div style="font-size: 34px; color: #ff4757; font-weight: bold; margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.3); padding-top: 12px;">🛑 1st Innings Ended!</div>
+                        <div style="font-size: 30px; color: #ffcc00; margin-top: 10px;">${evt.targetMsg}</div>
+                    `;
+                    timeoutDuration = 7000;
+                } else {
+                    textEl.classList.add('color-over-summary', 'animate-over-summary');
+                    textEl.innerHTML = `
+                        <div style="font-size: 34px; color: #ffcc00; margin-bottom: 8px;">📊 End of Over ${lastOverInfo.over}</div>
+                        <div style="font-size: 42px; color: #00ff88; font-weight: bold;">Score: ${lastOverInfo.totalRuns}/${lastOverInfo.totalWickets}</div>
+                        <div style="font-size: 25px; color: #ddd; margin-top: 12px;">Over completed! Starting next over...</div>
+                    `;
+                    timeoutDuration = 4500;
+                }
+            }
+            else if(type === 'WINNER') {
+                textEl.classList.add('color-winner', 'animate-winner');
+                textEl.innerHTML = evt.targetMsg;
+                timeoutDuration = 8000;
+            }
+            else if(type === 'SHOW_PLAYER_STAT') {
+                textEl.classList.add('color-over-summary', 'animate-over-summary');
+                let pData = evt.playerStat;
+                if(pData) {
+                    let s = pData.stats;
+                    let cat = pData.category;
+                    let htmlContent = "";
+
+                    if(cat === "best_scorer") {
+                        let sr = s.balls ? ((s.runs/s.balls)*100).toFixed(1) : "0.0";
+                        htmlContent = `<div style="margin-bottom: 8px;">Runs: <span style="color:#00ff88; font-weight:bold;">${s.runs||0}</span> <span style="font-size:20px; color:#aaa;">(${s.balls||0}b)</span></div><div style="margin-bottom: 8px;">4s / 6s: <span style="color:#ffcc00; font-weight:bold;">${s.fours||0} / ${s.sixes||0}</span></div><div>Strike Rate: <span style="color:#00d2ff; font-weight:bold;">${sr}</span></div>`;
+                    } else if(cat === "best_bowler") {
+                        let ovStr = s.oversBowled || "0.0";
+                        htmlContent = `<div style="margin-bottom: 8px;">Wickets: <span style="color:#ff4757; font-weight:bold;">${s.wickets||0}</span></div><div style="margin-bottom: 8px;">Overs / Runs: <span style="color:#ffcc00; font-weight:bold;">${ovStr} / ${s.runsConceded||0}</span></div><div>Dot Balls: <span style="color:#00d2ff; font-weight:bold;">${s.dotBallsBowled||0}</span></div>`;
+                    } else {
+                        htmlContent = `<div style="margin-bottom: 8px;">Run Outs: <span style="color:#00ff88; font-weight:bold;">${s.runOuts||0}</span></div><div style="margin-bottom: 8px;">Catches: <span style="color:#ffcc00; font-weight:bold;">${s.catches||0}</span></div><div>Stumpings: <span style="color:#00d2ff; font-weight:bold;">${s.stumpings||0}</span></div>`;
+                    }
+                    
+                    let avatarUrl = pData.avatar || "https://cdn-icons-png.flaticon.com/512/10454/10454471.png"; 
+
+                    textEl.innerHTML = `
+                        <div style="font-size: 28px; color: #00d2ff; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px;">🌟 Player Spotlight</div>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 35px; background: rgba(0,0,0,0.4); padding: 20px 40px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                            <div style="flex-shrink: 0;">
+                                <img src="${avatarUrl}" alt="Avatar" style="height: 160px; object-fit: contain; filter: drop-shadow(0 0 15px rgba(0, 210, 255, 0.6));">
+                            </div>
+                            <div style="text-align: left;">
+                                <div style="font-size: 38px; color: #ffcc00; font-weight: bold; border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 8px; margin-bottom: 15px;">${pData.name}</div>
+                                <div style="font-size: 22px; color: #fff;">
+                                    ${htmlContent}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                timeoutDuration = 7000;
+            }
+            else if(type === 'MAN_OF_THE_MATCH') {
+                textEl.classList.add('color-winner', 'animate-winner');
+                let m = evt.momData;
+                if(m) {
+                    let avatarUrl = m.avatar || "https://cdn-icons-png.flaticon.com/512/10454/10454471.png"; 
+
+                    textEl.innerHTML = `
+                        <div style="font-size: 32px; color: #fff; margin-bottom: 15px; border-bottom:1px solid #55ffaa; padding-bottom:8px;">🏆 Man of the Match</div>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 35px; background: rgba(0,0,0,0.4); padding: 20px 40px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                            <div style="flex-shrink: 0;">
+                                <img src="${avatarUrl}" alt="Avatar" style="height: 180px; object-fit: contain; filter: drop-shadow(0 0 20px rgba(0, 255, 136, 0.8));">
+                            </div>
+                            <div style="text-align: left;">
+                                <div style="font-size: 45px; color: #00ff88; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${m.name}</div>
+                                <div style="font-size: 26px; color: #ffcc00; margin-top: 15px; line-height: 1.3;">${m.reason}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                timeoutDuration = 8500;
+            }
+            else {
+                isEventPlaying = false; processQueue(); return;
+            }
+            
+            overlay.classList.add('active');
+            
+            setTimeout(() => {
+                overlay.classList.remove('active');
+                setTimeout(() => {
+                    isEventPlaying = false;
+                    processQueue();
+                }, 400); 
+            }, timeoutDuration);
+        }
+
+        // --- POINTS TABLE, SQUAD & RUN RATE LOGIC ---
+        function formatSquad(rawText, titleElementId, listElementId, defaultTitle) {
+            if(!rawText) {
+                document.getElementById(titleElementId).innerText = defaultTitle; 
+                document.getElementById(listElementId).innerHTML = ''; 
+                return;
+            }
+            const lines = rawText.split('\n').filter(line => line.trim() !== '');
+            if(lines.length > 0) {
+                document.getElementById(titleElementId).innerText = lines[0]; 
+                let playersHtml = ''; let playerIndex = 1;
+                for(let i = 1; i < lines.length && i <= 11; i++) playersHtml += `<li><span style="color:#ffcc00; margin-right:8px; font-weight:750;">${playerIndex++}.</span> ${lines[i]}</li>`;
+                document.getElementById(listElementId).innerHTML = playersHtml;
+            } else { 
+                document.getElementById(titleElementId).innerText = defaultTitle; 
+                document.getElementById(listElementId).innerHTML = ''; 
+            }
+        }
+
+        function calculateRunRates(runs, oversStr, targetRuns, totalOvers) {
+            let parts = String(oversStr).split('.'); let overs = parseInt(parts[0]) || 0; let balls = parseInt(parts[1]) || 0;
+            let totalBallsBowled = (overs * 6) + balls; let crr = "0.00";
+            if (totalBallsBowled > 0) crr = ((runs / totalBallsBowled) * 6).toFixed(2);
+            let rrr = null;
+            if (targetRuns && targetRuns > 0) {
+                let runsNeeded = targetRuns - runs; let ballsRemaining = (totalOvers * 6) - totalBallsBowled;
+                if (ballsRemaining > 0 && runsNeeded > 0) rrr = ((runsNeeded / ballsRemaining) * 6).toFixed(2);
+                else if (runsNeeded <= 0) rrr = "0.00"; else rrr = "-";
+            }
+            return { crr, rrr };
+        }
+
+        async function setupPointsTableListener(tourId) {
+            if (!currentMatchUser) return;
+            if (!tourId || tourId === "null" || tourId === "undefined") {
+                const tbody = document.getElementById('pointsTablePopupBody');
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#ff4757; padding: 20px;">⚠️ No active tournament found.</td></tr>`;
+                return;
+            }
+            if (activeTourIdCache === tourId && activePointsRef) return; 
+            if (activePointsRef && activePointsListener) off(activePointsRef, 'value', activePointsListener);
+            
+            activeTourIdCache = tourId;
+            activePointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${tourId}/teams/`);
+            
+            activePointsListener = onValue(activePointsRef, async (snapshot) => {
+                let teams = snapshot.val() || {}; 
+                const tbody = document.getElementById('pointsTablePopupBody'); 
+                
+                try {
+                    const userRef = ref(db, 'usernames/' + currentMatchUser);
+                    const userSnap = await get(userRef);
+                    if (userSnap.exists()) {
+                        const uid = userSnap.val();
+                        const mainHubRef = ref(db, `users/${uid}/tournaments/${tourId}/teams`);
+                        const mainHubSnap = await get(mainHubRef);
+                        if (mainHubSnap.exists()) {
+                            let hubTeams = mainHubSnap.val();
+                            for (let tKey in hubTeams) {
+                                let hubTeamName = hubTeams[tKey].name || tKey;
+                                let formattedName = hubTeamName.trim().toUpperCase().replace(/[.#$\[\]]/g, '_');
+                                let exists = Object.keys(teams).find(k => 
+                                    k.trim().toUpperCase().replace(/[.#$\[\]]/g, '_') === formattedName || 
+                                    (teams[k].name && teams[k].name.trim().toUpperCase() === hubTeamName.trim().toUpperCase())
+                                );
+                                if (!exists) {
+                                    teams[tKey] = { name: hubTeamName, matchesPlayed: 0, won: 0, lost: 0, points: 0, netRunRate: "+0.000" };
+                                }
+                            }
+                        }
+                    }
+                } catch (e) { console.error("Error merging teams:", e); }
+
+                tbody.innerHTML = '';
+                if (Object.keys(teams).length === 0) { 
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#ddd; padding: 20px;">No teams found in this tournament yet.</td></tr>`; 
+                    return; 
+                }
+
+                let teamsArray = Object.keys(teams).map(key => teams[key]);
+                teamsArray.sort((a, b) => {
+                    let ptsA = parseInt(a.points) || 0; let ptsB = parseInt(b.points) || 0;
+                    if (ptsB !== ptsA) return ptsB - ptsA;
+                    let nrrA = parseFloat(a.netRunRate) || 0; let nrrB = parseFloat(b.netRunRate) || 0;
+                    return nrrB - nrrA;
+                });
+
+                teamsArray.forEach((team, index) => {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td style="font-weight:700; text-align:left; padding-left:12px; color:#ffcc00;">${team.name || 'Team'}</td>
+                        <td>${team.matchesPlayed || 0}</td>
+                        <td>${team.won || 0}</td>
+                        <td>${team.lost || 0}</td>
+                        <td style="color:#00d2ff; font-weight:600;">${team.netRunRate || '+0.000'}</td>
+                        <td style="font-weight:700; color:#00ff88;">${team.points || 0}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
         // --- CHART JS WORM GRAPH (WITH "W" FOR WICKETS) ---
         function renderWormGraph(data) {
             const ctx = document.getElementById('wormChart').getContext('2d');
@@ -403,15 +647,37 @@
             });
         }
         
+        // --- MASTER UI UPDATE FUNCTION ---
         function updateUI(data) {
             if (!data) return;
+            
+            // 1. Setup Data Listeners
+            setupPointsTableListener(data.tournamentId);
+
             const squadScreen = document.getElementById('squadPresentation'); 
             const pointsScreen = document.getElementById('pointsTableOverlay');
             const summaryScreen = document.getElementById('matchSummaryOverlay'); 
             const progressionScreen = document.getElementById('progressionOverlay'); 
             const mainBoard = document.getElementById('mainScoreboard');
 
-            // --- 4 PLAYERS MATCH SUMMARY LOGIC (SQUAD THEME) ---
+            // 2. Toggles (Squads & Points)
+            if(data.showSquadsOnScreen) {
+                squadScreen.classList.add('active'); 
+                mainBoard.classList.add('hidden');
+                formatSquad(data.squad1Data, 't1-title', 't1-list', data.batTeamName || 'TEAM A'); 
+                formatSquad(data.squad2Data, 't2-title', 't2-list', data.bowlTeamName || 'TEAM B');
+            } else {
+                squadScreen.classList.remove('active');
+            }
+
+            if(data.showPointsTableOnScreen) { 
+                pointsScreen.classList.add('active'); 
+                mainBoard.classList.add('hidden'); 
+            } else {
+                pointsScreen.classList.remove('active');
+            }
+
+            // 3. Toggles (Summary)
             if(data.showSummaryOnScreen) {
                 summaryScreen.classList.add('active'); 
                 mainBoard.classList.add('hidden');
@@ -475,7 +741,7 @@
                 summaryScreen.classList.remove('active');
             }
 
-            // --- WORM GRAPH LOGIC ---
+            // 4. Toggles (Worm Graph Progression)
             if(data.showProgressionOnScreen) {
                 progressionScreen.classList.add('active'); 
                 mainBoard.classList.add('hidden');
@@ -484,76 +750,71 @@
                 progressionScreen.classList.remove('active');
             }
 
-            // --- AVATAR & EVENT TRIGGERS ---
-            if (data.triggerEvent === 'SHOW_PLAYER_STAT') {
-                const overlay = document.getElementById('eventScreen');
-                const textEl = document.getElementById('eventText');
-                overlay.classList.add('active');
-                textEl.className = 'event-text glass-animation-box color-over-summary animate-over-summary'; 
-                
-                let pData = data.broadcastPlayerStat;
-                let s = pData.stats;
-                let cat = pData.category;
-                let htmlContent = "";
-
-                if(cat === "best_scorer") {
-                    let sr = s.balls ? ((s.runs/s.balls)*100).toFixed(1) : "0.0";
-                    htmlContent = `<div style="margin-bottom: 8px;">Runs: <span style="color:#00ff88; font-weight:bold;">${s.runs||0}</span> <span style="font-size:20px; color:#aaa;">(${s.balls||0}b)</span></div><div style="margin-bottom: 8px;">4s / 6s: <span style="color:#ffcc00; font-weight:bold;">${s.fours||0} / ${s.sixes||0}</span></div><div>Strike Rate: <span style="color:#00d2ff; font-weight:bold;">${sr}</span></div>`;
-                } else if(cat === "best_bowler") {
-                    let ovStr = s.oversBowled || "0.0";
-                    htmlContent = `<div style="margin-bottom: 8px;">Wickets: <span style="color:#ff4757; font-weight:bold;">${s.wickets||0}</span></div><div style="margin-bottom: 8px;">Overs / Runs: <span style="color:#ffcc00; font-weight:bold;">${ovStr} / ${s.runsConceded||0}</span></div><div>Dot Balls: <span style="color:#00d2ff; font-weight:bold;">${s.dotBallsBowled||0}</span></div>`;
-                } else {
-                    htmlContent = `<div style="margin-bottom: 8px;">Run Outs: <span style="color:#00ff88; font-weight:bold;">${s.runOuts||0}</span></div><div style="margin-bottom: 8px;">Catches: <span style="color:#ffcc00; font-weight:bold;">${s.catches||0}</span></div><div>Stumpings: <span style="color:#00d2ff; font-weight:bold;">${s.stumpings||0}</span></div>`;
-                }
-                
-                let avatarUrl = pData.avatar || "https://cdn-icons-png.flaticon.com/512/10454/10454471.png"; 
-
-                textEl.innerHTML = `
-                    <div style="font-size: 28px; color: #00d2ff; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px;">🌟 Player Spotlight</div>
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 35px; background: rgba(0,0,0,0.4); padding: 20px 40px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);">
-                        <div style="flex-shrink: 0;"><img src="${avatarUrl}" alt="Avatar" style="height: 160px; object-fit: contain; filter: drop-shadow(0 0 15px rgba(0, 210, 255, 0.6));"></div>
-                        <div style="text-align: left;">
-                            <div style="font-size: 38px; color: #ffcc00; font-weight: bold; border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 8px; margin-bottom: 15px;">${pData.name}</div>
-                            <div style="font-size: 22px; color: #fff;">${htmlContent}</div>
-                        </div>
-                    </div>
-                `;
-                setTimeout(() => { overlay.classList.remove('active'); }, 7000);
-            }
-            
-            else if (data.triggerEvent === 'MAN_OF_THE_MATCH') {
-                const overlay = document.getElementById('eventScreen');
-                const textEl = document.getElementById('eventText');
-                overlay.classList.add('active');
-                textEl.className = 'event-text glass-animation-box color-winner animate-winner';
-                
-                let m = data.manOfTheMatch;
-                let avatarUrl = m.avatar || "https://cdn-icons-png.flaticon.com/512/10454/10454471.png"; 
-
-                textEl.innerHTML = `
-                    <div style="font-size: 32px; color: #fff; margin-bottom: 15px; border-bottom:1px solid #55ffaa; padding-bottom:8px;">🏆 Man of the Match</div>
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 35px; background: rgba(0,0,0,0.4); padding: 20px 40px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);">
-                        <div style="flex-shrink: 0;"><img src="${avatarUrl}" alt="Avatar" style="height: 180px; object-fit: contain; filter: drop-shadow(0 0 20px rgba(0, 255, 136, 0.8));"></div>
-                        <div style="text-align: left;">
-                            <div style="font-size: 45px; color: #00ff88; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${m.name}</div>
-                            <div style="font-size: 26px; color: #ffcc00; margin-top: 15px; line-height: 1.3;">${m.reason}</div>
-                        </div>
-                    </div>
-                `;
-                setTimeout(() => { overlay.classList.remove('active'); }, 8500);
-            }
-
-            // Main Scoreboard Visibility
+            // 5. Main Scoreboard Visibility Manager
             if (!data.showSquadsOnScreen && !data.showPointsTableOnScreen && !data.showSummaryOnScreen && !data.showProgressionOnScreen) {
-                if (!document.getElementById('eventScreen').classList.contains('active')) {
+                if (!document.getElementById('eventScreen').classList.contains('active') && !isEventPlaying) {
                     mainBoard.classList.remove('hidden');
                 }
             }
             
-            // Score Update Logic
+            // 6. Scoreboard Text & Run Rates Updates
             document.getElementById('disp-team').innerText = data.batTeamName || 'TEAM A';
             document.getElementById('disp-score').innerHTML = `${data.runs}<span class="wickets">/${data.wickets}</span>`;
             document.getElementById('disp-overs').innerText = data.overs;
+            
+            let currentRuns = parseInt(data.runs) || 0; 
+            let totalOvers = parseInt(data.totalOvers) || 10;
+            let targetNum = 0; 
+            let targetDisplayMsg = data.target || 'Match starts soon...';
+
+            if(data.target && data.target.includes("Target:")) { 
+                let match = data.target.match(/Target:\s*(\d+)/); 
+                if(match) targetNum = parseInt(match[1]); 
+            }
+
+            if (targetNum > 0 && !data.target.includes("Won") && !data.target.includes("Tied") && !data.target.includes("Ended")) {
+                let runsNeeded = targetNum - currentRuns;
+                let parts = String(data.overs).split('.'); 
+                let ballsBowled = (parseInt(parts[0]) * 6) + parseInt(parts[1] || 0);
+                let ballsRem = (totalOvers * 6) - ballsBowled;
+                if (runsNeeded > 0 && ballsRem > 0) {
+                    targetDisplayMsg = `Target: ${targetNum} | Need ${runsNeeded}`;
+                }
+            }
+
+            document.getElementById('targetText').innerText = targetDisplayMsg;
+            
+            let rates = calculateRunRates(currentRuns, data.overs, targetNum, totalOvers);
+            let crrBadge = document.getElementById('crrBadge'); 
+            let rrrBadge = document.getElementById('rrrBadge');
+
+            if (data.target && (data.target.includes("Won") || data.target.includes("Tied") || data.target.includes("Ended"))) {
+                crrBadge.style.display = 'none'; rrrBadge.style.display = 'none';
+            } else {
+                crrBadge.innerText = `CRR: ${rates.crr}`; crrBadge.style.display = 'inline-block';
+                if (rates.rrr !== null) { rrrBadge.innerText = `RRR: ${rates.rrr}`; rrrBadge.style.display = 'inline-block'; } 
+                else rrrBadge.style.display = 'none';
+            }
+
+            const overContainer = document.getElementById('overBallsContainer'); 
+            let ballsHtml = '';
+            if (data.currentOverBalls && Array.isArray(data.currentOverBalls)) {
+                data.currentOverBalls.forEach(ball => {
+                    let cClass = "ball-circle";
+                    let strBall = String(ball).toUpperCase().trim();
+                    if (strBall === "4") cClass += " four"; 
+                    else if (strBall === "6") cClass += " six"; 
+                    else if (strBall === "WD" || strBall === "WIDE" || strBall.includes("WD")) cClass += " extra"; 
+                    else if (strBall === "NB" || strBall === "NO" || strBall.includes("NB")) cClass += " extra"; 
+                    else if (strBall === "LB" || strBall === "B" || strBall === "LBW") {
+                        if(strBall === "LBW") cClass += " wicket"; else cClass += " extra"; 
+                    } else if (strBall.includes("W") || strBall.includes("OUT") || strBall === "RO" || strBall === "WK") {
+                        cClass += " wicket"; 
+                    }
+                    ballsHtml += `<span class="${cClass}">${ball}</span>`;
+                });
+            }
+            overContainer.innerHTML = ballsHtml;
             
             document.getElementById('disp-bat1-name').innerText = `${data.bat1Name || '--'} 🏏`; 
             document.getElementById('disp-bat1-runs').innerText = data.bat1Runs || 0; 
@@ -566,6 +827,17 @@
             document.getElementById('disp-bowler-name').innerText = data.bowlerName || '--'; 
             document.getElementById('disp-bowler-fig').innerText = data.bowlerFig || '0-0'; 
             document.getElementById('disp-bowler-overs').innerText = data.bowlerOvers || '0.0';
+
+            // 7. Trigger Animation Queue
+            if (data.triggerId && data.triggerId !== lastTriggerId && data.triggerEvent && data.triggerEvent !== "") {
+                lastTriggerId = data.triggerId;
+                if (!data.showSquadsOnScreen && !data.showPointsTableOnScreen && !data.showSummaryOnScreen && !data.showProgressionOnScreen) {
+                    enqueueEvent({
+                        type: data.triggerEvent, targetMsg: data.target, overHistory: data.overHistory, overs: data.overs,
+                        totalOvers: data.totalOvers, innings: data.innings, playerStat: data.broadcastPlayerStat, momData: data.manOfTheMatch
+                    });
+                }
+            }
         }
 
         if (currentMatchUser) {
@@ -577,4 +849,5 @@
     </script>
 </body>
 </html>
+
 
