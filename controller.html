@@ -29,26 +29,34 @@
         .small-flex { display: flex; gap: 4px; align-items: center; }
         
         /* =========================================
-           ACTION PANEL REDESIGN (4 LINES TOTAL)
+           ACTION PANEL REDESIGN (5-5-5-4 LAYOUT)
            ========================================= */
         .action-panel { background: #e3f2fd; text-align: center; border: 1px solid #b8daff; padding: 12px; }
         
-        /* Line 1 & 2: Score Buttons (Always 6 columns to save space) */
-        .btn-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-top: 6px; }
-        .btn-action { padding: 8px 0; font-size: 14px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; color: white; background: #6c757d; }
+        /* Line 1 & 2: Score Buttons (5 columns) */
+        .btn-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 6px; }
+        .btn-action { padding: 10px 0; font-size: 15px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; color: white; background: #6c757d; }
         .btn-action:active { transform: scale(0.95); }
         .btn-4 { background: #28a745; } .btn-6 { background: #007bff; } .btn-w { background: #dc3545; }
         .btn-lbw { background: #e84118; } .btn-wd, .btn-nb { background: #ffc107; color: black; } .btn-lb { background: #6f42c1; } .btn-ro { background: #85144b; }
         
-        /* Line 3 & 4: Control Buttons (4 columns on mobile, 7 on desktop) */
-        .flex-btns { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 8px; }
-        @media(max-width: 650px) { 
-            .flex-btns { grid-template-columns: repeat(4, 1fr); } 
-            /* To make the 7th button align nicely in a 4-col grid */
-            .flex-btns button:last-child { grid-column: span 2; } 
-        }
-        .btn-control-small { padding: 8px 2px; font-size: 12px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; color: white; text-align: center; }
+        /* Line 3 & 4: Control Buttons (5 columns & 4 columns) */
+        .flex-btns { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 8px; }
+        
+        .btn-control-small { padding: 10px 2px; font-size: 12px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; color: white; text-align: center; }
         .btn-swap-s { background: #17a2b8; } .btn-undo-s { background: #fd7e14; } .btn-squad-s { background: #6f42c1; } .btn-points-s { background: #27ae60; } .btn-summary-s { background: #27ae60; } .btn-progression-s { background: #8e44ad; } .btn-ldb-s { background: #d35400; }
+        
+        /* মোবাইলের জন্য স্পেশাল এডজাস্টমেন্ট (5-5-5-4 লেআউট) */
+        @media(max-width: 650px) { 
+            /* ৩য় লাইনে (কন্ট্রোল বাটনের প্রথম অংশ) ৫টি বাটন থাকবে */
+            .flex-btns { grid-template-columns: repeat(5, 1fr); } 
+            
+            /* ৪র্থ লাইনে (শেষের ৪টি বাটন) গ্রিড স্প্যান করে মাঝে বসানো হলো */
+            .flex-btns button:nth-child(6) { grid-column: 1 / span 2; margin-left: 20%; } 
+            .flex-btns button:nth-child(7) { grid-column: 3 / span 2; margin-left: 10%; }
+            .flex-btns button:nth-child(8) { grid-column: 5; margin-right: 20%;}
+            /* .btn-ldb-s Button remains in place dynamically */
+        }
         
         .teams-row { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 6px; }
         .btn-middle-swap { background: #6c5ce7; color: white; border: none; width: 45px; height: 42px; border-radius: 6px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -223,38 +231,39 @@
         </div>
     </details>
 
-    <!-- ACTION PANEL (Redesigned into 4 lines) -->
+    <!-- ACTION PANEL (5-5-5-4 Layout) -->
     <div class="box action-panel" style="margin-bottom: 12px;" id="actionPanelBox">
         <h3 style="margin-bottom: 5px;">⚡ Ball by Ball Update</h3>
         
-        <!-- Score Buttons (Line 1 & Line 2) -->
+        <!-- Score Buttons (Line 1 & Line 2: 5x2 = 10 Buttons) -->
         <div class="btn-grid">
             <button class="btn-action score-btn" onclick="window.addBall(0)">0</button>
             <button class="btn-action score-btn" onclick="window.addBall(1)">1</button>
             <button class="btn-action score-btn" onclick="window.addBall(2)">2</button>
             <button class="btn-action score-btn" onclick="window.addBall(3)">3</button>
             <button class="btn-action btn-4 score-btn" onclick="window.addBall(4)">4</button>
-            <button class="btn-action btn-6 score-btn" onclick="window.addBall(6)">6</button>
             
+            <button class="btn-action btn-6 score-btn" onclick="window.addBall(6)">6</button>
             <button class="btn-action btn-wd score-btn" onclick="window.addExtra('WD')">WD</button>
             <button class="btn-action btn-nb score-btn" onclick="window.addExtra('NB')">NB</button>
             <button class="btn-action btn-lb score-btn" onclick="window.addLegBye()">LB/B</button>
             <button class="btn-action btn-w score-btn" onclick="window.openWicketModal()">W</button>
-            <button class="btn-action btn-lbw score-btn" onclick="window.addLBW()">LBW</button>
-            <!-- Changed "Run Out" to "R.Out" to save space -->
-            <button class="btn-action btn-ro score-btn" onclick="window.openRunOutModal()">R.Out</button>
         </div>
         
-        <!-- Control Buttons (Line 3 & Line 4) -->
+        <!-- Control & Extra Buttons (Line 3: 5 Buttons, Line 4: 4 Buttons) -->
         <div class="flex-btns">
+            <!-- Line 3 (5 Buttons) -->
+            <button class="btn-action btn-lbw score-btn" onclick="window.addLBW()">LBW</button>
+            <button class="btn-action btn-ro score-btn" onclick="window.openRunOutModal()">R.Out</button>
             <button class="btn-control-small btn-swap-s" onclick="window.swapStrike()">🔄 Swap</button>
             <button class="btn-control-small btn-undo-s" id="undoBtn" onclick="window.undoAction()">↩ Undo</button>
             <button class="btn-control-small btn-squad-s" id="squadShowBtn" onclick="window.toggleSquadDisplay()">📺 Squads</button>
-            <button class="btn-control-small btn-points-s" id="pointsShowBtn" onclick="window.togglePointsTableDisplay()">📊 Points</button>
             
-            <button class="btn-control-small btn-summary-s" id="summaryShowBtn" onclick="window.toggleSummaryDisplay()">📋 Summary</button>
+            <!-- Line 4 (4 Buttons) -->
+            <button class="btn-control-small btn-points-s" id="pointsShowBtn" onclick="window.togglePointsTableDisplay()">📊 Points</button>
+            <button class="btn-control-small btn-summary-s" id="summaryShowBtn" onclick="window.toggleSummaryDisplay()">📋 Sum.</button>
             <button class="btn-control-small btn-progression-s" id="progressionShowBtn" onclick="window.toggleProgressionDisplay()">📈 Overs</button>
-            <button class="btn-control-small btn-ldb-s" onclick="window.openLeaderboardModal()">🏆 L.Board</button>
+            <button class="btn-control-small btn-ldb-s" onclick="window.openLeaderboardModal()">🏆 L.Brd</button>
         </div>
     </div>
 
@@ -657,7 +666,7 @@
             
             currentOverBalls: currentOverBalls, outPlayers: outPlayersList, overHistory: overHistoryList,
             firstInningsRuns: firstInningsRunsStored, firstInningsOvers: firstInningsOversStored,
-            firstInningsHistory: firstInningsHistory, // Added for Worm Graph
+            firstInningsHistory: firstInningsHistory,
             
             triggerEvent: evtToTrigger, triggerId: evtId || Date.now(), 
             isLeagueMatch: isLeagueMatchGlobal, tournamentPointsUpdated: tournamentPointsUpdated,
@@ -1186,7 +1195,7 @@
         const progBtn = document.getElementById('progressionShowBtn');
         if(sBtn) { sBtn.style.background = isSquadVisible ? "#dc3545" : "#6f42c1"; sBtn.innerText = isSquadVisible ? "📺 Squads [ON]" : "📺 Squads"; }
         if(pBtn) { pBtn.style.background = isPointsTableVisible ? "#dc3545" : "#27ae60"; pBtn.innerText = isPointsTableVisible ? "📊 Points [ON]" : "📊 Points"; }
-        if(sumBtn) { sumBtn.style.background = isSummaryVisible ? "#dc3545" : "#27ae60"; sumBtn.innerText = isSummaryVisible ? "📋 Summary [ON]" : "📋 Summary"; }
+        if(sumBtn) { sumBtn.style.background = isSummaryVisible ? "#dc3545" : "#27ae60"; sumBtn.innerText = isSummaryVisible ? "📋 Sum. [ON]" : "📋 Sum."; }
         if(progBtn) { progBtn.style.background = isProgressionVisible ? "#dc3545" : "#8e44ad"; progBtn.innerText = isProgressionVisible ? "📈 Overs [ON]" : "📈 Overs"; }
     }
 
