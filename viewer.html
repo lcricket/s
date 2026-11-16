@@ -6,6 +6,9 @@
     <title>Pro Live Scoreboard - Rich Stats</title>
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500;700;900&family=Oswald:wght@500;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js for Worm Graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         body { margin: 0; padding: 0; background-color: transparent; font-family: 'Poppins', sans-serif; width: 100vw; height: 100vh; overflow: hidden; position: relative; }
@@ -77,50 +80,48 @@
         .glass-panel { background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); color: #fff; overflow: hidden; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
         .glass-header { background: rgba(0, 0, 0, 0.5); color: #fff; text-align: center; font-family: 'Oswald', sans-serif; font-size: 24px; font-weight: 700; padding: 12px 0; letter-spacing: 1px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
 
-        /* --- BGPL POST-MATCH SUMMARY DESIGN (GLASS/BLUR UPDATED) --- */
-        .summary-container { width: 100%; max-width: 650px; transform: scale(0.9); transition: transform 0.5s ease; font-family: 'Roboto', sans-serif; }
+        /* --- BGPL MATCH SUMMARY DESIGN (SQUAD THEME MATCHED) --- */
+        .summary-container { width: 100%; max-width: 700px; transform: scale(0.9); transition: transform 0.5s ease; font-family: 'Poppins', sans-serif; }
         .summary-overlay.active .summary-container { transform: scale(1); }
         
         .bgpl-summary-card {
-            background: rgba(0, 0, 0, 0.55); 
+            background: rgba(0, 0, 0, 0.45); 
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px; 
+            border-radius: 12px; 
             width: 100%;
             box-shadow: 0 10px 40px rgba(0,0,0,0.6); 
-            overflow: hidden; pointer-events: auto; text-shadow: none;
+            overflow: hidden; pointer-events: auto; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
         }
         
-        .bgpl-header { padding: 18px 20px 12px 20px; color: white; }
-        .bgpl-header h2 { margin: 0; font-size: 30px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.4); }
-        .bgpl-header p { margin: 2px 0 0 0; font-size: 13px; font-weight: 700; text-transform: uppercase; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); color: #ddd; }
-        .bgpl-team-header { display: flex; justify-content: space-between; align-items: center; padding: 6px 20px; color: white; text-shadow: none; }
-        .bgpl-team-name { font-size: 20px; font-weight: 900; text-transform: uppercase; flex: 1; }
-        .bgpl-overs { font-size: 13px; font-weight: 700; text-transform: uppercase; margin-right: 15px; }
-        .bgpl-score { font-size: 24px; font-weight: 900; }
+        .bgpl-header { padding: 18px 20px 12px 20px; color: white; text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.3); }
+        .bgpl-header h2 { margin: 0; font-family: 'Oswald', sans-serif; font-size: 28px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #fff; }
+        .bgpl-header p { margin: 2px 0 0 0; font-size: 13px; font-weight: 600; text-transform: uppercase; color: #ffcc00; }
         
-        .bg-blue { background-color: #262272; } 
-        .bg-green { background-color: #4ac043; } 
+        .bgpl-team-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; color: white; text-shadow: none; border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .bgpl-team-name { font-family: 'Oswald', sans-serif; font-size: 22px; font-weight: 700; text-transform: uppercase; flex: 1; }
+        .bgpl-overs { font-size: 14px; font-weight: 600; text-transform: uppercase; margin-right: 15px; color: #ddd; }
+        .bgpl-score { font-family: 'Oswald', sans-serif; font-size: 26px; font-weight: 700; color: #00ff88; }
         
-        .bgpl-stats-container { padding: 10px 20px 15px 20px; display: grid; grid-template-columns: minmax(130px, 1fr) 75px minmax(140px, 1.2fr) 85px; row-gap: 6px; column-gap: 12px; align-items: center; text-shadow: none; }
-        .bgpl-player-name { color: white; font-size: 14px; font-weight: 700; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
-        .bgpl-score-box { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 8px; border-radius: 4px; color: white; text-shadow: none; }
-        .bgpl-score-box .main-val { font-size: 16px; font-weight: 900; }
-        .bgpl-score-box .sub-val { font-size: 13px; font-weight: 700; }
+        /* Red Squad Theme applied to Team 1 and Team 2 */
+        .bg-theme-1 { background: linear-gradient(90deg, rgba(211,47,47,0.8), rgba(0,0,0,0.4)); }
+        .bg-theme-2 { background: linear-gradient(90deg, rgba(0,0,0,0.4), rgba(211,47,47,0.8)); }
         
-        .bgpl-footer { background-color: rgba(255, 255, 255, 0.85); color: #111; text-align: center; padding: 12px; font-size: 15px; font-weight: 900; margin: 10px 20px 20px 20px; border-radius: 8px; text-transform: uppercase; box-shadow: inset 0 0 5px rgba(0,0,0,0.1); text-shadow: none; }
+        .bgpl-stats-container { padding: 10px 20px 15px 20px; display: grid; grid-template-columns: minmax(130px, 1fr) 75px minmax(140px, 1.2fr) 85px; row-gap: 8px; column-gap: 15px; align-items: center; text-shadow: none; }
+        .bgpl-player-name { color: white; font-size: 15px; font-weight: 600; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
+        
+        .bgpl-score-box { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 10px; border-radius: 6px; color: white; border: 1px solid rgba(211,47,47,0.6); background: rgba(0,0,0,0.5); text-shadow: none; }
+        .bgpl-score-box .main-val { font-size: 17px; font-weight: 700; color: #fff; }
+        .bgpl-score-box .sub-val { font-size: 13px; font-weight: 600; color: #aaa; }
+        
+        .bgpl-footer { background: rgba(0, 0, 0, 0.6); color: #ffcc00; text-align: center; padding: 12px; font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 700; margin: 10px 20px 20px 20px; border-radius: 8px; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.1); letter-spacing: 1px; }
 
-        /* --- PROGRESSION OVERLAY --- */
-        .progression-container { width: 85%; max-width: 650px; transform: scale(0.9); transition: transform 0.5s ease; padding-bottom: 20px; }
+        /* --- WORM GRAPH OVERLAY --- */
+        .progression-container { width: 90%; max-width: 850px; transform: scale(0.9); transition: transform 0.5s ease; padding-bottom: 20px; }
         .summary-overlay.active .progression-container { transform: scale(1); }
-        .summary-over-box { background: rgba(0, 0, 0, 0.6); border-radius: 15px; padding: 15px; border: 1px solid rgba(255,255,255,0.1); max-height: 350px; overflow-y: auto; text-shadow: none; }
-        .summary-over-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; font-size: 15px; font-family: 'Poppins', sans-serif;}
-        .summary-over-table th { color: #eee; padding: 8px 10px; font-weight: 600; text-align: center; }
-        .summary-over-table td { background: rgba(0, 0, 0, 0.5); padding: 10px 10px; text-align: center; }
-        .summary-over-table td:first-child { border-radius: 15px 0 0 15px; }
-        .summary-over-table td:last-child { border-radius: 0 15px 15px 0; }
-
+        .summary-over-box { background: rgba(0, 0, 0, 0.7); border-radius: 15px; padding: 15px; border: 1px solid rgba(255,255,255,0.1); height: 400px; text-shadow: none; display: flex; justify-content: center; align-items: center;}
+        
         /* Squad, Points and Events */
         .squad-board { width: 80%; max-width: 950px; transform: scale(0.9); transition: transform 0.5s ease; }
         .squad-presentation-overlay.active .squad-board { transform: scale(1); }
@@ -193,7 +194,7 @@
         </div>
     </div>
 
-    <!-- POST-MATCH SUMMARY OVERLAY (GLASS BLUR + 4 PLAYERS GRID) -->
+    <!-- MATCH SUMMARY OVERLAY (SQUAD RED THEME) -->
     <div id="matchSummaryOverlay" class="summary-overlay">
         <div class="summary-container">
             <div class="bgpl-summary-card">
@@ -203,24 +204,20 @@
                 </div>
                 
                 <!-- Team 1 Section -->
-                <div class="bgpl-team-header bg-blue">
+                <div class="bgpl-team-header bg-theme-1">
                     <span class="bgpl-team-name" id="sum-t1-team">TEAM A</span>
                     <span class="bgpl-overs">Overs <span id="sum-t1-overs">0.0</span></span>
                     <span class="bgpl-score" id="sum-t1-score">0-0</span>
                 </div>
-                <div class="bgpl-stats-container" id="t1-stats-grid">
-                    <!-- Data injected via JS -->
-                </div>
+                <div class="bgpl-stats-container" id="t1-stats-grid"></div>
 
                 <!-- Team 2 Section -->
-                <div class="bgpl-team-header bg-green">
+                <div class="bgpl-team-header bg-theme-2">
                     <span class="bgpl-team-name" id="sum-t2-team">TEAM B</span>
                     <span class="bgpl-overs">Overs <span id="sum-t2-overs">0.0</span></span>
                     <span class="bgpl-score" id="sum-t2-score">0-0</span>
                 </div>
-                <div class="bgpl-stats-container" id="t2-stats-grid">
-                    <!-- Data injected via JS -->
-                </div>
+                <div class="bgpl-stats-container" id="t2-stats-grid"></div>
 
                 <!-- Result Footer -->
                 <div class="bgpl-footer" id="sum-footer-msg">MATCH IN PROGRESS</div>
@@ -228,18 +225,13 @@
         </div>
     </div>
 
-    <!-- OVER PROGRESSION OVERLAY -->
+    <!-- NEW WORM GRAPH OVERLAY -->
     <div id="progressionOverlay" class="summary-overlay">
         <div class="progression-container glass-panel">
-            <div class="glass-header">Over-by-Over Progression</div>
+            <div class="glass-header">Worm Graph Progression</div>
             <div style="padding: 20px;">
                 <div class="summary-over-box">
-                    <table class="summary-over-table">
-                        <thead><tr><th>Over</th><th>Total Runs</th><th>Wickets</th></tr></thead>
-                        <tbody id="overProgressTableBody">
-                            <tr><td colspan="3" style="text-align:center; color:#ddd;">Data will be shown after the over ends...</td></tr>
-                        </tbody>
-                    </table>
+                    <canvas id="wormChart"></canvas>
                 </div>
             </div>
         </div>
@@ -311,270 +303,103 @@
         const urlParams = new URLSearchParams(window.location.search);
         const currentMatchUser = urlParams.get('u');
 
-        let lastTriggerId = 0;
-        let eventQueue = [];
         let isEventPlaying = false;
-        let activeTourIdCache = null;
-        let activePointsRef = null;
-        let activePointsListener = null;
+        let wormChartInstance = null;
+        
+        // --- CHART JS WORM GRAPH (WITH "W" FOR WICKETS) ---
+        function renderWormGraph(data) {
+            const ctx = document.getElementById('wormChart').getContext('2d');
+            if (wormChartInstance) { wormChartInstance.destroy(); }
 
-        function enqueueEvent(eventData) {
-            eventQueue.push(eventData);
-            processQueue();
-        }
+            let labels = ['0'];
+            let currentRuns = [0];
+            let isWicket = [false];
 
-        function processQueue() {
-            if (isEventPlaying || eventQueue.length === 0) {
-                if (!isEventPlaying && eventQueue.length === 0 && currentMatchUser) {
-                    document.getElementById('mainScoreboard').classList.remove('hidden');
-                }
-                return;
+            if (data.overHistory && data.overHistory.length > 0) {
+                let prevWickets = 0;
+                data.overHistory.forEach(item => {
+                    labels.push(item.over);
+                    currentRuns.push(item.totalRuns);
+                    if (item.totalWickets > prevWickets) {
+                        isWicket.push(true);
+                        prevWickets = item.totalWickets;
+                    } else { isWicket.push(false); }
+                });
             }
-            isEventPlaying = true;
-            let evt = eventQueue.shift();
-            playEventAnimation(evt);
-        }
 
-        function playEventAnimation(evt) {
-            const overlay = document.getElementById('eventScreen');
-            const textEl = document.getElementById('eventText');
-            const scoreboard = document.getElementById('mainScoreboard');
-            
-            scoreboard.classList.add('hidden');
-            textEl.className = 'event-text glass-animation-box'; 
-            void textEl.offsetWidth; 
-            
-            let timeoutDuration = 3500;
-            let type = evt.type;
-            
-            if(type === 'FOUR') { textEl.classList.add('color-four', 'animate-four'); textEl.innerText = '4'; }
-            else if(type === 'SIX') { textEl.classList.add('color-six', 'animate-six'); textEl.innerText = '6'; }
-            else if(type === 'OUT') { textEl.classList.add('color-out', 'animate-out'); textEl.innerText = 'OUT!'; }
-            else if(type === 'FREE_HIT') { textEl.classList.add('color-freehit', 'animate-freehit'); textEl.innerText = 'FREE HIT!'; }
-            else if(type === 'OVER_END' || type === 'INNINGS_BREAK') {
-                let list = evt.overHistory || [];
-                let lastOverInfo = list.length > 0 ? list[list.length - 1] : { over: '1', totalRuns: '0', totalWickets: '0' };
-                let isFirstInningsBreak = (type === 'INNINGS_BREAK');
-                
-                if (isFirstInningsBreak) {
-                    textEl.classList.add('color-innings', 'animate-innings');
-                    textEl.innerHTML = `
-                        <div style="font-size: 34px; color: #ffcc00; margin-bottom: 8px;">📊 End of Over ${lastOverInfo.over}</div>
-                        <div style="font-size: 46px; color: #00ff88; font-weight: bold;">Score: ${lastOverInfo.totalRuns}/${lastOverInfo.totalWickets}</div>
-                        <div style="font-size: 34px; color: #ff4757; font-weight: bold; margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.3); padding-top: 12px;">🛑 1st Innings Ended!</div>
-                        <div style="font-size: 30px; color: #ffcc00; margin-top: 10px;">${evt.targetMsg}</div>
-                    `;
-                    timeoutDuration = 7000;
-                } else {
-                    textEl.classList.add('color-over-summary', 'animate-over-summary');
-                    textEl.innerHTML = `
-                        <div style="font-size: 34px; color: #ffcc00; margin-bottom: 8px;">📊 End of Over ${lastOverInfo.over}</div>
-                        <div style="font-size: 42px; color: #00ff88; font-weight: bold;">Score: ${lastOverInfo.totalRuns}/${lastOverInfo.totalWickets}</div>
-                        <div style="font-size: 25px; color: #ddd; margin-top: 12px;">Over completed! Starting next over...</div>
-                    `;
-                    timeoutDuration = 4500;
-                }
-            }
-            else if(type === 'WINNER') {
-                textEl.classList.add('color-winner', 'animate-winner');
-                textEl.innerHTML = evt.targetMsg;
-                timeoutDuration = 8000;
-            }
-            // NEW AVATAR LAYOUT: PLAYER SPOTLIGHT
-            else if(type === 'SHOW_PLAYER_STAT') {
-                textEl.classList.add('color-over-summary', 'animate-over-summary');
-                let pData = evt.playerStat;
-                if(pData) {
-                    let s = pData.stats;
-                    let cat = pData.category;
-                    let htmlContent = "";
+            let datasets = [{
+                label: data.batTeamName || 'Batting Team',
+                data: currentRuns,
+                borderColor: '#00ff88',
+                backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 0,
+                pointHoverRadius: 0,
+                isWicket: isWicket
+            }];
 
-                    if(cat === "best_scorer") {
-                        let sr = s.balls ? ((s.runs/s.balls)*100).toFixed(1) : "0.0";
-                        htmlContent = `
-                            <div style="margin-bottom: 8px;">Runs: <span style="color:#00ff88; font-weight:bold;">${s.runs||0}</span> <span style="font-size:20px; color:#aaa;">(${s.balls||0}b)</span></div>
-                            <div style="margin-bottom: 8px;">4s / 6s: <span style="color:#ffcc00; font-weight:bold;">${s.fours||0} / ${s.sixes||0}</span></div>
-                            <div>Strike Rate: <span style="color:#00d2ff; font-weight:bold;">${sr}</span></div>
-                        `;
-                    } else if(cat === "best_bowler") {
-                        let ovStr = s.oversBowled || "0.0";
-                        htmlContent = `
-                            <div style="margin-bottom: 8px;">Wickets: <span style="color:#ff4757; font-weight:bold;">${s.wickets||0}</span></div>
-                            <div style="margin-bottom: 8px;">Overs / Runs: <span style="color:#ffcc00; font-weight:bold;">${ovStr} / ${s.runsConceded||0}</span></div>
-                            <div>Dot Balls: <span style="color:#00d2ff; font-weight:bold;">${s.dotBallsBowled||0}</span></div>
-                        `;
-                    } else {
-                        htmlContent = `
-                            <div style="margin-bottom: 8px;">Run Outs: <span style="color:#00ff88; font-weight:bold;">${s.runOuts||0}</span></div>
-                            <div style="margin-bottom: 8px;">Catches: <span style="color:#ffcc00; font-weight:bold;">${s.catches||0}</span></div>
-                            <div>Stumpings: <span style="color:#00d2ff; font-weight:bold;">${s.stumpings||0}</span></div>
-                        `;
-                    }
-                    
-                    // ⚠️ CHANGE THIS LINK TO YOUR FIREBASE STORAGE AVATAR IMAGE ⚠️
-                    let avatarUrl = "https://cdn-icons-png.flaticon.com/512/10454/10454471.png"; 
+            if (data.innings === "2" && data.firstInningsHistory) {
+                let firstRuns = [0, ...data.firstInningsHistory.map(item => parseInt(item.totalRuns))];
+                let firstLabels = ['0', ...data.firstInningsHistory.map(item => item.over)];
+                if (firstLabels.length > labels.length) labels = firstLabels;
+                datasets.unshift({
+                    label: data.bowlTeamName || 'Defending Team',
+                    data: firstRuns,
+                    borderColor: '#00d2ff',
+                    backgroundColor: 'transparent',
+                    borderWidth: 3,
+                    borderDash: [5, 5],
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 0
+                });
+            }
 
-                    textEl.innerHTML = `
-                        <div style="font-size: 28px; color: #00d2ff; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px;">🌟 Player Spotlight</div>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 35px; background: rgba(0,0,0,0.4); padding: 20px 40px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);">
-                            <div style="flex-shrink: 0;">
-                                <img src="${avatarUrl}" alt="Avatar" style="height: 160px; object-fit: contain; filter: drop-shadow(0 0 15px rgba(0, 210, 255, 0.6));">
-                            </div>
-                            <div style="text-align: left;">
-                                <div style="font-size: 38px; color: #ffcc00; font-weight: bold; border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 8px; margin-bottom: 15px;">${pData.name}</div>
-                                <div style="font-size: 22px; color: #fff;">
-                                    ${htmlContent}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                timeoutDuration = 7000;
-            }
-            // NEW AVATAR LAYOUT: MAN OF THE MATCH
-            else if(type === 'MAN_OF_THE_MATCH') {
-                textEl.classList.add('color-winner', 'animate-winner');
-                let m = evt.momData;
-                if(m) {
-                    // ⚠️ CHANGE THIS LINK TO YOUR FIREBASE STORAGE AVATAR IMAGE ⚠️
-                    let avatarUrl = "https://cdn-icons-png.flaticon.com/512/10454/10454471.png"; 
-
-                    textEl.innerHTML = `
-                        <div style="font-size: 32px; color: #fff; margin-bottom: 15px; border-bottom:1px solid #55ffaa; padding-bottom:8px;">🏆 Man of the Match</div>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 35px; background: rgba(0,0,0,0.4); padding: 20px 40px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);">
-                            <div style="flex-shrink: 0;">
-                                <img src="${avatarUrl}" alt="Avatar" style="height: 180px; object-fit: contain; filter: drop-shadow(0 0 20px rgba(0, 255, 136, 0.8));">
-                            </div>
-                            <div style="text-align: left;">
-                                <div style="font-size: 45px; color: #00ff88; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${m.name}</div>
-                                <div style="font-size: 26px; color: #ffcc00; margin-top: 15px; line-height: 1.3;">${m.reason}</div>
-                            </div>
-                        </div>
-                    `;
-                }
-                timeoutDuration = 8500;
-            }
-            else {
-                isEventPlaying = false; processQueue(); return;
-            }
-            
-            overlay.classList.add('active');
-            
-            setTimeout(() => {
-                overlay.classList.remove('active');
-                setTimeout(() => {
-                    isEventPlaying = false;
-                    processQueue();
-                }, 400); 
-            }, timeoutDuration);
-        }
-
-        // POINTS TABLE, SQUAD & RUN RATE LOGIC 
-        function formatSquad(rawText, titleElementId, listElementId, defaultTitle) {
-            if(!rawText) return; const lines = rawText.split('\n').filter(line => line.trim() !== '');
-            if(lines.length > 0) {
-                document.getElementById(titleElementId).innerText = lines[0]; let playersHtml = ''; let playerIndex = 1;
-                for(let i = 1; i < lines.length && i <= 11; i++) playersHtml += `<li><span style="color:#ffcc00; margin-right:8px; font-weight:750;">${playerIndex++}.</span> ${lines[i]}</li>`;
-                document.getElementById(listElementId).innerHTML = playersHtml;
-            } else { document.getElementById(titleElementId).innerText = defaultTitle; document.getElementById(listElementId).innerHTML = ''; }
-        }
-
-        function calculateRunRates(runs, oversStr, targetRuns, totalOvers) {
-            let parts = String(oversStr).split('.'); let overs = parseInt(parts[0]) || 0; let balls = parseInt(parts[1]) || 0;
-            let totalBallsBowled = (overs * 6) + balls; let crr = "0.00";
-            if (totalBallsBowled > 0) crr = ((runs / totalBallsBowled) * 6).toFixed(2);
-            let rrr = null;
-            if (targetRuns && targetRuns > 0) {
-                let runsNeeded = targetRuns - runs; let ballsRemaining = (totalOvers * 6) - totalBallsBowled;
-                if (ballsRemaining > 0 && runsNeeded > 0) rrr = ((runsNeeded / ballsRemaining) * 6).toFixed(2);
-                else if (runsNeeded <= 0) rrr = "0.00"; else rrr = "-";
-            }
-            return { crr, rrr };
-        }
-
-        async function setupPointsTableListener(tourId) {
-            if (!currentMatchUser) return;
-            if (!tourId || tourId === "null" || tourId === "undefined") {
-                try {
-                    const userRef = ref(db, 'usernames/' + currentMatchUser);
-                    const userSnap = await get(userRef);
-                    if (userSnap.exists()) {
-                        const uid = userSnap.val();
-                        const toursSnap = await get(ref(db, `users/${uid}/tournaments`));
-                        if (toursSnap.exists()) {
-                            const tours = toursSnap.val();
-                            const tourKeys = Object.keys(tours);
-                            tourId = tourKeys[tourKeys.length - 1]; 
-                        }
-                    }
-                } catch (e) { console.error("Error auto-detecting tourId:", e); }
-            }
-            if (!tourId) {
-                const tbody = document.getElementById('pointsTablePopupBody');
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#ff4757; padding: 20px;">⚠️ No active tournament found.</td></tr>`;
-                return;
-            }
-            if (activeTourIdCache === tourId && activePointsRef) return; 
-            if (activePointsRef && activePointsListener) off(activePointsRef, 'value', activePointsListener);
-            
-            activeTourIdCache = tourId;
-            activePointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${tourId}/teams/`);
-            
-            activePointsListener = onValue(activePointsRef, async (snapshot) => {
-                let teams = snapshot.val() || {}; 
-                const tbody = document.getElementById('pointsTablePopupBody'); 
-                
-                try {
-                    const userRef = ref(db, 'usernames/' + currentMatchUser);
-                    const userSnap = await get(userRef);
-                    if (userSnap.exists()) {
-                        const uid = userSnap.val();
-                        const mainHubRef = ref(db, `users/${uid}/tournaments/${tourId}/teams`);
-                        const mainHubSnap = await get(mainHubRef);
-                        if (mainHubSnap.exists()) {
-                            let hubTeams = mainHubSnap.val();
-                            for (let tKey in hubTeams) {
-                                let hubTeamName = hubTeams[tKey].name || tKey;
-                                let formattedName = hubTeamName.trim().toUpperCase().replace(/[.#$\[\]]/g, '_');
-                                let exists = Object.keys(teams).find(k => 
-                                    k.trim().toUpperCase().replace(/[.#$\[\]]/g, '_') === formattedName || 
-                                    (teams[k].name && teams[k].name.trim().toUpperCase() === hubTeamName.trim().toUpperCase())
-                                );
-                                if (!exists) {
-                                    teams[tKey] = { name: hubTeamName, matchesPlayed: 0, won: 0, lost: 0, points: 0, netRunRate: "+0.000" };
+            const drawWicketTextPlugin = {
+                id: 'drawWicketText',
+                afterDatasetsDraw(chart) {
+                    const { ctx } = chart;
+                    chart.data.datasets.forEach((dataset, i) => {
+                        if (dataset.isWicket) {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((point, index) => {
+                                if (dataset.isWicket[index]) {
+                                    ctx.fillStyle = '#ff4757';
+                                    ctx.font = 'bold 18px Poppins, sans-serif';
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = 'middle';
+                                    ctx.fillText('W', point.x, point.y - 12); 
                                 }
-                            }
+                            });
+                        }
+                    });
+                }
+            };
+
+            wormChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels: labels, datasets: datasets },
+                plugins: [drawWicketTextPlugin],
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#fff', font: { family: 'Poppins', size: 14 } } } },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#ccc' },
+                            title: { display: true, text: 'Overs Completed', color: '#ffcc00' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#ccc' },
+                            title: { display: true, text: 'Runs Scored', color: '#ffcc00' },
+                            beginAtZero: true
                         }
                     }
-                } catch (e) { console.error("Error merging teams:", e); }
-
-                tbody.innerHTML = '';
-                if (Object.keys(teams).length === 0) { 
-                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#ddd; padding: 20px;">No teams found in this tournament yet.</td></tr>`; 
-                    return; 
                 }
-
-                let teamsArray = Object.keys(teams).map(key => teams[key]);
-                teamsArray.sort((a, b) => {
-                    let ptsA = parseInt(a.points) || 0; let ptsB = parseInt(b.points) || 0;
-                    if (ptsB !== ptsA) return ptsB - ptsA;
-                    let nrrA = parseFloat(a.netRunRate) || 0; let nrrB = parseFloat(b.netRunRate) || 0;
-                    return nrrB - nrrA;
-                });
-
-                teamsArray.forEach((team, index) => {
-                    let tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${index + 1}</td>
-                        <td style="font-weight:700; text-align:left; padding-left:12px; color:#ffcc00;">${team.name || 'Team'}</td>
-                        <td>${team.matchesPlayed || 0}</td>
-                        <td>${team.won || 0}</td>
-                        <td>${team.lost || 0}</td>
-                        <td style="color:#00d2ff; font-weight:600;">${team.netRunRate || '+0.000'}</td>
-                        <td style="font-weight:700; color:#00ff88;">${team.points || 0}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
             });
         }
         
@@ -586,48 +411,46 @@
             const progressionScreen = document.getElementById('progressionOverlay'); 
             const mainBoard = document.getElementById('mainScoreboard');
 
-            setupPointsTableListener(data.tournamentId);
-
-            if(data.showSquadsOnScreen) {
-                squadScreen.classList.add('active'); mainBoard.classList.add('hidden');
-                formatSquad(data.squad1Data, 't1-title', 't1-list', 'TEAM A'); formatSquad(data.squad2Data, 't2-title', 't2-list', 'TEAM B');
-            } else squadScreen.classList.remove('active');
-
-            if(data.showPointsTableOnScreen) { 
-                pointsScreen.classList.add('active'); mainBoard.classList.add('hidden'); 
-            } else pointsScreen.classList.remove('active');
-
-            // --- 4 PLAYERS MATCH SUMMARY LOGIC (WITH BLUR BG) ---
-            if(data.showSummaryOnScreen && data.postMatchSummary) {
+            // --- 4 PLAYERS MATCH SUMMARY LOGIC (SQUAD THEME) ---
+            if(data.showSummaryOnScreen) {
                 summaryScreen.classList.add('active'); 
                 mainBoard.classList.add('hidden');
                 
-                let summary = data.postMatchSummary;
+                let summary = data.postMatchSummary || {};
                 document.getElementById('sum-tour-name').innerText = summary.headerText || "MATCH SUMMARY";
-                document.getElementById('sum-footer-msg').innerText = summary.footerText || "";
+                document.getElementById('sum-footer-msg').innerText = summary.footerText || "MATCH IN PROGRESS";
 
-                document.getElementById('sum-t1-team').innerText = summary.team1Name || 'TEAM A';
-                document.getElementById('sum-t1-score').innerText = summary.team1Score || '0-0';
-                document.getElementById('sum-t1-overs').innerText = summary.team1Overs || '0.0';
+                document.getElementById('sum-t1-team').innerText = summary.team1Name || data.batTeamName || 'TEAM A';
+                document.getElementById('sum-t1-score').innerText = summary.team1Score || `${data.runs || 0}-${data.wickets || 0}`;
+                document.getElementById('sum-t1-overs').innerText = summary.team1Overs || data.overs || '0.0';
                 
                 let t1GridHtml = '';
                 for(let i=0; i<4; i++) {
                     let bat = (summary.team1Batters && summary.team1Batters[i]) ? summary.team1Batters[i] : {name: '--', r: '-', b: '-'};
                     let bowl = (summary.team1Bowlers && summary.team1Bowlers[i]) ? summary.team1Bowlers[i] : {name: '--', fig: '-', o: '-'};
+                    
+                    if (i === 0 && !data.postMatchSummary) {
+                         bat = {name: data.bat1Name || '--', r: data.bat1Runs || '-', b: data.bat1Balls || '-'};
+                         bowl = {name: data.bowlerName || '--', fig: data.bowlerFig || '-', o: data.bowlerOvers || '-'};
+                    }
+                    if (i === 1 && !data.postMatchSummary) {
+                         bat = {name: data.bat2Name || '--', r: data.bat2Runs || '-', b: data.bat2Balls || '-'};
+                    }
+
                     t1GridHtml += `
                         <span class="bgpl-player-name">${bat.name}</span>
-                        <div class="bgpl-score-box bg-blue">
+                        <div class="bgpl-score-box">
                             <span class="main-val">${bat.r}</span><span class="sub-val">${bat.b}</span>
                         </div>
                         <span class="bgpl-player-name">${bowl.name}</span>
-                        <div class="bgpl-score-box bg-green">
+                        <div class="bgpl-score-box">
                             <span class="main-val">${bowl.fig}</span><span class="sub-val">${bowl.o}</span>
                         </div>
                     `;
                 }
                 document.getElementById('t1-stats-grid').innerHTML = t1GridHtml;
 
-                document.getElementById('sum-t2-team').innerText = summary.team2Name || 'TEAM B';
+                document.getElementById('sum-t2-team').innerText = summary.team2Name || data.bowlTeamName || 'TEAM B';
                 document.getElementById('sum-t2-score').innerText = summary.team2Score || '0-0';
                 document.getElementById('sum-t2-overs').innerText = summary.team2Overs || '0.0';
 
@@ -637,11 +460,11 @@
                     let bowl = (summary.team2Bowlers && summary.team2Bowlers[i]) ? summary.team2Bowlers[i] : {name: '--', fig: '-', o: '-'};
                     t2GridHtml += `
                         <span class="bgpl-player-name">${bat.name}</span>
-                        <div class="bgpl-score-box bg-green">
+                        <div class="bgpl-score-box">
                             <span class="main-val">${bat.r}</span><span class="sub-val">${bat.b}</span>
                         </div>
                         <span class="bgpl-player-name">${bowl.name}</span>
-                        <div class="bgpl-score-box bg-blue">
+                        <div class="bgpl-score-box">
                             <span class="main-val">${bowl.fig}</span><span class="sub-val">${bowl.o}</span>
                         </div>
                     `;
@@ -652,27 +475,77 @@
                 summaryScreen.classList.remove('active');
             }
 
-            // --- OVER PROGRESSION LOGIC (SEPARATED SCREEN) ---
+            // --- WORM GRAPH LOGIC ---
             if(data.showProgressionOnScreen) {
                 progressionScreen.classList.add('active'); 
                 mainBoard.classList.add('hidden');
-                
-                const overTableBody = document.getElementById('overProgressTableBody'); 
-                overTableBody.innerHTML = '';
-                if(data.overHistory && data.overHistory.length > 0) {
-                    data.overHistory.forEach(item => {
-                        let row = document.createElement('tr'); row.style.borderBottom = "1px solid rgba(255,255,255,0.1)";
-                        row.innerHTML = `<td style="padding: 10px; font-weight: 700; color: #ffcc00;">Over ${item.over}</td><td style="text-align:center; padding: 10px; font-weight: 700;">${item.totalRuns}</td><td style="text-align:right; padding: 10px; color: #ff4757;">${item.totalWickets}</td>`;
-                        overTableBody.appendChild(row);
-                    });
-                } else overTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#ddd; padding: 20px;">No over completed yet.</td></tr>`;
+                renderWormGraph(data);
             } else {
                 progressionScreen.classList.remove('active');
             }
 
+            // --- AVATAR & EVENT TRIGGERS ---
+            if (data.triggerEvent === 'SHOW_PLAYER_STAT') {
+                const overlay = document.getElementById('eventScreen');
+                const textEl = document.getElementById('eventText');
+                overlay.classList.add('active');
+                textEl.className = 'event-text glass-animation-box color-over-summary animate-over-summary'; 
+                
+                let pData = data.broadcastPlayerStat;
+                let s = pData.stats;
+                let cat = pData.category;
+                let htmlContent = "";
+
+                if(cat === "best_scorer") {
+                    let sr = s.balls ? ((s.runs/s.balls)*100).toFixed(1) : "0.0";
+                    htmlContent = `<div style="margin-bottom: 8px;">Runs: <span style="color:#00ff88; font-weight:bold;">${s.runs||0}</span> <span style="font-size:20px; color:#aaa;">(${s.balls||0}b)</span></div><div style="margin-bottom: 8px;">4s / 6s: <span style="color:#ffcc00; font-weight:bold;">${s.fours||0} / ${s.sixes||0}</span></div><div>Strike Rate: <span style="color:#00d2ff; font-weight:bold;">${sr}</span></div>`;
+                } else if(cat === "best_bowler") {
+                    let ovStr = s.oversBowled || "0.0";
+                    htmlContent = `<div style="margin-bottom: 8px;">Wickets: <span style="color:#ff4757; font-weight:bold;">${s.wickets||0}</span></div><div style="margin-bottom: 8px;">Overs / Runs: <span style="color:#ffcc00; font-weight:bold;">${ovStr} / ${s.runsConceded||0}</span></div><div>Dot Balls: <span style="color:#00d2ff; font-weight:bold;">${s.dotBallsBowled||0}</span></div>`;
+                } else {
+                    htmlContent = `<div style="margin-bottom: 8px;">Run Outs: <span style="color:#00ff88; font-weight:bold;">${s.runOuts||0}</span></div><div style="margin-bottom: 8px;">Catches: <span style="color:#ffcc00; font-weight:bold;">${s.catches||0}</span></div><div>Stumpings: <span style="color:#00d2ff; font-weight:bold;">${s.stumpings||0}</span></div>`;
+                }
+                
+                let avatarUrl = pData.avatar || "https://cdn-icons-png.flaticon.com/512/10454/10454471.png"; 
+
+                textEl.innerHTML = `
+                    <div style="font-size: 28px; color: #00d2ff; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px;">🌟 Player Spotlight</div>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 35px; background: rgba(0,0,0,0.4); padding: 20px 40px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="flex-shrink: 0;"><img src="${avatarUrl}" alt="Avatar" style="height: 160px; object-fit: contain; filter: drop-shadow(0 0 15px rgba(0, 210, 255, 0.6));"></div>
+                        <div style="text-align: left;">
+                            <div style="font-size: 38px; color: #ffcc00; font-weight: bold; border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 8px; margin-bottom: 15px;">${pData.name}</div>
+                            <div style="font-size: 22px; color: #fff;">${htmlContent}</div>
+                        </div>
+                    </div>
+                `;
+                setTimeout(() => { overlay.classList.remove('active'); }, 7000);
+            }
+            
+            else if (data.triggerEvent === 'MAN_OF_THE_MATCH') {
+                const overlay = document.getElementById('eventScreen');
+                const textEl = document.getElementById('eventText');
+                overlay.classList.add('active');
+                textEl.className = 'event-text glass-animation-box color-winner animate-winner';
+                
+                let m = data.manOfTheMatch;
+                let avatarUrl = m.avatar || "https://cdn-icons-png.flaticon.com/512/10454/10454471.png"; 
+
+                textEl.innerHTML = `
+                    <div style="font-size: 32px; color: #fff; margin-bottom: 15px; border-bottom:1px solid #55ffaa; padding-bottom:8px;">🏆 Man of the Match</div>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 35px; background: rgba(0,0,0,0.4); padding: 20px 40px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="flex-shrink: 0;"><img src="${avatarUrl}" alt="Avatar" style="height: 180px; object-fit: contain; filter: drop-shadow(0 0 20px rgba(0, 255, 136, 0.8));"></div>
+                        <div style="text-align: left;">
+                            <div style="font-size: 45px; color: #00ff88; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${m.name}</div>
+                            <div style="font-size: 26px; color: #ffcc00; margin-top: 15px; line-height: 1.3;">${m.reason}</div>
+                        </div>
+                    </div>
+                `;
+                setTimeout(() => { overlay.classList.remove('active'); }, 8500);
+            }
+
             // Main Scoreboard Visibility
             if (!data.showSquadsOnScreen && !data.showPointsTableOnScreen && !data.showSummaryOnScreen && !data.showProgressionOnScreen) {
-                if (!document.getElementById('eventScreen').classList.contains('active') && !isEventPlaying) {
+                if (!document.getElementById('eventScreen').classList.contains('active')) {
                     mainBoard.classList.remove('hidden');
                 }
             }
@@ -681,60 +554,6 @@
             document.getElementById('disp-team').innerText = data.batTeamName || 'TEAM A';
             document.getElementById('disp-score').innerHTML = `${data.runs}<span class="wickets">/${data.wickets}</span>`;
             document.getElementById('disp-overs').innerText = data.overs;
-            
-            let currentRuns = parseInt(data.runs) || 0; 
-            let totalOvers = parseInt(data.totalOvers) || 10;
-            let targetNum = 0; 
-            let targetDisplayMsg = data.target || 'Match starts soon...';
-
-            if(data.target && data.target.includes("Target:")) { 
-                let match = data.target.match(/Target:\s*(\d+)/); 
-                if(match) targetNum = parseInt(match[1]); 
-            }
-
-            if (targetNum > 0 && !data.target.includes("Won") && !data.target.includes("Tied") && !data.target.includes("Ended")) {
-                let runsNeeded = targetNum - currentRuns;
-                let parts = String(data.overs).split('.'); 
-                let ballsBowled = (parseInt(parts[0]) * 6) + parseInt(parts[1] || 0);
-                let ballsRem = (totalOvers * 6) - ballsBowled;
-                if (runsNeeded > 0 && ballsRem > 0) {
-                    targetDisplayMsg = `Target: ${targetNum} | Need ${runsNeeded}`;
-                }
-            }
-
-            document.getElementById('targetText').innerText = targetDisplayMsg;
-            
-            let rates = calculateRunRates(currentRuns, data.overs, targetNum, totalOvers);
-            let crrBadge = document.getElementById('crrBadge'); 
-            let rrrBadge = document.getElementById('rrrBadge');
-
-            if (data.target && (data.target.includes("Won") || data.target.includes("Tied") || data.target.includes("Ended"))) {
-                crrBadge.style.display = 'none'; rrrBadge.style.display = 'none';
-            } else {
-                crrBadge.innerText = `CRR: ${rates.crr}`; crrBadge.style.display = 'inline-block';
-                if (rates.rrr !== null) { rrrBadge.innerText = `RRR: ${rates.rrr}`; rrrBadge.style.display = 'inline-block'; } 
-                else rrrBadge.style.display = 'none';
-            }
-
-            const overContainer = document.getElementById('overBallsContainer'); 
-            let ballsHtml = '';
-            if (data.currentOverBalls && Array.isArray(data.currentOverBalls)) {
-                data.currentOverBalls.forEach(ball => {
-                    let cClass = "ball-circle";
-                    let strBall = String(ball).toUpperCase().trim();
-                    if (strBall === "4") cClass += " four"; 
-                    else if (strBall === "6") cClass += " six"; 
-                    else if (strBall === "WD" || strBall === "WIDE" || strBall.includes("WD")) cClass += " extra"; 
-                    else if (strBall === "NB" || strBall === "NO" || strBall.includes("NB")) cClass += " extra"; 
-                    else if (strBall === "LB" || strBall === "B" || strBall === "LBW") {
-                        if(strBall === "LBW") cClass += " wicket"; else cClass += " extra"; 
-                    } else if (strBall.includes("W") || strBall.includes("OUT") || strBall === "RO" || strBall === "WK") {
-                        cClass += " wicket"; 
-                    }
-                    ballsHtml += `<span class="${cClass}">${ball}</span>`;
-                });
-            }
-            overContainer.innerHTML = ballsHtml;
             
             document.getElementById('disp-bat1-name').innerText = `${data.bat1Name || '--'} 🏏`; 
             document.getElementById('disp-bat1-runs').innerText = data.bat1Runs || 0; 
@@ -747,17 +566,6 @@
             document.getElementById('disp-bowler-name').innerText = data.bowlerName || '--'; 
             document.getElementById('disp-bowler-fig').innerText = data.bowlerFig || '0-0'; 
             document.getElementById('disp-bowler-overs').innerText = data.bowlerOvers || '0.0';
-
-            // Trigger Animation Queue
-            if (data.triggerId && data.triggerId !== lastTriggerId && data.triggerEvent && data.triggerEvent !== "") {
-                lastTriggerId = data.triggerId;
-                if (!data.showSquadsOnScreen && !data.showPointsTableOnScreen && !data.showSummaryOnScreen && !data.showProgressionOnScreen) {
-                    enqueueEvent({
-                        type: data.triggerEvent, targetMsg: data.target, overHistory: data.overHistory, overs: data.overs,
-                        totalOvers: data.totalOvers, innings: data.innings, playerStat: data.broadcastPlayerStat, momData: data.manOfTheMatch
-                    });
-                }
-            }
         }
 
         if (currentMatchUser) {
@@ -769,5 +577,4 @@
     </script>
 </body>
 </html>
-
 
