@@ -27,20 +27,29 @@
         .player-grid-3 label { font-size: 11px; margin-top: 4px; }
         .player-grid-3 select, .player-grid-3 input { padding: 6px 4px; font-size: 13px; }
         .small-flex { display: flex; gap: 4px; align-items: center; }
+        
+        /* =========================================
+           ACTION PANEL REDESIGN (4 LINES TOTAL)
+           ========================================= */
         .action-panel { background: #e3f2fd; text-align: center; border: 1px solid #b8daff; padding: 12px; }
-        .btn-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 8px; }
-        @media (max-width: 500px) { .btn-grid { grid-template-columns: repeat(4, 1fr); } }
-        .btn-action { padding: 7px 0; font-size: 18px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; color: white; background: #6c757d; }
+        
+        /* Line 1 & 2: Score Buttons (Always 6 columns to save space) */
+        .btn-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-top: 6px; }
+        .btn-action { padding: 8px 0; font-size: 14px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; color: white; background: #6c757d; }
         .btn-action:active { transform: scale(0.95); }
         .btn-4 { background: #28a745; } .btn-6 { background: #007bff; } .btn-w { background: #dc3545; }
         .btn-lbw { background: #e84118; } .btn-wd, .btn-nb { background: #ffc107; color: black; } .btn-lb { background: #6f42c1; } .btn-ro { background: #85144b; }
         
-        /* Updated Grid for 7 Buttons */
-        .flex-btns { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 10px; }
-        @media(max-width: 650px) { .flex-btns { grid-template-columns: repeat(4, 1fr); } }
-        
-        .btn-control-small { padding: 8px 4px; font-size: 11px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; color: white; text-align: center; }
+        /* Line 3 & 4: Control Buttons (4 columns on mobile, 7 on desktop) */
+        .flex-btns { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 8px; }
+        @media(max-width: 650px) { 
+            .flex-btns { grid-template-columns: repeat(4, 1fr); } 
+            /* To make the 7th button align nicely in a 4-col grid */
+            .flex-btns button:last-child { grid-column: span 2; } 
+        }
+        .btn-control-small { padding: 8px 2px; font-size: 12px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; color: white; text-align: center; }
         .btn-swap-s { background: #17a2b8; } .btn-undo-s { background: #fd7e14; } .btn-squad-s { background: #6f42c1; } .btn-points-s { background: #27ae60; } .btn-summary-s { background: #27ae60; } .btn-progression-s { background: #8e44ad; } .btn-ldb-s { background: #d35400; }
+        
         .teams-row { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 6px; }
         .btn-middle-swap { background: #6c5ce7; color: white; border: none; width: 45px; height: 42px; border-radius: 6px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .btn-main { width: 100%; padding: 12px; background: #28a745; color: white; border: none; font-size: 16px; font-weight: bold; border-radius: 5px; margin-top: 10px; }
@@ -117,7 +126,6 @@
         <label style="font-size: 13px;">Performance Summary:</label>
         <input type="text" id="momReasonInput" value="Outstanding all-round performance!">
         
-        <!-- NEW AVATAR INPUT FOR MOM -->
         <label style="font-size: 13px; color: #0056b3;">Player Avatar Image (URL):</label>
         <input type="text" id="momAvatarInput" placeholder="Paste Firebase Image URL here..." value="https://cdn-icons-png.flaticon.com/512/10454/10454471.png" style="font-size: 12px; background: #e8f4fd;">
         
@@ -144,7 +152,6 @@
             <option value="best_catcher">👐 Best Catcher</option>
         </select>
         
-        <!-- NEW AVATAR INPUT FOR SPOTLIGHT -->
         <label style="margin-top: 10px; color: #0056b3;">Player Avatar (For TV Screen):</label>
         <input type="text" id="spotlightAvatarInput" placeholder="Paste Firebase Image URL here..." value="https://cdn-icons-png.flaticon.com/512/10454/10454471.png" style="font-size: 13px; background: #e8f4fd;">
         
@@ -216,8 +223,11 @@
         </div>
     </details>
 
+    <!-- ACTION PANEL (Redesigned into 4 lines) -->
     <div class="box action-panel" style="margin-bottom: 12px;" id="actionPanelBox">
-        <h3>⚡ Ball by Ball Update</h3>
+        <h3 style="margin-bottom: 5px;">⚡ Ball by Ball Update</h3>
+        
+        <!-- Score Buttons (Line 1 & Line 2) -->
         <div class="btn-grid">
             <button class="btn-action score-btn" onclick="window.addBall(0)">0</button>
             <button class="btn-action score-btn" onclick="window.addBall(1)">1</button>
@@ -225,21 +235,24 @@
             <button class="btn-action score-btn" onclick="window.addBall(3)">3</button>
             <button class="btn-action btn-4 score-btn" onclick="window.addBall(4)">4</button>
             <button class="btn-action btn-6 score-btn" onclick="window.addBall(6)">6</button>
+            
             <button class="btn-action btn-wd score-btn" onclick="window.addExtra('WD')">WD</button>
             <button class="btn-action btn-nb score-btn" onclick="window.addExtra('NB')">NB</button>
             <button class="btn-action btn-lb score-btn" onclick="window.addLegBye()">LB/B</button>
             <button class="btn-action btn-w score-btn" onclick="window.openWicketModal()">W</button>
             <button class="btn-action btn-lbw score-btn" onclick="window.addLBW()">LBW</button>
-            <button class="btn-action btn-ro score-btn" onclick="window.openRunOutModal()">Run Out</button>
+            <!-- Changed "Run Out" to "R.Out" to save space -->
+            <button class="btn-action btn-ro score-btn" onclick="window.openRunOutModal()">R.Out</button>
         </div>
         
+        <!-- Control Buttons (Line 3 & Line 4) -->
         <div class="flex-btns">
             <button class="btn-control-small btn-swap-s" onclick="window.swapStrike()">🔄 Swap</button>
             <button class="btn-control-small btn-undo-s" id="undoBtn" onclick="window.undoAction()">↩ Undo</button>
             <button class="btn-control-small btn-squad-s" id="squadShowBtn" onclick="window.toggleSquadDisplay()">📺 Squads</button>
             <button class="btn-control-small btn-points-s" id="pointsShowBtn" onclick="window.togglePointsTableDisplay()">📊 Points</button>
+            
             <button class="btn-control-small btn-summary-s" id="summaryShowBtn" onclick="window.toggleSummaryDisplay()">📋 Summary</button>
-            <!-- NEW OVER PROGRESSION BUTTON -->
             <button class="btn-control-small btn-progression-s" id="progressionShowBtn" onclick="window.toggleProgressionDisplay()">📈 Overs</button>
             <button class="btn-control-small btn-ldb-s" onclick="window.openLeaderboardModal()">🏆 L.Board</button>
         </div>
@@ -279,7 +292,7 @@
     let isSquadVisible = false; 
     let isPointsTableVisible = false; 
     let isSummaryVisible = false;
-    let isProgressionVisible = false; // NEW OVER PROGRESSION TOGGLE
+    let isProgressionVisible = false; 
     
     let currentOverBalls = []; 
     let legalBallsInCurrentOver = 0; 
@@ -296,6 +309,7 @@
     let bowlersRecord = {}; 
     let firstInningsRunsStored = 0; 
     let firstInningsOversStored = "0.0";
+    let firstInningsHistory = []; // Added for Worm Graph comparison
     let detailedStats = {};
     let scheduledMatchOvers = null;
 
@@ -371,7 +385,6 @@
             }
         }
         
-        // Sorting best performers
         t1Batters.sort((a,b) => b.r - a.r);
         t2Batters.sort((a,b) => b.r - a.r);
         t1Bowlers.sort((a,b) => b.w - a.w || parseInt(a.fig.split('-')[1]) - parseInt(b.fig.split('-')[1]));
@@ -644,6 +657,8 @@
             
             currentOverBalls: currentOverBalls, outPlayers: outPlayersList, overHistory: overHistoryList,
             firstInningsRuns: firstInningsRunsStored, firstInningsOvers: firstInningsOversStored,
+            firstInningsHistory: firstInningsHistory, // Added for Worm Graph
+            
             triggerEvent: evtToTrigger, triggerId: evtId || Date.now(), 
             isLeagueMatch: isLeagueMatchGlobal, tournamentPointsUpdated: tournamentPointsUpdated,
             detailedStats: detailedStats,
@@ -747,7 +762,8 @@
             currentOverBalls: [...currentOverBalls], legalBallsInCurrentOver: legalBallsInCurrentOver, outPlayers: [...outPlayersList], overHistory: [...overHistoryList],
             lastBowler: lastBowler, activeBowler: activeBowler, bowlersRecord: JSON.parse(JSON.stringify(bowlersRecord)),
             isLeagueMatch: isLeagueMatchGlobal, tournamentPointsUpdated: tournamentPointsUpdated, autoInningsSwitched: autoInningsSwitched, matchEnded: matchEnded,
-            detailedStats: JSON.parse(JSON.stringify(detailedStats)), firstInningsRuns: firstInningsRunsStored, firstInningsOvers: firstInningsOversStored
+            detailedStats: JSON.parse(JSON.stringify(detailedStats)), firstInningsRuns: firstInningsRunsStored, firstInningsOvers: firstInningsOversStored,
+            firstInningsHistory: [...firstInningsHistory]
         });
         if(historyStack.length > 100) historyStack.shift();
     }
@@ -810,6 +826,7 @@
         if (innings === "1" && !autoInningsSwitched && !matchEnded) {
             if (completedOvers >= totalOvers || wickets >= 10) {
                 autoInningsSwitched = true; firstInningsRunsStored = runs; firstInningsOversStored = oversStr;
+                firstInningsHistory = [...overHistoryList]; // Save for 2nd innings chart
                 document.getElementById('popupInningsDetails').innerText = `${document.getElementById('batTeamName').value}: ${runs}/${wickets} (${oversStr} Overs)`;
                 document.getElementById('inningsPopupModal').style.display = 'flex';
                 document.getElementById('targetMsg').value = `Target: ${runs + 1}`;
@@ -1125,6 +1142,7 @@
             isLeagueMatchGlobal = state.isLeagueMatch; tournamentPointsUpdated = state.tournamentPointsUpdated; autoInningsSwitched = state.autoInningsSwitched; matchEnded = state.matchEnded;
             firstInningsRunsStored = state.firstInningsRuns !== undefined ? state.firstInningsRuns : firstInningsRunsStored;
             firstInningsOversStored = state.firstInningsOvers !== undefined ? state.firstInningsOvers : firstInningsOversStored;
+            firstInningsHistory = state.firstInningsHistory ? [...state.firstInningsHistory] : [];
             
             document.getElementById('bat1Name').innerHTML = `<option value="${state.bat1Name}">${state.bat1Name}</option>`; document.getElementById('bat1Name').value = state.bat1Name;
             document.getElementById('bat2Name').innerHTML = `<option value="${state.bat2Name}">${state.bat2Name}</option>`; document.getElementById('bat2Name').value = state.bat2Name;
@@ -1285,6 +1303,7 @@
             if (data.overHistory) overHistoryList = [...data.overHistory];
             if (data.firstInningsRuns !== undefined) firstInningsRunsStored = data.firstInningsRuns;
             if (data.firstInningsOvers !== undefined) firstInningsOversStored = data.firstInningsOvers;
+            if (data.firstInningsHistory !== undefined) firstInningsHistory = data.firstInningsHistory; // Restore Worm Graph history
             if (data.detailedStats) detailedStats = data.detailedStats;
             if (data.autoInningsSwitched !== undefined) autoInningsSwitched = data.autoInningsSwitched;
             if (data.matchEnded !== undefined) matchEnded = data.matchEnded;
@@ -1437,4 +1456,5 @@
 </script>
 </body>
 </html>
+
 
