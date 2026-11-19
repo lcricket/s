@@ -8,7 +8,7 @@
     <!-- FontAwesome Official Icons CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Poppins', sans-serif; background: #eef2f3; padding: 15px; padding-top: 85px; margin: 0; }
+        body { font-family: 'Poppins', sans-serif; background: #eef2f3; padding: 15px; padding-top: 62px; margin: 0; }
         .container { max-width: 600px; margin: auto; }
         
         /* ক্রিকেট ফিড হেডার */
@@ -115,18 +115,28 @@
         }
         .fb-nav-tabs {
             display: flex;
-            justify-content: space-around;
+            flex-wrap: nowrap;
+            justify-content: space-between;
+            align-items: center;
+            overflow-x: auto;
+            scrollbar-width: none;
             border-top: 1px solid #f0f2f5;
             max-width: 900px;
             margin: 0 auto;
+            background: #ffffff;
+        }
+        .fb-nav-tabs::-webkit-scrollbar {
+            display: none;
         }
         .fb-tab-btn {
-            flex: 1;
+            flex: 1 0 auto;
+            min-width: 42px;
             text-align: center;
             padding: 10px 4px;
             text-decoration: none;
             color: #65676b;
-            font-size: 18px;
+            font-size: 16px;
+            line-height: 1;
             border-bottom: 3px solid transparent;
             transition: all 0.2s;
         }
@@ -571,6 +581,5 @@
 
 </body>
 </html>
-
 
 
