@@ -8,7 +8,7 @@
     <!-- FontAwesome Official Icons CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Poppins', sans-serif; background: #eef2f3; padding: 15px; margin: 0; }
+        body { font-family: 'Poppins', sans-serif; background: #eef2f3; padding: 15px; padding-top: 85px; margin: 0; }
         .container { max-width: 600px; margin: auto; }
         
         /* ক্রিকেট ফিড হেডার */
@@ -47,7 +47,7 @@
         .post-user-info h4 { margin: 0; font-size: 15px; color: #333; }
         .post-user-info span { font-size: 10px; color: #777; }
 
-                /* ================= ফেসবুক স্টাইল হেডার ================= */
+        /* ================= ফেসবুক স্টাইল হেডার ================= */
         .fb-header-wrapper {
             position: fixed;
             top: 0;
@@ -145,7 +145,7 @@
         .photo-title { font-size: 15px; font-weight: bold; color: #1e3c72; margin-bottom: 5px; font-family: 'Oswald', sans-serif; letter-spacing: 0.5px; }
         .post-image { width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px; margin-top: 5px; }
         
-        /* গোল বৃত্তাকার সোশ্যাল মিডিয়া অফিশিয়াল লোগো বাটন */
+        /* গোল বৃত্তাকার সোশ্যাল মিডিয়া অফিশিয়াল লোগো বাটন */
         .post-footer { margin-top: 10px; border-top: 1px solid #eee; padding-top: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
         .share-label { font-size: 11px; color: #666; font-weight: bold; }
         .share-buttons { display: flex; gap: 8px; align-items: center; }
@@ -260,6 +260,9 @@
     let userProfilePhoto = "https://via.placeholder.com/40";
     let compressedImageBase64 = "";
 
+    let latestPostsArray = [];
+    let latestUserProfiles = {};
+
     onAuthStateChanged(auth, async (user) => {
         const authPrompt = document.getElementById('authPrompt');
         const uploadBox = document.getElementById('uploadBoxSection');
@@ -268,20 +271,24 @@
             currentUser = user;
             currentUsername = localStorage.getItem('proCricketUsername') || "user";
             
-            const userSnap = await get(ref(db, `users/${user.uid}/profile`));
-            if (userSnap.exists()) {
-                const pData = userSnap.val();
-                if (pData.name) currentUsername = pData.name;
-                if (pData.photo) userProfilePhoto = pData.photo;
-            }
+            onValue(ref(db, `users/${user.uid}/profile`), (userSnap) => {
+                if (userSnap.exists()) {
+                    const pData = userSnap.val();
+                    if (pData.name) currentUsername = pData.name;
+                    if (pData.photo && pData.photo.trim() !== "") {
+                        userProfilePhoto = pData.photo;
+                    }
+                }
+            });
 
             authPrompt.style.display = "none";
             uploadBox.style.display = "block";
         } else {
+            currentUser = null;
             authPrompt.style.display = "block";
             uploadBox.style.display = "none";
         }
-        loadPublicFeed();
+        startFeedListeners();
     });
 
     document.getElementById('postImageFile').addEventListener('change', function(event) {
@@ -361,7 +368,7 @@
                     }
                 }
 
-                // যদি ৫ বা তার বেশি নরমাল পোস্ট থাকে, তবে সবচেয়ে পুরোনো নরমাল পোস্টটি ডিলিট হবে
+                // যদি ৫ বা তার বেশি নরমাল পোস্ট থাকে, তবে সবচেয়ে পুরোনো নরমাল পোস্টটি ডিলিট হবে
                 if (normalPosts.length >= 5) {
                     normalPosts.sort((a, b) => a.timestamp - b.timestamp);
                     const oldestNormalPostKey = normalPosts[0].id;
@@ -431,91 +438,139 @@
         }
     };
 
-    function loadPublicFeed() {
-        const feedRef = ref(db, 'public_feed');
-        onValue(feedRef, (snapshot) => {
-            const feedContainer = document.getElementById('feedContainer');
-            feedContainer.innerHTML = "";
+    let feedListenerStarted = false;
 
+    function startFeedListeners() {
+        if (feedListenerStarted) {
+            renderFeedUI();
+            return;
+        }
+        feedListenerStarted = true;
+
+        // সব ইউজারের লেটেস্ট প্রোফাইল তথ্য রিয়েলটাইমে রাখা
+        onValue(ref(db, 'users'), (usersSnap) => {
+            latestUserProfiles = {};
+            if (usersSnap.exists()) {
+                const usersObj = usersSnap.val();
+                Object.keys(usersObj).forEach(uid => {
+                    latestUserProfiles[uid] = {
+                        profile: usersObj[uid]?.profile || {},
+                        username: usersObj[uid]?.username || ""
+                    };
+                });
+            }
+            renderFeedUI();
+        });
+
+        // পাবলিক ফিড পোস্টগুলো রিয়েলটাইমে রাখা
+        onValue(ref(db, 'public_feed'), (snapshot) => {
             if (!snapshot.exists()) {
-                feedContainer.innerHTML = `<p style="text-align: center; color: #777; background: #fff; padding: 15px; border-radius: 8px; font-size: 13px;">No posts yet. The feed is waiting for your match moments!</p>`;
+                latestPostsArray = [];
+                renderFeedUI();
                 return;
             }
 
-            let postsArray = [];
+            let tempArray = [];
             snapshot.forEach((childSnap) => {
-                postsArray.push({ id: childSnap.key, ...childSnap.val() });
+                tempArray.push({ id: childSnap.key, ...childSnap.val() });
             });
 
-            postsArray.sort((a, b) => {
+            tempArray.sort((a, b) => {
                 if (a.favorite && !b.favorite) return -1;
                 if (!a.favorite && b.favorite) return 1;
                 return b.timestamp - a.timestamp;
             });
 
-            postsArray.forEach(post => {
-                const dateStr = new Date(post.timestamp).toLocaleString();
-                let titleHtml = post.title ? `<div class="photo-title">📌 ${post.title}</div>` : "";
-                let imageHtml = post.image ? `<img src="${post.image}" class="post-image" alt="Post Image">` : "";
+            latestPostsArray = tempArray;
+            renderFeedUI();
+        });
+    }
 
-                let deleteButtonHtml = "";
-                if (currentUser && currentUser.uid === post.uid) {
-                    deleteButtonHtml = `<button class="action-btn" title="Delete Post" onclick="window.deletePost('${post.id}', '${post.uid}')">🗑️</button>`;
-                }
+    function renderFeedUI() {
+        const feedContainer = document.getElementById('feedContainer');
+        feedContainer.innerHTML = "";
 
-                let favIcon = post.favorite ? "⭐" : "☆";
-                let favTitle = post.favorite ? "Unfavorite (Allow Auto-delete)" : "Favorite (Pin to Top & Protect from Deletion)";
-                let favButtonHtml = `<button class="action-btn" title="${favTitle}" onclick="window.toggleFavorite('${post.id}', ${post.favorite || false})">${favIcon}</button>`;
+        if (!latestPostsArray || latestPostsArray.length === 0) {
+            feedContainer.innerHTML = `<p style="text-align: center; color: #777; background: #fff; padding: 15px; border-radius: 8px; font-size: 13px;">No posts yet. The feed is waiting for your match moments!</p>`;
+            return;
+        }
 
-                let shareText = `🏏 Check out this moment on Cricket Feed!\n`;
-                if (post.title) shareText += `Title: ${post.title}\n`;
-                shareText += `Shared by: ${post.username}\nLink: ${window.location.href}`;
-                
-                let encodedText = encodeURIComponent(shareText);
-                let pageUrl = encodeURIComponent(window.location.href);
+        latestPostsArray.forEach(post => {
+            const authorInfo = latestUserProfiles[post.uid] || {};
+            const liveProfile = authorInfo.profile || {};
 
-                let whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
-                let facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`;
-                let twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
-                let instagramUrl = `https://www.instagram.com/`;
-                let youtubeUrl = `https://www.youtube.com/`;
+            // প্রোফাইলে সেভ করা লেটেস্ট ছবি থাকলে সেটাই ব্যবহার করা হবে; না থাকলে পোস্টের ছবি বা ডিফল্ট ছবি
+            const resolvedAvatar = (liveProfile.photo && liveProfile.photo.trim() !== "")
+                ? liveProfile.photo
+                : (post.userPhoto && post.userPhoto.trim() !== "" ? post.userPhoto : "https://via.placeholder.com/40");
 
-                const postHTML = `
-                    <div class="post-card ${post.favorite ? 'favorite-post' : ''}">
-                        <div class="post-header">
-                            <div class="post-user-profile">
-                                <img src="${post.userPhoto || 'https://via.placeholder.com/40'}" class="post-avatar" alt="Avatar">
-                                <div class="post-user-info">
-                                    <h4>${post.username}</h4>
-                                    <span>${dateStr}</span>
-                                </div>
-                            </div>
-                            <div class="post-actions">
-                                ${favButtonHtml}
-                                ${deleteButtonHtml}
+            const resolvedUsername = (liveProfile.name && liveProfile.name.trim() !== "")
+                ? liveProfile.name
+                : (post.username || authorInfo.username || "User");
+
+            const dateStr = new Date(post.timestamp).toLocaleString();
+            let titleHtml = post.title ? `<div class="photo-title">📌 ${post.title}</div>` : "";
+            let imageHtml = post.image ? `<img src="${post.image}" class="post-image" alt="Post Image">` : "";
+
+            let deleteButtonHtml = "";
+            if (currentUser && currentUser.uid === post.uid) {
+                deleteButtonHtml = `<button class="action-btn" title="Delete Post" onclick="window.deletePost('${post.id}', '${post.uid}')">🗑️</button>`;
+            }
+
+            let favIcon = post.favorite ? "⭐" : "☆";
+            let favTitle = post.favorite ? "Unfavorite (Allow Auto-delete)" : "Favorite (Pin to Top & Protect from Deletion)";
+            let favButtonHtml = `<button class="action-btn" title="${favTitle}" onclick="window.toggleFavorite('${post.id}', ${post.favorite || false})">${favIcon}</button>`;
+
+            let shareText = `🏏 Check out this moment on Cricket Feed!\n`;
+            if (post.title) shareText += `Title: ${post.title}\n`;
+            shareText += `Shared by: ${resolvedUsername}\nLink: ${window.location.href}`;
+            
+            let encodedText = encodeURIComponent(shareText);
+            let pageUrl = encodeURIComponent(window.location.href);
+
+            let whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+            let facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`;
+            let twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
+            let instagramUrl = `https://www.instagram.com/`;
+            let youtubeUrl = `https://www.youtube.com/`;
+
+            const postHTML = `
+                <div class="post-card ${post.favorite ? 'favorite-post' : ''}">
+                    <div class="post-header">
+                        <div class="post-user-profile">
+                            <img src="${resolvedAvatar}" class="post-avatar" alt="Avatar">
+                            <div class="post-user-info">
+                                <h4>${resolvedUsername}</h4>
+                                <span>${dateStr}</span>
                             </div>
                         </div>
-                        ${titleHtml}
-                        ${imageHtml}
-                        
-                        <div class="post-footer">
-                            <span class="share-label">Share:</span>
-                            <div class="share-buttons">
-                                <a href="${whatsappUrl}" target="_blank" class="social-icon-btn btn-whatsapp" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-                                <a href="${facebookUrl}" target="_blank" class="social-icon-btn btn-facebook" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-                                <a href="${twitterUrl}" target="_blank" class="social-icon-btn btn-twitter" title="X (Twitter)"><i class="fab fa-x-twitter"></i></a>
-                                <a href="${instagramUrl}" target="_blank" class="social-icon-btn btn-instagram" title="Instagram"><i class="fab fa-instagram"></i></a>
-                                <a href="${youtubeUrl}" target="_blank" class="social-icon-btn btn-youtube" title="YouTube"><i class="fab fa-youtube"></i></a>
-                            </div>
+                        <div class="post-actions">
+                            ${favButtonHtml}
+                            ${deleteButtonHtml}
                         </div>
                     </div>
-                `;
-                feedContainer.innerHTML += postHTML;
-            });
+                    ${titleHtml}
+                    ${imageHtml}
+                    
+                    <div class="post-footer">
+                        <span class="share-label">Share:</span>
+                        <div class="share-buttons">
+                            <a href="${whatsappUrl}" target="_blank" class="social-icon-btn btn-whatsapp" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                            <a href="${facebookUrl}" target="_blank" class="social-icon-btn btn-facebook" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                            <a href="${twitterUrl}" target="_blank" class="social-icon-btn btn-twitter" title="X (Twitter)"><i class="fab fa-x-twitter"></i></a>
+                            <a href="${instagramUrl}" target="_blank" class="social-icon-btn btn-instagram" title="Instagram"><i class="fab fa-instagram"></i></a>
+                            <a href="${youtubeUrl}" target="_blank" class="social-icon-btn btn-youtube" title="YouTube"><i class="fab fa-youtube"></i></a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            feedContainer.innerHTML += postHTML;
         });
     }
 </script>
 
 </body>
 </html>
+
+
 
