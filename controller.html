@@ -1523,12 +1523,20 @@
         updateSuggestions(); document.getElementById('playerPanel').open = true; processAndUpdate();
     }
 
+    const mainContainer = document.getElementById('mainContainerBox');
+    if (mainContainer) mainContainer.style.display = 'none';
+
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            currentUserId = user.uid; 
-            if (!currentMatchUser) { currentMatchUser = localStorage.getItem('proCricketUsername') || "user"; }
+            currentUserId = user.uid;
+            if (!currentMatchUser) {
+                currentMatchUser = localStorage.getItem('proCricketUsername') || "user";
+            }
+            if (mainContainer) mainContainer.style.display = 'block';
             initPage();
-        } else { alert("⚠️ Please login from dashboard first."); }
+        } else {
+            window.location.replace("index.html");
+        }
     });
 
 </script>
