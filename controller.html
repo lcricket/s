@@ -10,7 +10,7 @@
         .container { max-width: 750px; margin: auto; background: #fff; padding: 18px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .header-box { text-align: center; margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; display: flex; justify-content: center; align-items: center; }
         h2 { color: #333; margin: 0; font-size: 15px; }
-        .sub-header-bar { display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px; flex-wrap: wrap; gap: 8px; }
+        .sub-header-bar { display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
         .sub-header-item { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: bold; color: #444; }
         .sub-header-item select, .sub-header-item input[type="number"] { padding: 4px 6px; font-size: 13px; font-weight: bold; border: 1px solid #ccc; border-radius: 4px; width: 60px; background: #fff; }
         .btn-sub-action { padding: 5px 12px; font-size: 12px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; color: white; }
@@ -397,7 +397,7 @@
         
         const matchScoreRef = ref(db, `live_matches/${currentMatchUser}/score`);
         set(matchScoreRef, scoreData).then(() => {
-            if(btn) { btn.innerText = `🟢 Live Update Active (${currentMatchUser})`; btn.style.background = "#28a745"; }
+            if(btn) { btn.innerText = `Update Active (${currentMatchUser})`; btn.style.background = "#28a745"; }
         }).catch((error) => {
             if(btn) { btn.innerText = "❌ Update Failed!"; btn.style.background = "#dc3545"; }
         });
