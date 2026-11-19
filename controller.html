@@ -56,95 +56,57 @@
         .popup-content { background: #fff; padding: 25px 30px; border-radius: 12px; text-align: center; max-width: 450px; width: 90%; }
         .popup-close-btn { background: #28a745; color: white; border: none; padding: 10px 20px; font-size: 16px; font-weight: bold; border-radius: 5px; cursor: pointer; margin-top: 10px; }
     
-                /* ================= ফেসবুক স্টাইল হেডার ================= */
-        .fb-header-wrapper {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background: #ffffff;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-            z-index: 1000;
-        }
-        .fb-top-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 14px;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        .fb-brand-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .fb-brand-title {
-            font-family: 'Poppins', sans-serif;
-            font-size: 22px;
-            font-weight: 700;
-            color: #1877f2;
-            text-decoration: none;
-            letter-spacing: -0.5px;
-        }
-        .fb-top-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .fb-icon-btn {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: #f0f2f5;
-            color: #1c1e21;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: bold;
-            position: relative;
-            transition: background 0.2s;
-        }
-        .fb-icon-btn:hover {
-            background: #e4e6eb;
-        }
-        .fb-badge {
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            background: #e41e3f;
-            color: #ffffff;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 5px;
-            border-radius: 10px;
-            line-height: 1;
-        }
-        .fb-nav-tabs {
-            display: flex;
-            justify-content: space-around;
-            border-top: 1px solid #f0f2f5;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        .fb-tab-btn {
-            flex: 1;
-            text-align: center;
-            padding: 10px 4px;
-            text-decoration: none;
-            color: #65676b;
-            font-size: 18px;
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s;
-        }
-        .fb-tab-btn:hover,
-        .fb-tab-btn.active {
-            color: #1877f2;
-            border-bottom-color: #1877f2;
-        }
-        /* ======================================================== */
+               /* ================= সব পেজের জন্য সমান হেডার ================= */
+.fb-header-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 42px;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    z-index: 1000;
+    font-family: 'Poppins', sans-serif;
+    text-transform: none;
+    box-sizing: border-box;
+}
+
+.fb-nav-tabs {
+    display: flex;
+    width: 100%;
+    height: 42px;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.fb-tab-btn {
+    flex: 1 1 0;
+    width: 0;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #65676b;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0;
+    margin: 0;
+    border: none;
+    border-bottom: 3px solid transparent;
+    background: transparent;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.fb-tab-btn:hover,
+.fb-tab-btn.active {
+    color: #1877f2;
+    border-bottom-color: #1877f2;
+}
+/* ============================================================ */
 
         
     </style>
