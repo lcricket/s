@@ -472,7 +472,7 @@ Player 3"></textarea>
             const userSnap = await get(userRef);
             let credits = userSnap.exists() && userSnap.val().credits ? parseInt(userSnap.val().credits) : 0;
 
-            if (credits <= 0) { alert("❌ Insufficient credits! You have 0 credits."); return; }
+            if (credits <= 0) { alert("❌ Insufficient credits! You have 0 credits.Contact-+918327321495"); return; }
 
             await update(userRef, { credits: credits - 1 });
             await update(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${mId}`), { status: 'running' });
