@@ -11,12 +11,105 @@
             font-family: 'Poppins', sans-serif; 
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
             display: flex; 
+            flex-direction: column;
             justify-content: center; 
             align-items: center; 
             min-height: 100vh; 
             margin: 0; 
             padding: 15px;
+            padding-top: 115px; /* ফিক্সড হেডারের জন্য জায়গা */
         }
+
+        /* ================= ফেসবুক স্টাইল হেডার ================= */
+        .fb-header-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            z-index: 1000;
+        }
+        .fb-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 14px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .fb-brand-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .fb-brand-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: #1877f2;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+        .fb-top-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .fb-icon-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #f0f2f5;
+            color: #1c1e21;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            position: relative;
+            transition: background 0.2s;
+        }
+        .fb-icon-btn:hover {
+            background: #e4e6eb;
+        }
+        .fb-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #e41e3f;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 10px;
+            line-height: 1;
+        }
+        .fb-nav-tabs {
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid #f0f2f5;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .fb-tab-btn {
+            flex: 1;
+            text-align: center;
+            padding: 10px 4px;
+            text-decoration: none;
+            color: #65676b;
+            font-size: 18px;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .fb-tab-btn:hover,
+        .fb-tab-btn.active {
+            color: #1877f2;
+            border-bottom-color: #1877f2;
+        }
+        /* ======================================================== */
+
         .container { 
             background: #ffffff; 
             padding: 25px; 
@@ -154,6 +247,52 @@
     </style>
 </head>
 <body>
+
+<!-- ================= ফেসবুক স্টাইল হেডার শুরু ================= -->
+<header class="fb-header-wrapper">
+    <div class="fb-top-bar">
+        <div class="fb-brand-group">
+            <!-- ১. মেনু (≡) বাটনের লিংক এখানে পেস্ট করুন -->
+            <a href="#MENU_LINK_HERE" class="fb-icon-btn" title="Menu">☰</a>
+
+            <!-- ২. ব্র্যান্ড / লোগো বাটনের লিংক এখানে পেস্ট করুন -->
+            <a href="#BRAND_LINK_HERE" class="fb-brand-title">scoreboard</a>
+        </div>
+
+        <div class="fb-top-actions">
+            <!-- ৩. ক্রিয়েট / প্লাস (+) বাটনের লিংক এখানে পেস্ট করুন -->
+            <a href="#CREATE_LINK_HERE" class="fb-icon-btn" title="Create">+</a>
+
+            <!-- ৪. সার্চ (🔍) বাটনের লিংক এখানে পেস্ট করুন -->
+            <a href="#SEARCH_LINK_HERE" class="fb-icon-btn" title="Search">🔍</a>
+
+            <!-- ৫. মেসেজ / নোটিফিকেশন (💬) বাটনের লিংক এখানে পেস্ট করুন -->
+            <a href="#MESSAGES_LINK_HERE" class="fb-icon-btn" title="Messages">
+                💬
+                <span class="fb-badge">9+</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- নিচের নেভিগেশন ট্যাব বার -->
+    <nav class="fb-nav-tabs">
+        <!-- ৬. হোম ট্যাব বাটনের লিংক এখানে পেস্ট করুন -->
+        <a href="#HOME_TAB_LINK_HERE" class="fb-tab-btn active" title="Home">🏠</a>
+
+        <!-- ৭. ভিডিও / লাইভ ট্যাব বাটনের লিংক এখানে পেস্ট করুন -->
+        <a href="#VIDEO_TAB_LINK_HERE" class="fb-tab-btn" title="Live / Videos">📺</a>
+
+        <!-- ৮. পেজ / মার্কেটপ্লেস ট্যাব বাটনের লিংক এখানে পেস্ট করুন -->
+        <a href="#PAGES_TAB_LINK_HERE" class="fb-tab-btn" title="Pages">🏟️</a>
+
+        <!-- ৯. নোটিফিকেশন ট্যাব বাটনের লিংক এখানে পেস্ট করুন -->
+        <a href="#NOTIFICATIONS_TAB_LINK_HERE" class="fb-tab-btn" title="Notifications">🔔</a>
+
+        <!-- ১০. প্রোফাইল ট্যাব বাটনের লিংক এখানে পেস্ট করুন -->
+        <a href="#PROFILE_TAB_LINK_HERE" class="fb-tab-btn" title="Profile">👤</a>
+    </nav>
+</header>
+<!-- ================= ফেসবুক স্টাইল হেডার শেষ ================= -->
 
 <div class="container">
     
@@ -347,7 +486,7 @@
             return msg.innerText = "Please fill in all fields.";
         }
 
-        // ইউজারনেম স্বয়ংক্রিয়ভাবে ক্লিন ও ফরম্যাট করা (স্পেস বা স্পেশাল ক্যারেক্টার রিমুভ করে ছোট হাতের অক্ষরে রূপান্তর)
+        // ইউজারনেম স্বয়ংক্রিয়ভাবে ক্লিন ও ফরম্যাট করা (স্পেস বা স্পেশাল ক্যারেক্টার রিমুভ করে ছোট হাতের অক্ষরে রূপান্তর)
         let username = rawInputName
             .toLowerCase()
             .replace(/\s+/g, '')
@@ -382,7 +521,7 @@
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            // সঠিক ইউজারনেম দিয়ে usernames ইনডেক্স তৈরি করা হলো
+            // সঠিক ইউজারনেম দিয়ে usernames ইনডেক্স তৈরি করা হলো
             await set(ref(db, 'usernames/' + username), user.uid);
             
             // claimed_emails এ রেকর্ড সেভ করা হলো
@@ -493,7 +632,7 @@
         const userId = user.uid;
         const userRef = ref(db, `users/${userId}`);
         
-        // রিয়েলটাইমে ডেটাবেজ থেকে ইউজারের লেটেস্ট তথ্য ও ইউজারনেম ফেচ করা
+        // রিয়েলটাইমে ডেটাবেজ থেকে ইউজারের লেটেস্ট তথ্য ও ইউজারনেম ফেচ করা
         onValue(userRef, (snapshot) => {
             if (snapshot.exists()) {
                 const userData = snapshot.val();
@@ -502,14 +641,17 @@
                 localStorage.setItem('proCricketUsername', username);
                 document.getElementById('display-username').innerText = username;
                 
-                // ভিউয়ার লিংক রিয়েলটাইমে আপডেট করা
+                // ভিউয়ার লিংক রিয়েলটাইমে আপডেট করা
                 const linkInput = document.getElementById('viewer-link-input');
                 if (linkInput) {
                     linkInput.value = `https://lcricket.github.io/s/viewer.html?u=${username}`;
                 }
                 
                 const credits = userData.credits !== undefined ? userData.credits : 0;
-                document.getElementById('user-credits').innerText = credits;
+                const creditsEl = document.getElementById('user-credits');
+                if (creditsEl) {
+                    creditsEl.innerText = credits;
+                }
             }
         });
 
@@ -556,4 +698,3 @@
 
 </body>
 </html>
-
