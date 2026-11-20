@@ -27,6 +27,125 @@
         .player-grid-3 label { font-size: 11px; margin-top: 4px; }
         .player-grid-3 select, .player-grid-3 input { padding: 6px 4px; font-size: 13px; }
         .small-flex { display: flex; gap: 4px; align-items: center; }
+
+        /* ================= সাইড মেনু (Drawer) CSS ================= */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 1001;
+}
+
+.overlay.show {
+    display: block;
+}
+
+.side-drawer {
+    position: fixed;
+    top: 0;
+    left: -295px;
+    width: 285px;
+    height: 100%;
+    background-color: #ffffff;
+    z-index: 1002;
+    transition: left 0.3s ease;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.side-drawer.open {
+    left: 0;
+}
+
+.drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid #e4e6eb;
+    background-color: #f8f9fa;
+}
+
+.drawer-header h3 {
+    font-size: 17px;
+    color: #050505;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.close-drawer {
+    background: #e4e6eb;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    color: #050505;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drawer-links {
+    list-style: none;
+    padding: 10px;
+    margin: 0;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.drawer-links li {
+    margin-bottom: 4px;
+}
+
+.drawer-links a,
+.drawer-links .drawer-version-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 14px;
+    text-decoration: none;
+    color: #050505;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.drawer-item-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.drawer-links a:hover {
+    background-color: #f0f2f5;
+    color: #0866ff;
+}
+
+.drawer-links i {
+    width: 22px;
+    text-align: center;
+    font-size: 17px;
+}
+
+.version-badge-text {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0866ff;
+    background: #e7f3ff;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
         
         /* =========================================
            ACTION PANEL REDESIGN (4 LINES FIXED)
