@@ -38,43 +38,81 @@
         const db = getDatabase(app);
         const container = document.getElementById('match-list-container');
 
-        function renderLiveMatches(liveItems) {
+        const urlParams = new URLSearchParams(window.location.search);
+        let latestLiveScore = null;
+        let latestTourMatches = null;
+        let matchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername') || "";
+
+        function renderCombinedList() {
             container.innerHTML = "";
-            if (!liveItems.length) {
+            const cards = [];
+
+            if (latestTourMatches) {
+                Object.keys(latestTourMatches).forEach(tourId => {
+                    const matches = latestTourMatches[tourId]?.matches;
+                    if (matches) {
+                        Object.keys(matches).forEach(matchId => {
+                            const m = matches[matchId];
+                            const st = (m.status || "").toString().toLowerCase();
+                            if (st === "running" || st === "live") {
+                                const useLive = latestLiveScore &&
+                                    latestLiveScore.batTeamName &&
+                                    (latestLiveScore.batTeamName === m.team1 ||
+                                     latestLiveScore.batTeamName === m.team2 ||
+                                     latestLiveScore.bowlTeamName === m.team1 ||
+                                     latestLiveScore.bowlTeamName === m.team2);
+
+                                cards.push({
+                                    tourId,
+                                    matchId,
+                                    t1: useLive ? (latestLiveScore.batTeamName || m.team1) : (m.team1 || "Team 1"),
+                                    t2: useLive ? (latestLiveScore.bowlTeamName || m.team2) : (m.team2 || "Team 2"),
+                                    runs: useLive ? (latestLiveScore.runs ?? 0) : (m.runs ?? 0),
+                                    wickets: useLive ? (latestLiveScore.wickets ?? 0) : (m.wickets ?? 0),
+                                    overs: useLive ? (latestLiveScore.overs ?? "0.0") : (m.overs ?? "0.0")
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            if (cards.length === 0 && latestLiveScore && latestLiveScore.batTeamName) {
+                cards.push({
+                    tourId: latestLiveScore.tournamentId || "",
+                    matchId: localStorage.getItem("activeMatchId") || "default_match",
+                    t1: latestLiveScore.batTeamName || "Team 1",
+                    t2: latestLiveScore.bowlTeamName || "Team 2",
+                    runs: latestLiveScore.runs ?? 0,
+                    wickets: latestLiveScore.wickets ?? 0,
+                    overs: latestLiveScore.overs ?? "0.0"
+                });
+            }
+
+            if (cards.length === 0) {
                 container.innerHTML = `<p class="text-slate-500 text-sm">No live matches at the moment.</p>`;
                 return;
             }
 
-            liveItems.forEach(({ tourId, matchId, match }) => {
-                const status = (match.status || "").toString().toLowerCase();
-                if (status !== "running" && status !== "live") return;
-
-                const t1 = match.team1 || match.team1Name || "Team 1";
-                const t2 = match.team2 || match.team2Name || "Team 2";
-                const runs = match.runs ?? match.score ?? 0;
-                const wickets = match.wickets ?? 0;
-                const overs = match.overs ?? "0.0";
-
+            cards.forEach(item => {
                 const card = document.createElement('div');
                 card.className = "bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg cursor-pointer hover:border-amber-400 transition";
                 card.innerHTML = `
                     <div class="flex justify-between items-center text-xs text-emerald-400 font-semibold mb-2">
                         <span class="bg-emerald-950 px-2.5 py-0.5 rounded-full border border-emerald-800">LIVE</span>
-                        <span class="text-slate-400">Overs: ${overs}</span>
+                        <span class="text-slate-400">Overs: ${item.overs}</span>
                     </div>
                     <div class="flex justify-between items-center text-base font-bold">
-                        <span>${t1} vs ${t2}</span>
-                        <span class="text-amber-400">${runs}-${wickets}</span>
+                        <span>${item.t1} vs ${item.t2}</span>
+                        <span class="text-amber-400">${item.runs}-${item.wickets}</span>
                     </div>
                 `;
 
                 card.onclick = () => {
                     const params = new URLSearchParams({
-                        matchId: matchId,
-                        t: tourId || "",
-                        t1: t1,
-                        t2: t2,
-                        overs: match.overs || 10
+                        matchId: item.matchId,
+                        t: item.tourId || "",
+                        u: matchUser || ""
                     });
                     window.location.href = `live-score.html?${params.toString()}`;
                 };
@@ -83,38 +121,30 @@
             });
         }
 
-        onAuthStateChanged(auth, (user) => {
-            if (!user) {
-                container.innerHTML = `<p class="text-amber-400 text-sm">Please login to view live matches.</p>`;
-                return;
-            }
-
-            const userToursRef = ref(db, `users/${user.uid}/tournaments`);
-            onValue(userToursRef, (snapshot) => {
-                const tours = snapshot.val();
-                const liveItems = [];
-
-                if (tours) {
-                    Object.keys(tours).forEach(tourId => {
-                        const matches = tours[tourId]?.matches;
-                        if (matches) {
-                            Object.keys(matches).forEach(matchId => {
-                                const m = matches[matchId];
-                                const st = (m.status || "").toString().toLowerCase();
-                                if (st === "running" || st === "live") {
-                                    liveItems.push({ tourId, matchId, match: m });
-                                }
-                            });
-                        }
-                    });
-                }
-
-                renderLiveMatches(liveItems);
-            }, (error) => {
-                console.error(error);
-                container.innerHTML = `<p class="text-rose-400 text-sm">Error loading live matches.</p>`;
+        function listenToLiveScore(uName) {
+            if (!uName) return;
+            onValue(ref(db, `live_matches/${uName}/score`), (snap) => {
+                latestLiveScore = snap.val();
+                renderCombinedList();
             });
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (!matchUser && user) {
+                matchUser = localStorage.getItem('proCricketUsername') || "user";
+            }
+            listenToLiveScore(matchUser);
+
+            if (user) {
+                onValue(ref(db, `users/${user.uid}/tournaments`), (snap) => {
+                    latestTourMatches = snap.val();
+                    renderCombinedList();
+                });
+            } else {
+                renderCombinedList();
+            }
         });
     </script>
 </body>
 </html>
+
