@@ -13,67 +13,108 @@
     <div class="max-w-md mx-auto">
         <h2 class="text-xl font-bold mb-4 text-amber-400 border-b border-slate-800 pb-2">Ongoing live matches</h2>
         
-        <!-- লাইভ ম্যাচের তালিকা এখানে লোড হবে -->
         <div id="match-list-container" class="space-y-3">
             <p class="text-slate-400 text-sm">Match is loading...</p>
         </div>
     </div>
 
-    <!-- Firebase Script -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyABphVo2kWvqHEkxWSsZuDvnyXk05XzX-0",
             authDomain: "cricket-score-d187a.firebaseapp.com",
             databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
             projectId: "cricket-score-d187a",
-            storageBucket: "cricket-score-d187a.appspot.com",
+            storageBucket: "cricket-score-d187a.firebasestorage.app",
             messagingSenderId: "782741896785",
             appId: "1:782741896785:android:ca8c45a9120f7784928270"
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getDatabase(app);
-        const matchesRef = ref(db, 'matches');
+        const container = document.getElementById('match-list-container');
 
-        onValue(matchesRef, (snapshot) => {
-            const matches = snapshot.val();
-            const container = document.getElementById('match-list-container');
+        function renderLiveMatches(liveItems) {
             container.innerHTML = "";
-
-            if (matches) {
-                Object.keys(matches).forEach(matchId => {
-                    const match = matches[matchId];
-                    
-                    if(match.status === "LIVE") {
-                        const card = document.createElement('div');
-                        card.className = "bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg cursor-pointer hover:border-amber-400 transition";
-                        card.innerHTML = `
-                            <div class="flex justify-between items-center text-xs text-emerald-400 font-semibold mb-2">
-                                <span class="bg-emerald-950 px-2.5 py-0.5 rounded-full border border-emerald-800">LIVE</span>
-                                <span class="text-slate-400">Overs: ${match.overs || '0.0'}</span>
-                            </div>
-                            <div class="flex justify-between items-center text-base font-bold">
-                                <span>${match.team1Name || 'Team 1'} vs ${match.team2Name || 'Team 2'}</span>
-                                <span class="text-amber-400">${match.runs || 0}-${match.wickets || 0}</span>
-                            </div>
-                        `;
-                        
-                        // ইউজার ক্লিক করলে নির্দিষ্ট ম্যাচ আইডি সহ লাইভ পেজে নিয়ে যাবে
-                        card.onclick = () => {
-                            window.location.href = `live-score.html?matchId=${matchId}`;
-                        };
-
-                        container.appendChild(card);
-                    }
-                });
-            } else {
+            if (!liveItems.length) {
                 container.innerHTML = `<p class="text-slate-500 text-sm">No live matches at the moment.</p>`;
+                return;
             }
+
+            liveItems.forEach(({ tourId, matchId, match }) => {
+                const status = (match.status || "").toString().toLowerCase();
+                if (status !== "running" && status !== "live") return;
+
+                const t1 = match.team1 || match.team1Name || "Team 1";
+                const t2 = match.team2 || match.team2Name || "Team 2";
+                const runs = match.runs ?? match.score ?? 0;
+                const wickets = match.wickets ?? 0;
+                const overs = match.overs ?? "0.0";
+
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg cursor-pointer hover:border-amber-400 transition";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center text-xs text-emerald-400 font-semibold mb-2">
+                        <span class="bg-emerald-950 px-2.5 py-0.5 rounded-full border border-emerald-800">LIVE</span>
+                        <span class="text-slate-400">Overs: ${overs}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-base font-bold">
+                        <span>${t1} vs ${t2}</span>
+                        <span class="text-amber-400">${runs}-${wickets}</span>
+                    </div>
+                `;
+
+                card.onclick = () => {
+                    const params = new URLSearchParams({
+                        matchId: matchId,
+                        t: tourId || "",
+                        t1: t1,
+                        t2: t2,
+                        overs: match.overs || 10
+                    });
+                    window.location.href = `live-score.html?${params.toString()}`;
+                };
+
+                container.appendChild(card);
+            });
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                container.innerHTML = `<p class="text-amber-400 text-sm">Please login to view live matches.</p>`;
+                return;
+            }
+
+            const userToursRef = ref(db, `users/${user.uid}/tournaments`);
+            onValue(userToursRef, (snapshot) => {
+                const tours = snapshot.val();
+                const liveItems = [];
+
+                if (tours) {
+                    Object.keys(tours).forEach(tourId => {
+                        const matches = tours[tourId]?.matches;
+                        if (matches) {
+                            Object.keys(matches).forEach(matchId => {
+                                const m = matches[matchId];
+                                const st = (m.status || "").toString().toLowerCase();
+                                if (st === "running" || st === "live") {
+                                    liveItems.push({ tourId, matchId, match: m });
+                                }
+                            });
+                        }
+                    });
+                }
+
+                renderLiveMatches(liveItems);
+            }, (error) => {
+                console.error(error);
+                container.innerHTML = `<p class="text-rose-400 text-sm">Error loading live matches.</p>`;
+            });
         });
     </script>
 </body>
 </html>
-
