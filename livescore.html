@@ -139,7 +139,8 @@
         const db = getDatabase(app);
 
         const urlParams = new URLSearchParams(window.location.search);
-        let matchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername') || "";
+        const scoreUserNode = "cricketer";
+        let matchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername') || scoreUserNode;
         let tourId = urlParams.get('t') || localStorage.getItem('activeTournamentId') || "";
         let pointsListenerAttached = false;
         let leaderboardListenerAttached = false;
@@ -154,79 +155,76 @@
             return lines;
         }
 
-        function attachScoreListener(uName) {
-            if (!uName) return;
-            onValue(ref(db, `live_matches/${uName}/score`), (snapshot) => {
-                const data = snapshot.val();
-                if (!data) return;
+        function renderScoreData(data) {
+            if (!data) return;
 
-                if (!tourId && data.tournamentId) {
-                    tourId = data.tournamentId;
-                    attachPointsTable(matchUser, tourId);
-                    attachLeaderboard(matchUser, tourId);
-                }
+            if (!tourId && data.tournamentId) {
+                tourId = data.tournamentId;
+                attachPointsTable(matchUser, tourId);
+                attachLeaderboard(matchUser, tourId);
+            }
 
-                const batTeam = data.batTeamName || "TEAM 1";
-                const bowlTeam = data.bowlTeamName || "TEAM 2";
-                const runs = data.runs ?? 0;
-                const wickets = data.wickets ?? 0;
-                const overs = data.overs || "0.0";
-                const totalOvers = data.totalOvers || "";
+            const batTeam = data.batTeamName || "TEAM 1";
+            const bowlTeam = data.bowlTeamName || "TEAM 2";
+            const runs = data.runs ?? 0;
+            const wickets = data.wickets ?? 0;
+            const overs = data.overs || "0.0";
+            const totalOvers = data.totalOvers || "";
 
-                document.getElementById('match-status').innerText = data.matchEnded ? "FINISHED" : "LIVE";
-                document.getElementById('match-overs-info').innerText = totalOvers ? `Overs: ${overs} / ${totalOvers}` : `Overs: ${overs}`;
-                document.getElementById('team1-name').innerText = batTeam;
-                document.getElementById('team1-score').innerText = `${runs}-${wickets}`;
-                document.getElementById('team2-name').innerText = bowlTeam;
+            document.getElementById('match-status').innerText = data.matchEnded ? "FINISHED" : "LIVE";
+            document.getElementById('match-overs-info').innerText = totalOvers ? `Overs: ${overs} / ${totalOvers}` : `Overs: ${overs}`;
+            document.getElementById('team1-name').innerText = batTeam;
+            document.getElementById('team1-score').innerText = `${runs}-${wickets}`;
+            document.getElementById('team2-name').innerText = bowlTeam;
 
-                if (String(data.innings) === "2" && data.firstInningsRuns !== undefined) {
-                    document.getElementById('team2-score').innerText = `${data.firstInningsRuns} (${data.firstInningsOvers || "0.0"})`;
-                    document.getElementById('team2-score').className = "text-lg font-bold text-slate-300 mt-1";
-                } else {
-                    document.getElementById('team2-score').innerText = "Yet to bat";
-                    document.getElementById('team2-score').className = "text-lg font-bold text-slate-400 mt-1";
-                }
+            if (String(data.innings) === "2" && data.firstInningsRuns !== undefined) {
+                document.getElementById('team2-score').innerText = `${data.firstInningsRuns} (${data.firstInningsOvers || "0.0"})`;
+                document.getElementById('team2-score').className = "text-lg font-bold text-slate-300 mt-1";
+            } else {
+                document.getElementById('team2-score').innerText = "Yet to bat";
+                document.getElementById('team2-score').className = "text-lg font-bold text-slate-400 mt-1";
+            }
 
-                document.getElementById('match-target-info').innerText = data.target || "";
+            document.getElementById('match-target-info').innerText = data.target || "";
 
-                document.getElementById('batter1-name').innerText = (data.bat1Name || "Striker") + " *";
-                document.getElementById('batter1-stats').innerHTML = `${data.bat1Runs ?? 0} <span class="text-xs text-slate-400">(${data.bat1Balls ?? 0})</span>`;
+            document.getElementById('batter1-name').innerText = (data.bat1Name || "Striker") + " *";
+            document.getElementById('batter1-stats').innerHTML = `${data.bat1Runs ?? 0} <span class="text-xs text-slate-400">(${data.bat1Balls ?? 0})</span>`;
 
-                document.getElementById('batter2-name').innerText = data.bat2Name || "Non-Striker";
-                document.getElementById('batter2-stats').innerHTML = `${data.bat2Runs ?? 0} <span class="text-xs text-slate-400">(${data.bat2Balls ?? 0})</span>`;
+            document.getElementById('batter2-name').innerText = data.bat2Name || "Non-Striker";
+            document.getElementById('batter2-stats').innerHTML = `${data.bat2Runs ?? 0} <span class="text-xs text-slate-400">(${data.bat2Balls ?? 0})</span>`;
 
-                document.getElementById('bowler-name').innerText = data.bowlerName || "Bowler";
-                document.getElementById('bowler-stats').innerText = `${data.bowlerFig || "0-0"} (${data.bowlerOvers || "0.0"})`;
+            const bowlerDisplay = data.bowlerName || data.activeBowler || "Bowler";
+            document.getElementById('bowler-name').innerText = bowlerDisplay;
+            document.getElementById('bowler-stats').innerText = `${data.bowlerFig || "0-0"} (${data.bowlerOvers || "0.0"})`;
 
-                const commContainer = document.getElementById('commentary-container');
-                if (Array.isArray(data.currentOverBalls) && data.currentOverBalls.length > 0) {
-                    commContainer.innerHTML = `
-                        <div class="text-xs text-slate-300 pb-2">
-                            <p class="font-bold text-emerald-400 mb-2">Current Over Balls:</p>
-                            <div class="flex flex-wrap gap-2">
-                                ${data.currentOverBalls.map(b => `<span class="px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 font-bold text-amber-300">${b}</span>`).join('')}
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    commContainer.innerHTML = `<p class="text-xs text-slate-500">No balls bowled yet.</p>`;
-                }
-
-                const p1 = parseSquadLines(data.squad1Data, batTeam);
-                const p2 = parseSquadLines(data.squad2Data, bowlTeam);
-                document.getElementById('squads-container').innerHTML = `
-                    <div class="grid grid-cols-2 gap-4 text-xs">
-                        <div>
-                            <p class="font-bold text-slate-200 mb-2">${batTeam}</p>
-                            <ul class="space-y-1 text-slate-400">${p1.length ? p1.map(p => `<li>• ${p}</li>`).join('') : '<li>No players</li>'}</ul>
-                        </div>
-                        <div>
-                            <p class="font-bold text-slate-200 mb-2">${bowlTeam}</p>
-                            <ul class="space-y-1 text-slate-400">${p2.length ? p2.map(p => `<li>• ${p}</li>`).join('') : '<li>No players</li>'}</ul>
+            const commContainer = document.getElementById('commentary-container');
+            if (Array.isArray(data.currentOverBalls) && data.currentOverBalls.length > 0) {
+                commContainer.innerHTML = `
+                    <div class="text-xs text-slate-300 pb-2">
+                        <p class="font-bold text-emerald-400 mb-2">Current Over Balls:</p>
+                        <div class="flex flex-wrap gap-2">
+                            ${data.currentOverBalls.map(b => `<span class="px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 font-bold text-amber-300">${b}</span>`).join('')}
                         </div>
                     </div>
                 `;
-            });
+            } else {
+                commContainer.innerHTML = `<p class="text-xs text-slate-500">No balls bowled yet.</p>`;
+            }
+
+            const p1 = parseSquadLines(data.squad1Data, batTeam);
+            const p2 = parseSquadLines(data.squad2Data, bowlTeam);
+            document.getElementById('squads-container').innerHTML = `
+                <div class="grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                        <p class="font-bold text-slate-200 mb-2">${batTeam}</p>
+                        <ul class="space-y-1 text-slate-400">${p1.length ? p1.map(p => `<li>• ${p}</li>`).join('') : '<li>No players</li>'}</ul>
+                    </div>
+                    <div>
+                        <p class="font-bold text-slate-200 mb-2">${bowlTeam}</p>
+                        <ul class="space-y-1 text-slate-400">${p2.length ? p2.map(p => `<li>• ${p}</li>`).join('') : '<li>No players</li>'}</ul>
+                    </div>
+                </div>
+            `;
         }
 
         function attachPointsTable(uName, tId) {
@@ -373,14 +371,21 @@
             });
         }
 
-        onAuthStateChanged(auth, (user) => {
-            if (!matchUser && user) {
-                matchUser = localStorage.getItem('proCricketUsername') || "user";
+        // সরাসরি live_matches/cricketer/score থেকে রিড
+        onValue(ref(db, `live_matches/${scoreUserNode}/score`), (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                renderScoreData(data);
             }
-            attachScoreListener(matchUser);
+        });
+
+        onAuthStateChanged(auth, () => {
             attachPointsTable(matchUser, tourId);
             attachLeaderboard(matchUser, tourId);
         });
+
+        attachPointsTable(matchUser, tourId);
+        attachLeaderboard(matchUser, tourId);
     </script>
 
     <!-- Tab Switch Script -->
@@ -402,4 +407,3 @@
     </script>
 </body>
 </html>
-
