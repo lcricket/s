@@ -30,7 +30,7 @@
             overflow: hidden; white-space: nowrap; transition: bottom 0.4s ease, opacity 0.3s ease;
             z-index: 10;
         }
-        .scoreboard-container.hidden { bottom: -180px; opacity: 0; }
+        .scoreboard-container.hidden { bottom: -180px; opacity: 0; pointer-events: none; }
 
         .team-overs { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0 15px; background: rgba(0, 0, 0, 0.3); border-right: 1px solid rgba(255, 255, 255, 0.1); flex-shrink: 0; }
         .team-name { font-family: 'Oswald', sans-serif; font-size: 20px; font-weight: 700; line-height: 1.1; letter-spacing: 0.5px; }
@@ -104,7 +104,6 @@
         .bgpl-overs { font-size: 14px; font-weight: 600; text-transform: uppercase; margin-right: 15px; color: #ddd; }
         .bgpl-score { font-family: 'Oswald', sans-serif; font-size: 26px; font-weight: 700; color: #00ff88; }
         
-        /* Red Squad Theme applied to Team 1 and Team 2 */
         .bg-theme-1 { background: linear-gradient(90deg, rgba(211,47,47,0.8), rgba(0,0,0,0.4)); }
         .bg-theme-2 { background: linear-gradient(90deg, rgba(0,0,0,0.4), rgba(211,47,47,0.8)); }
         
@@ -248,7 +247,7 @@
     </div>
 
     <!-- MAIN SCOREBOARD -->
-    <div class="scoreboard-container" id="mainScoreboard">
+    <div class="scoreboard-container hidden" id="mainScoreboard">
         <div class="team-overs">
             <div class="team-name" id="disp-team">TEAM A</div>
             <div class="overs-text"><span id="disp-overs">0.0</span> OVR</div>
@@ -315,16 +314,49 @@
         let activePointsRef = null;
         let activePointsListener = null;
         let wormChartInstance = null;
+        let currentTeamsValid = false; // টিম দুটি সেভ/ভ্যালিড কি না তার স্ট্যাটাস
+
+        // --- TEAM VALIDATION HELPER ---
+        // দুটো টিমের নাম সঠিকভাবে সেট ও সেভ হলেই true রিটার্ন করবে
+        function areTeamsConfigured(data) {
+            if (!data) return false;
+            const bat = String(data.batTeamName || '').trim();
+            const bowl = String(data.bowlTeamName || '').trim();
+
+            const invalidNames = [
+                "", "null", "undefined",
+                "team a", "team b",
+                "batting team", "bowling team"
+            ];
+
+            if (!bat || !bowl) return false;
+            if (invalidNames.includes(bat.toLowerCase())) return false;
+            if (invalidNames.includes(bowl.toLowerCase())) return false;
+            if (bat.toLowerCase() === bowl.toLowerCase()) return false;
+
+            return true;
+        }
 
         // --- QUEUE SYSTEM FOR ANIMATIONS (4, 6, OUT) ---
         function enqueueEvent(eventData) {
+            // টিম দুটো সেভ না থাকলে কোনো লাইভ স্কোরিং অ্যানিমেশন কিউতে যাবে না
+            if (!currentTeamsValid) return;
+
             eventQueue.push(eventData);
             processQueue();
         }
 
         function processQueue() {
+            if (!currentTeamsValid) {
+                eventQueue = [];
+                isEventPlaying = false;
+                document.getElementById('eventScreen').classList.remove('active');
+                document.getElementById('mainScoreboard').classList.add('hidden');
+                return;
+            }
+
             if (isEventPlaying || eventQueue.length === 0) {
-                if (!isEventPlaying && eventQueue.length === 0 && currentMatchUser) {
+                if (!isEventPlaying && eventQueue.length === 0 && currentMatchUser && currentTeamsValid) {
                     document.getElementById('mainScoreboard').classList.remove('hidden');
                 }
                 return;
@@ -335,6 +367,12 @@
         }
 
         function playEventAnimation(evt) {
+            if (!currentTeamsValid) {
+                isEventPlaying = false;
+                document.getElementById('eventScreen').classList.remove('active');
+                return;
+            }
+
             const overlay = document.getElementById('eventScreen');
             const textEl = document.getElementById('eventText');
             const scoreboard = document.getElementById('mainScoreboard');
@@ -655,8 +693,11 @@
         // --- MASTER UI UPDATE FUNCTION ---
         function updateUI(data) {
             if (!data) return;
+
+            // টিম দুটি সঠিকভাবে সেভ হয়েছে কি না চেক করা হচ্ছে
+            currentTeamsValid = areTeamsConfigured(data);
             
-            // 1. Setup Data Listeners
+            // 1. Setup Data Listeners (Points Table, Summary, Squad, Worm Graph সবসময় কাজ করবে)
             setupPointsTableListener(data.tournamentId);
 
             const squadScreen = document.getElementById('squadPresentation'); 
@@ -664,6 +705,7 @@
             const summaryScreen = document.getElementById('matchSummaryOverlay'); 
             const progressionScreen = document.getElementById('progressionOverlay'); 
             const mainBoard = document.getElementById('mainScoreboard');
+            const eventScreen = document.getElementById('eventScreen');
 
             // 2. Toggles (Squads & Points)
             if(data.showSquadsOnScreen) {
@@ -700,11 +742,11 @@
                     let bat = (summary.team1Batters && summary.team1Batters[i]) ? summary.team1Batters[i] : {name: '--', r: '-', b: '-'};
                     let bowl = (summary.team1Bowlers && summary.team1Bowlers[i]) ? summary.team1Bowlers[i] : {name: '--', fig: '-', o: '-'};
                     
-                    if (i === 0 && !data.postMatchSummary) {
+                    if (i === 0 && !data.postMatchSummary && currentTeamsValid) {
                          bat = {name: data.bat1Name || '--', r: data.bat1Runs || '-', b: data.bat1Balls || '-'};
                          bowl = {name: data.bowlerName || '--', fig: data.bowlerFig || '-', o: data.bowlerOvers || '-'};
                     }
-                    if (i === 1 && !data.postMatchSummary) {
+                    if (i === 1 && !data.postMatchSummary && currentTeamsValid) {
                          bat = {name: data.bat2Name || '--', r: data.bat2Runs || '-', b: data.bat2Balls || '-'};
                     }
 
@@ -755,17 +797,29 @@
                 progressionScreen.classList.remove('active');
             }
 
+            // টিম দুটো সেভ না থাকলে লাইভ স্কোরবোর্ড ও লাইভ ইভেন্ট লুকিয়ে রাখুন
+            if (!currentTeamsValid) {
+                mainBoard.classList.add('hidden');
+                eventScreen.classList.remove('active');
+                eventQueue = [];
+                isEventPlaying = false;
+                if (data.triggerId) {
+                    lastTriggerId = data.triggerId;
+                }
+                return;
+            }
+
             // 5. Main Scoreboard Visibility Manager
             if (!data.showSquadsOnScreen && !data.showPointsTableOnScreen && !data.showSummaryOnScreen && !data.showProgressionOnScreen) {
-                if (!document.getElementById('eventScreen').classList.contains('active') && !isEventPlaying) {
+                if (!eventScreen.classList.contains('active') && !isEventPlaying) {
                     mainBoard.classList.remove('hidden');
                 }
             }
             
             // 6. Scoreboard Text & Run Rates Updates
             document.getElementById('disp-team').innerText = data.batTeamName || 'TEAM A';
-            document.getElementById('disp-score').innerHTML = `${data.runs}<span class="wickets">/${data.wickets}</span>`;
-            document.getElementById('disp-overs').innerText = data.overs;
+            document.getElementById('disp-score').innerHTML = `${data.runs || 0}<span class="wickets">/${data.wickets || 0}</span>`;
+            document.getElementById('disp-overs').innerText = data.overs || '0.0';
             
             let currentRuns = parseInt(data.runs) || 0; 
             let totalOvers = parseInt(data.totalOvers) || 10;
@@ -854,5 +908,4 @@
     </script>
 </body>
 </html>
-
 
