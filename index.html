@@ -77,6 +77,7 @@
             letter-spacing: 0.3px;
             display: flex;
             align-items: center;
+            gap: 6px;
         }
 
         .brand-logo img {
@@ -152,8 +153,8 @@
         .side-drawer {
             position: fixed;
             top: 0;
-            left: -290px;
-            width: 280px;
+            left: -295px;
+            width: 285px;
             height: 100%;
             background-color: #ffffff;
             z-index: 1002;
@@ -171,11 +172,15 @@
             align-items: center;
             padding: 14px 18px;
             border-bottom: 1px solid #e4e6eb;
+            background-color: #f8f9fa;
         }
 
         .drawer-header h3 {
-            font-size: 18px;
+            font-size: 17px;
             color: #050505;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .close-drawer {
@@ -196,14 +201,16 @@
             list-style: none;
             padding: 10px;
             overflow-y: auto;
+            flex: 1;
         }
 
         .drawer-links li { margin-bottom: 4px; }
 
-        .drawer-links a {
+        .drawer-links a,
+        .drawer-links .drawer-version-item {
             display: flex;
             align-items: center;
-            gap: 14px;
+            justify-content: space-between;
             padding: 11px 14px;
             text-decoration: none;
             color: #050505;
@@ -211,6 +218,12 @@
             font-weight: 600;
             border-radius: 8px;
             transition: background 0.2s;
+        }
+
+        .drawer-item-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
         }
 
         .drawer-links a:hover {
@@ -222,7 +235,15 @@
             width: 22px;
             text-align: center;
             font-size: 17px;
+        }
+
+        .version-badge-text {
+            font-size: 12px;
+            font-weight: 700;
             color: #0866ff;
+            background: #e7f3ff;
+            padding: 2px 8px;
+            border-radius: 10px;
         }
 
         /* ================= ফেসবুক লগইন পেজ লেআউট ================= */
@@ -244,7 +265,6 @@
             gap: 40px;
         }
 
-        /* বাম পাশের ব্র্যান্ডিং টেক্সট (ডেস্কটপে বামে, মোবাইলে উপরে) */
         .fb-intro-side {
             flex: 1;
             max-width: 500px;
@@ -268,7 +288,6 @@
             font-weight: 400;
         }
 
-        /* ডান পাশের সাদা লগইন কার্ড */
         .fb-card-side {
             width: 100%;
             max-width: 396px;
@@ -287,7 +306,7 @@
             text-align: center;
             font-size: 13px;
             color: #1c1e21;
-            margin-top: 22px;
+            margin-top: 20px;
         }
 
         .fb-card-footer-note a {
@@ -300,7 +319,6 @@
             text-decoration: underline;
         }
 
-        /* মোবাইল রেসপন্সিভ (৭৬৮px এর নিচে এক সারিতে) */
         @media (max-width: 820px) {
             .fb-split-layout {
                 flex-direction: column;
@@ -320,7 +338,6 @@
             }
         }
 
-        /* ইনপুট ফিল্ড এবং ফেসবুক বাটন স্টাইল */
         .fb-input {
             width: 100%;
             padding: 14px 16px;
@@ -351,7 +368,6 @@
             color: #606770;
         }
 
-        /* ফেসবুক নীল লগইন বাটন */
         .btn-fb-login {
             width: 100%;
             background-color: #0866ff;
@@ -371,7 +387,6 @@
             background-color: #1877f2;
         }
 
-        /* পাসওয়ার্ড রিসেট লিংক */
         .fb-forgot-link {
             display: inline-block;
             color: #0866ff;
@@ -386,7 +401,6 @@
             text-decoration: underline;
         }
 
-        /* ডিভাইডার লাইন */
         .fb-divider {
             align-items: center;
             border-bottom: 1px solid #dadde1;
@@ -394,7 +408,6 @@
             margin: 18px 0;
         }
 
-        /* ফেসবুক সবুজ Create New Account বাটন */
         .btn-fb-create {
             background-color: #42b72a;
             border: none;
@@ -442,7 +455,6 @@
             font-weight: 500;
         }
 
-        /* ড্যাশবোর্ড স্টাইল */
         .dashboard-card {
             max-width: 550px;
             margin: 0 auto;
@@ -545,58 +557,103 @@
         </button>
 
         <a href="https://lcricket.github.io/s/feed.html" class="brand-logo">
-            Scoreboard
+            <i class="fa-solid fa-baseball-bat-ball"></i>
+            <span>Scoreboard</span>
         </a>
     </div>
 
-    <!-- আপনার দেওয়া ৬টি বাটন/ট্যাব -->
+    <!-- আপনার দেওয়া ৬টি বাটন/ট্যাব -->
     <nav class="fb-nav-tabs">
-        <a href="https://lcricket.github.io/s/feed.html" class="fb-tab-btn" title="Home">🏠</a>
-        <a href="https://lcricket.github.io/s/match.html" class="fb-tab-btn" title="Tournament">🏆</a>
-        <a href="https://lcricket.github.io/s/tournament_panel.html" class="fb-tab-btn" title="Match">🏏</a>
-        <a href="https://lcricket.github.io/s/controller.html" class="fb-tab-btn" title="Controller">🎛️</a>
-        <a href="https://lcricket.github.io/s/allmatch.html" class="fb-tab-btn" title="Live Match">📡</a>
-        <a href="https://lcricket.github.io/s/profile.html" class="fb-tab-btn active" title="Profile">👤</a>
+        <a href="https://lcricket.github.io/s/feed.html" class="fb-tab-btn" title="Home"><i class="fa-solid fa-house"></i></a>
+        <a href="https://lcricket.github.io/s/match.html" class="fb-tab-btn" title="Tournament"><i class="fa-solid fa-trophy"></i></a>
+        <a href="https://lcricket.github.io/s/tournament_panel.html" class="fb-tab-btn" title="Match"><i class="fa-solid fa-baseball-bat-ball"></i></a>
+        <a href="https://lcricket.github.io/s/controller.html" class="fb-tab-btn" title="Controller"><i class="fa-solid fa-sliders"></i></a>
+        <a href="https://lcricket.github.io/s/allmatch.html" class="fb-tab-btn" title="Live Match"><i class="fa-solid fa-tower-broadcast"></i></a>
+        <a href="https://lcricket.github.io/s/profile.html" class="fb-tab-btn active" title="Profile"><i class="fa-solid fa-circle-user"></i></a>
     </nav>
 </header>
 
-<!-- ================= সাইড মেনু বার (৯টি লিংকসহ) ================= -->
+<!-- ================= সাইড মেনু বার (ছবির ৯টি অপশন ও লোগোসহ) ================= -->
 <div class="overlay" id="overlay" onclick="toggleDrawer()"></div>
 
 <aside class="side-drawer" id="sideDrawer">
     <div class="drawer-header">
-        <h3>Menu</h3>
+        <h3><i class="fa-solid fa-baseball-bat-ball" style="color: #0866ff;"></i> Local Cricket Live</h3>
         <button class="close-drawer" onclick="toggleDrawer()">
             <i class="fa-solid fa-xmark"></i>
         </button>
     </div>
 
     <ul class="drawer-links">
-        <li><a href="SIDE_LINK_1_HERE"><i class="fa-solid fa-house"></i> Home Feed</a></li>
-        <li><a href="SIDE_LINK_2_HERE"><i class="fa-solid fa-trophy"></i> Tournaments</a></li>
-        <li><a href="SIDE_LINK_3_HERE"><i class="fa-solid fa-baseball-bat-ball"></i> Match Panel</a></li>
-        <li><a href="SIDE_LINK_4_HERE"><i class="fa-solid fa-sliders"></i> Live Controller</a></li>
-        <li><a href="SIDE_LINK_5_HERE"><i class="fa-solid fa-tower-broadcast"></i> All Live Matches</a></li>
-        <li><a href="SIDE_LINK_6_HERE"><i class="fa-solid fa-user"></i> My Profile</a></li>
-        <li><a href="SIDE_LINK_7_HERE"><i class="fa-solid fa-coins"></i> Buy Credits</a></li>
-        <li><a href="SIDE_LINK_8_HERE"><i class="fa-solid fa-circle-info"></i> How to Use (OBS)</a></li>
-        <li><a href="SIDE_LINK_9_HERE"><i class="fa-solid fa-headset"></i> Contact Support</a></li>
+        <!-- ১. Login -->
+        <li>
+            <a href="SIDE_LINK_1_HERE">
+                <span class="drawer-item-left"><i class="fa-solid fa-shield-halved" style="color: #0866ff;"></i> Login</span>
+            </a>
+        </li>
+        <!-- ২. Profile -->
+        <li>
+            <a href="SIDE_LINK_2_HERE">
+                <span class="drawer-item-left"><i class="fa-solid fa-user" style="color: #1c1e21;"></i> Profile</span>
+            </a>
+        </li>
+        <!-- ৩. Share -->
+        <li>
+            <a href="SIDE_LINK_3_HERE" onclick="shareApp(event)">
+                <span class="drawer-item-left"><i class="fa-solid fa-share-nodes" style="color: #0866ff;"></i> Share</span>
+            </a>
+        </li>
+        <!-- ৪. More Apps -->
+        <li>
+            <a href="SIDE_LINK_4_HERE">
+                <span class="drawer-item-left"><i class="fa-solid fa-border-all" style="color: #42b72a;"></i> More Apps</span>
+            </a>
+        </li>
+        <!-- ৫. Contact Whatsapp -->
+        <li>
+            <a href="SIDE_LINK_5_HERE" target="_blank">
+                <span class="drawer-item-left"><i class="fa-brands fa-whatsapp" style="color: #25D366;"></i> Contact Whatsapp</span>
+            </a>
+        </li>
+        <!-- ৬. Support -->
+        <li>
+            <a href="SIDE_LINK_6_HERE">
+                <span class="drawer-item-left"><i class="fa-solid fa-headset" style="color: #e67e22;"></i> Support</span>
+            </a>
+        </li>
+        <!-- ৭. privacy Policy -->
+        <li>
+            <a href="SIDE_LINK_7_HERE">
+                <span class="drawer-item-left"><i class="fa-solid fa-file-shield" style="color: #6c5ce7;"></i> privacy Policy</span>
+            </a>
+        </li>
+        <!-- ৮. Apk Rare -->
+        <li>
+            <a href="SIDE_LINK_8_HERE">
+                <span class="drawer-item-left"><i class="fa-solid fa-android" style="color: #3ddc84;"></i> Apk Rare</span>
+            </a>
+        </li>
+        <!-- ৯. App Version -->
+        <li>
+            <div class="drawer-version-item">
+                <span class="drawer-item-left"><i class="fa-solid fa-code-branch" style="color: #0866ff;"></i> App Version</span>
+                <span class="version-badge-text" id="app-version-display">v1.0.0</span>
+            </div>
+        </li>
     </ul>
 </aside>
 
 <!-- ================= মূল পেজ কন্টেইনার ================= -->
 <div class="fb-page-wrapper">
 
-    <!-- ১. ফেসবুক স্টাইল লগইন ও সাইন-আপ ভিউ (লগআউট অবস্থায় দেখাবে) -->
+    <!-- ১. ফেসবুক স্টাইল লগইন ও সাইন-আপ ভিউ -->
     <div id="auth-wrapper" class="fb-split-layout hidden">
         
-        <!-- বাম পাশের ফেসবুক স্টাইল ব্র্যান্ড পরিচিতি -->
         <div class="fb-intro-side">
             <h1 class="fb-hero-title">Scoreboard</h1>
             <p class="fb-hero-subtitle">Broadcast live cricket scores, manage tournaments, and connect with your audience in real time.</p>
         </div>
 
-        <!-- ডান পাশের সাদা কার্ড -->
         <div class="fb-card-side">
             <div class="fb-auth-card">
                 
@@ -609,7 +666,7 @@
                         <span class="toggle-password" onclick="togglePasswordVisibility('login-password', this)">👁</span>
                     </div>
 
-                    <button class="btn-fb-login" onclick="login()">Log In</button>
+                    <button class="btn-fb-login" onclick="login()"><i class="fa-solid fa-right-to-bracket"></i> Log In</button>
                     
                     <div>
                         <span class="fb-forgot-link" onclick="resetPassword()">Forgotten password?</span>
@@ -619,18 +676,18 @@
 
                     <div class="fb-divider"></div>
 
-                    <button class="btn-fb-create" onclick="toggleAuth('signup')">Create new account</button>
+                    <button class="btn-fb-create" onclick="toggleAuth('signup')"><i class="fa-solid fa-user-plus"></i> Create new account</button>
                 </div>
 
                 <!-- Sign-Up Form -->
                 <div id="signup-section" class="hidden">
                     <div class="signup-header">
-                        <h2>Sign Up</h2>
+                        <h2><i class="fa-solid fa-user-plus" style="color: #42b72a;"></i> Sign Up</h2>
                         <p>It's quick and easy.</p>
                     </div>
                     
                     <div class="promo-banner">
-                        🎉 Sign up now and get <b>1 Free Credit</b> instantly!
+                        <i class="fa-solid fa-gift"></i> Sign up now and get <b>1 Free Credit</b> instantly!
                     </div>
 
                     <input type="text" id="signup-username" class="fb-input" placeholder="Username (e.g. indronil)" maxlength="15" required>
@@ -657,23 +714,23 @@
             </div>
 
             <div class="fb-card-footer-note">
-                <a href="https://lcricket.github.io/s/tournament_panel.html">Create a Tournament</a> for your local cricket league or club.
+                <a href="https://lcricket.github.io/s/tournament_panel.html"><i class="fa-solid fa-trophy"></i> Create a Tournament</a> for your local cricket league or club.
             </div>
         </div>
     </div>
 
     <!-- ২. Email Verification Section -->
     <div id="verify-section" class="dashboard-card hidden">
-        <h2 style="color: #0866ff; margin-bottom: 10px;">Verify Your Email</h2>
+        <h2 style="color: #0866ff; margin-bottom: 10px;"><i class="fa-solid fa-envelope-circle-check"></i> Verify Your Email</h2>
         <div style="background: #fff3cd; color: #856404; padding: 12px; border-radius: 6px; font-size: 14px; margin-bottom: 15px; border: 1px solid #ffeeba;">
-            ⚠️ We've sent a verification link to <b><span id="verify-email-display"></span></b>. <br><br>Please check your inbox (and spam folder) and click the link to activate your account.
+            <i class="fa-solid fa-triangle-exclamation"></i> We've sent a verification link to <b><span id="verify-email-display"></span></b>. <br><br>Please check your inbox (and spam folder) and click the link to activate your account.
         </div>
-        <button class="btn-fb-login" style="font-size: 16px; line-height: 40px;" onclick="checkVerification()">✅ I have verified my email</button>
-        <button class="btn-fb-create" style="width: 100%; margin-top: 10px; line-height: 40px;" onclick="resendVerification()">📩 Resend Link</button>
-        <button class="btn-logout" style="width: 100%; margin-top: 10px;" onclick="logout()">Logout</button>
+        <button class="btn-fb-login" style="font-size: 16px; line-height: 40px;" onclick="checkVerification()"><i class="fa-solid fa-check"></i> I have verified my email</button>
+        <button class="btn-fb-create" style="width: 100%; margin-top: 10px; line-height: 40px;" onclick="resendVerification()"><i class="fa-solid fa-paper-plane"></i> Resend Link</button>
+        <button class="btn-logout" style="width: 100%; margin-top: 10px;" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
     </div>
 
-    <!-- ৩. User Dashboard (লগইন করার পর দেখাবে) -->
+    <!-- ৩. User Dashboard -->
     <div id="dashboard-section" class="dashboard-card hidden" style="width: 100%;">
         <div id="homeMainView">
             <h2 style="color: #1c1e21; margin-bottom: 5px;">Welcome, <span id="display-username" style="color: #0866ff;">Loading...</span>!</h2>
@@ -684,31 +741,58 @@
                 </div>
             </div>
 
-            <!-- ক্যামেরা লাইভ ও OBS লিংক বক্স -->
             <div class="link-box">
-                <b style="font-size: 13px; color: #1c1e21;">Copy this Link for CameraFi LIVE & OBS Studio:</b>
+                <b style="font-size: 13px; color: #1c1e21;"><i class="fa-solid fa-link" style="color: #0866ff;"></i> Copy this Link for CameraFi LIVE & OBS Studio:</b>
                 <div class="link-input-group">
                     <input type="text" id="viewer-link-input" readonly onclick="this.select()" placeholder="Generating link...">
-                    <button class="btn-copy" onclick="copyLink()">📋 Copy</button>
+                    <button class="btn-copy" onclick="copyLink()"><i class="fa-regular fa-copy"></i> Copy</button>
                 </div>
             </div>
 
             <div style="margin-top: 15px; display: flex; gap: 10px;">
-                <button class="btn-logout" style="flex: 1;" onclick="logout()">Log Out</button>
-                <button class="btn-delete-acc" style="flex: 1;" onclick="deleteMyAccount()">🗑️ Delete Account</button>
+                <button class="btn-logout" style="flex: 1;" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button>
+                <button class="btn-delete-acc" style="flex: 1;" onclick="deleteMyAccount()"><i class="fa-solid fa-trash"></i> Delete Account</button>
             </div>
         </div>
     </div>
 
 </div>
 
-<!-- সাইড মেনু টগল স্ক্রিপ্ট -->
+<!-- সাইড মেনু, শেয়ার ও অ্যাপ ভার্সন স্ক্রিপ্ট -->
 <script>
+    const APP_VERSION = "v1.0.0";
+
+    function setAppVersion(version) {
+        const el = document.getElementById('app-version-display');
+        if (el && version) el.innerText = version;
+    }
+
+    setAppVersion(APP_VERSION);
+
     function toggleDrawer() {
         const drawer = document.getElementById('sideDrawer');
         const overlay = document.getElementById('overlay');
         drawer.classList.toggle('open');
         overlay.classList.toggle('show');
+    }
+
+    function shareApp(event) {
+        const linkEl = event.currentTarget;
+        const customHref = linkEl.getAttribute('href');
+        // আপনি যদি SIDE_LINK_3_HERE এর বদলে নিজস্ব লিংক বসিয়ে দেন, তবে সরাসরি সেই লিংকেই যাবে
+        if (customHref && customHref !== 'SIDE_LINK_3_HERE' && customHref !== '#') {
+            return;
+        }
+        event.preventDefault();
+        if (navigator.share) {
+            navigator.share({
+                title: 'Local Cricket Live Scoreboard',
+                text: 'Check out Local Cricket Live Scoreboard!',
+                url: window.location.href
+            }).catch(() => {});
+        } else {
+            alert("Share link: " + window.location.href);
+        }
     }
 </script>
 
@@ -735,6 +819,12 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
+
+    onValue(ref(db, 'app_version'), (snap) => {
+        if (snap.exists() && snap.val()) {
+            window.setAppVersion(String(snap.val()));
+        }
+    });
 
     window.normalizeEmail = function(email) {
         if (!email) return "";
