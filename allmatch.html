@@ -6,96 +6,90 @@
     <title>Live Matches</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Hind Siliguri', sans-serif; } 
+    <style>
+        body { font-family: 'Hind Siliguri', sans-serif; }
 
         /* ================= সব পেজের জন্য সমান হেডার ================= */
-.fb-header-wrapper {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 42px;
-    background: #ffffff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-    z-index: 1000;
-    font-family: 'Poppins', sans-serif;
-    text-transform: none;
-    box-sizing: border-box;
-}
+        .fb-header-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 42px;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+            z-index: 1000;
+            font-family: 'Poppins', sans-serif;
+            text-transform: none;
+            box-sizing: border-box;
+        }
 
-.fb-nav-tabs {
-    display: flex;
-    width: 100%;
-    height: 42px;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0;
-    box-sizing: border-box;
-}
+        .fb-nav-tabs {
+            display: flex;
+            width: 100%;
+            height: 42px;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-.fb-tab-btn {
-    flex: 1 1 0;
-    width: 0;
-    height: 42px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    color: #65676b;
-    font-size: 18px;
-    line-height: 1;
-    padding: 0;
-    margin: 0;
-    border: none;
-    border-bottom: 3px solid transparent;
-    background: transparent;
-    box-sizing: border-box;
-    overflow: hidden;
-}
+        .fb-tab-btn {
+            flex: 1 1 0;
+            width: 0;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #65676b;
+            font-size: 18px;
+            line-height: 1;
+            padding: 0;
+            margin: 0;
+            border: none;
+            border-bottom: 3px solid transparent;
+            background: transparent;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
 
-.fb-tab-btn:hover,
-.fb-tab-btn.active {
-    color: #1877f2;
-    border-bottom-color: #1877f2;
-}
-/* ============================================================ */
-    
-    
+        .fb-tab-btn:hover,
+        .fb-tab-btn.active {
+            color: #1877f2;
+            border-bottom-color: #1877f2;
+        }
+        /* ============================================================ */
     </style>
-  
 </head>
-<body class="bg-slate-950 text-white p-4">
-
+<body class="bg-slate-950 text-white p-4 pt-14">
 
     <!-- ================= ফেসবুক স্টাইল হেডার শুরু ================= -->
-<header class="fb-header-wrapper">
-    <nav class="fb-nav-tabs">
-        <!-- Home লোগো -->
-        <a href="https://lcricket.github.io/s/feed.html" class="fb-tab-btn active" title="Home">🏠</a>
+    <header class="fb-header-wrapper">
+        <nav class="fb-nav-tabs">
+            <!-- Home লোগো -->
+            <a href="https://lcricket.github.io/s/feed.html" class="fb-tab-btn active" title="Home">🏠</a>
 
-        <!-- Tournament লোগো -->
-        <a href="https://lcricket.github.io/s/match.html" class="fb-tab-btn" title="Tournament">🏆</a>
-        
-        <!-- Match লোগো -->
-<a href="https://lcricket.github.io/s/tournament_panel.html" class="fb-tab-btn" title="Match">🏏</a>
+            <!-- Tournament লোগো -->
+            <a href="https://lcricket.github.io/s/match.html" class="fb-tab-btn" title="Tournament">🏆</a>
 
-         <!-- Controller লোগো -->
-        <a href="https://lcricket.github.io/s/controller.html" class="fb-tab-btn" title="Controller">🎛️</a>
+            <!-- Match লোগো -->
+            <a href="https://lcricket.github.io/s/tournament_panel.html" class="fb-tab-btn" title="Match">🏏</a>
 
+            <!-- Controller লোগো -->
+            <a href="https://lcricket.github.io/s/controller.html" class="fb-tab-btn" title="Controller">🎛️</a>
 
-        <!-- Live লোগো -->
-        <a href="https://lcricket.github.io/s/allmatch.html" class="fb-tab-btn" title="Live Match">📡</a>
+            <!-- Live লোগো -->
+            <a href="https://lcricket.github.io/s/allmatch.html" class="fb-tab-btn" title="Live Match">📡</a>
 
-        
-        <!-- Profile লোগো -->
-        <a href="https://lcricket.github.io/s/profile.html" class="fb-tab-btn" title="Profile">👤</a>
-    </nav>
-</header>
+            <!-- Profile লোগো -->
+            <a href="https://lcricket.github.io/s/profile.html" class="fb-tab-btn" title="Profile">👤</a>
+        </nav>
+    </header>
 
-    
-    <div class="max-w-md mx-auto">
+    <div id="main-container" class="max-w-md mx-auto">
         <h2 class="text-xl font-bold mb-4 text-amber-400 border-b border-slate-800 pb-2">Ongoing live matches</h2>
-        
+
         <!-- লাইভ ম্যাচের তালিকা এখানে লোড হবে -->
         <div id="match-list-container" class="space-y-3">
             <p class="text-slate-400 text-sm">Match is loading...</p>
@@ -126,10 +120,10 @@
         const urlParams = new URLSearchParams(window.location.search);
         let latestLiveScore = null;
         let latestTourMatches = null;
-        let activeScoreListenerRef = null;
-        let activeScoreListenerFn = null;
+        let unsubscribeScore = null;
+        let unsubscribeTours = null;
 
-        function resolveScoreUserName(authUser) {
+        function resolveScoreUserName() {
             const rawUser = (urlParams.get('u') || localStorage.getItem('proCricketUsername') || "").trim();
             if (!rawUser || rawUser.toLowerCase() === "user" || rawUser.toLowerCase() === "cricketer") {
                 return "cricketer";
@@ -217,31 +211,36 @@
         }
 
         function attachScoreListenerFor(targetUser) {
-            if (activeScoreListenerRef && activeScoreListenerFn) {
-                activeScoreListenerRef();
+            if (unsubscribeScore) {
+                unsubscribeScore();
+                unsubscribeScore = null;
             }
             const scoreRef = ref(db, `live_matches/${targetUser}/score`);
-            activeScoreListenerRef = onValue(scoreRef, (snap) => {
+            unsubscribeScore = onValue(scoreRef, (snap) => {
                 latestLiveScore = snap.val();
                 renderLiveMatches(targetUser);
             });
         }
 
-
         onAuthStateChanged(auth, (user) => {
-        if (user) {
-            currentUserId = user.uid;
-            if (!currentMatchUser) {
-                currentMatchUser = localStorage.getItem('proCricketUsername') || "user";
-            }
-            if (mainContainer) mainContainer.style.display = 'block';
-            initPage();
-        } else {
-            window.location.replace("index.html");
-        }
-    });
+            const targetUser = resolveScoreUserName();
+            attachScoreListenerFor(targetUser);
 
-        
+            if (unsubscribeTours) {
+                unsubscribeTours();
+                unsubscribeTours = null;
+            }
+
+            if (user) {
+                unsubscribeTours = onValue(ref(db, `users/${user.uid}/tournaments`), (snap) => {
+                    latestTourMatches = snap.val();
+                    renderLiveMatches(targetUser);
+                });
+            } else {
+                latestTourMatches = null;
+                renderLiveMatches(targetUser);
+            }
+        });
     </script>
 </body>
 </html>
