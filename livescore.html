@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Full Match View</title>
+    <title>Crex Style Full Match View</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -139,12 +139,21 @@
         const db = getDatabase(app);
 
         const urlParams = new URLSearchParams(window.location.search);
-        const scoreUserNode = "cricketer";
-        let matchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername') || scoreUserNode;
         let tourId = urlParams.get('t') || localStorage.getItem('activeTournamentId') || "";
         let pointsListenerAttached = false;
         let leaderboardListenerAttached = false;
+        let unsubScore = null;
+        let unsubPoints = null;
+        let unsubLeaderboard = null;
         let cachedPlayersData = {};
+
+        function resolveScoreUserName() {
+            const rawUser = (urlParams.get('u') || localStorage.getItem('proCricketUsername') || "").trim();
+            if (!rawUser || rawUser.toLowerCase() === "user" || rawUser.toLowerCase() === "cricketer") {
+                return "cricketer";
+            }
+            return rawUser;
+        }
 
         function parseSquadLines(rawStr, teamLabel) {
             if (!rawStr || typeof rawStr !== "string") return [];
@@ -155,13 +164,13 @@
             return lines;
         }
 
-        function renderScoreData(data) {
+        function renderScoreData(data, targetUser) {
             if (!data) return;
 
             if (!tourId && data.tournamentId) {
                 tourId = data.tournamentId;
-                attachPointsTable(matchUser, tourId);
-                attachLeaderboard(matchUser, tourId);
+                attachPointsTable(targetUser, tourId);
+                attachLeaderboard(targetUser, tourId);
             }
 
             const batTeam = data.batTeamName || "TEAM 1";
@@ -229,10 +238,11 @@
 
         function attachPointsTable(uName, tId) {
             const pointsContainer = document.getElementById('points-container');
-            if (!uName || !tId || pointsListenerAttached) return;
+            if (!uName || !tId) return;
+            if (unsubPoints) unsubPoints();
             pointsListenerAttached = true;
 
-            onValue(ref(db, `live_matches/${uName}/tournaments_data/${tId}/teams`), (snap) => {
+            unsubPoints = onValue(ref(db, `live_matches/${uName}/tournaments_data/${tId}/teams`), (snap) => {
                 if (!snap.exists()) {
                     pointsContainer.innerHTML = `<p class="text-xs text-rose-400 text-center py-3">No teams registered in this tournament yet!</p>`;
                     return;
@@ -362,30 +372,36 @@
         };
 
         function attachLeaderboard(uName, tId) {
-            if (!uName || !tId || leaderboardListenerAttached) return;
+            if (!uName || !tId) return;
+            if (unsubLeaderboard) unsubLeaderboard();
             leaderboardListenerAttached = true;
 
-            onValue(ref(db, `live_matches/${uName}/tournaments_data/${tId}/players`), (snap) => {
+            unsubLeaderboard = onValue(ref(db, `live_matches/${uName}/tournaments_data/${tId}/players`), (snap) => {
                 cachedPlayersData = snap.val() || {};
                 window.renderLiveLeaderboard();
             });
         }
 
-        // সরাসরি live_matches/cricketer/score থেকে রিড
-        onValue(ref(db, `live_matches/${scoreUserNode}/score`), (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                renderScoreData(data);
-            }
-        });
+        function initScoreForResolvedUser() {
+            const targetUser = resolveScoreUserName();
+            if (unsubScore) unsubScore();
+
+            unsubScore = onValue(ref(db, `live_matches/${targetUser}/score`), (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    renderScoreData(data, targetUser);
+                }
+            });
+
+            attachPointsTable(targetUser, tourId);
+            attachLeaderboard(targetUser, tourId);
+        }
 
         onAuthStateChanged(auth, () => {
-            attachPointsTable(matchUser, tourId);
-            attachLeaderboard(matchUser, tourId);
+            initScoreForResolvedUser();
         });
 
-        attachPointsTable(matchUser, tourId);
-        attachLeaderboard(matchUser, tourId);
+        initScoreForResolvedUser();
     </script>
 
     <!-- Tab Switch Script -->
@@ -407,3 +423,4 @@
     </script>
 </body>
 </html>
+
