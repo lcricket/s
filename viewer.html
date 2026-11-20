@@ -314,10 +314,9 @@
         let activePointsRef = null;
         let activePointsListener = null;
         let wormChartInstance = null;
-        let currentTeamsValid = false; // টিম দুটি সেভ/ভ্যালিড কি না তার স্ট্যাটাস
+        let currentTeamsValid = false;
 
         // --- TEAM VALIDATION HELPER ---
-        // দুটো টিমের নাম সঠিকভাবে সেট ও সেভ হলেই true রিটার্ন করবে
         function areTeamsConfigured(data) {
             if (!data) return false;
             const bat = String(data.batTeamName || '').trim();
@@ -339,9 +338,7 @@
 
         // --- QUEUE SYSTEM FOR ANIMATIONS (4, 6, OUT) ---
         function enqueueEvent(eventData) {
-            // টিম দুটো সেভ না থাকলে কোনো লাইভ স্কোরিং অ্যানিমেশন কিউতে যাবে না
             if (!currentTeamsValid) return;
-
             eventQueue.push(eventData);
             processQueue();
         }
@@ -524,16 +521,22 @@
 
         async function setupPointsTableListener(tourId) {
             if (!currentMatchUser) return;
-            if (!tourId || tourId === "null" || tourId === "undefined") {
+
+            const effectiveTourId = (tourId && tourId !== "null" && tourId !== "undefined" && String(tourId).trim() !== "")
+                ? String(tourId).trim()
+                : activeTourIdCache;
+
+            if (!effectiveTourId) {
                 const tbody = document.getElementById('pointsTablePopupBody');
                 tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#ff4757; padding: 20px;">⚠️ No active tournament found.</td></tr>`;
                 return;
             }
-            if (activeTourIdCache === tourId && activePointsRef) return; 
+
+            if (activeTourIdCache === effectiveTourId && activePointsRef) return; 
             if (activePointsRef && activePointsListener) off(activePointsRef, 'value', activePointsListener);
             
-            activeTourIdCache = tourId;
-            activePointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${tourId}/teams/`);
+            activeTourIdCache = effectiveTourId;
+            activePointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${effectiveTourId}/teams/`);
             
             activePointsListener = onValue(activePointsRef, async (snapshot) => {
                 let teams = snapshot.val() || {}; 
@@ -544,7 +547,7 @@
                     const userSnap = await get(userRef);
                     if (userSnap.exists()) {
                         const uid = userSnap.val();
-                        const mainHubRef = ref(db, `users/${uid}/tournaments/${tourId}/teams`);
+                        const mainHubRef = ref(db, `users/${uid}/tournaments/${effectiveTourId}/teams`);
                         const mainHubSnap = await get(mainHubRef);
                         if (mainHubSnap.exists()) {
                             let hubTeams = mainHubSnap.val();
@@ -694,10 +697,9 @@
         function updateUI(data) {
             if (!data) return;
 
-            // টিম দুটি সঠিকভাবে সেভ হয়েছে কি না চেক করা হচ্ছে
             currentTeamsValid = areTeamsConfigured(data);
             
-            // 1. Setup Data Listeners (Points Table, Summary, Squad, Worm Graph সবসময় কাজ করবে)
+            // 1. Setup Points Table Listener first so it always loads/updates
             setupPointsTableListener(data.tournamentId);
 
             const squadScreen = document.getElementById('squadPresentation'); 
@@ -707,7 +709,14 @@
             const mainBoard = document.getElementById('mainScoreboard');
             const eventScreen = document.getElementById('eventScreen');
 
-            // 2. Toggles (Squads & Points)
+            // 2. Toggles (Points Table & Squads always work independently)
+            if(data.showPointsTableOnScreen) { 
+                pointsScreen.classList.add('active'); 
+                mainBoard.classList.add('hidden'); 
+            } else {
+                pointsScreen.classList.remove('active');
+            }
+
             if(data.showSquadsOnScreen) {
                 squadScreen.classList.add('active'); 
                 mainBoard.classList.add('hidden');
@@ -715,13 +724,6 @@
                 formatSquad(data.squad2Data, 't2-title', 't2-list', data.bowlTeamName || 'TEAM B');
             } else {
                 squadScreen.classList.remove('active');
-            }
-
-            if(data.showPointsTableOnScreen) { 
-                pointsScreen.classList.add('active'); 
-                mainBoard.classList.add('hidden'); 
-            } else {
-                pointsScreen.classList.remove('active');
             }
 
             // 3. Toggles (Summary)
@@ -797,7 +799,7 @@
                 progressionScreen.classList.remove('active');
             }
 
-            // টিম দুটো সেভ না থাকলে লাইভ স্কোরবোর্ড ও লাইভ ইভেন্ট লুকিয়ে রাখুন
+            // 5. Lock Main Live Scoreboard & Scoring Animations until both teams are saved
             if (!currentTeamsValid) {
                 mainBoard.classList.add('hidden');
                 eventScreen.classList.remove('active');
@@ -809,14 +811,14 @@
                 return;
             }
 
-            // 5. Main Scoreboard Visibility Manager
+            // 6. Main Scoreboard Visibility Manager
             if (!data.showSquadsOnScreen && !data.showPointsTableOnScreen && !data.showSummaryOnScreen && !data.showProgressionOnScreen) {
                 if (!eventScreen.classList.contains('active') && !isEventPlaying) {
                     mainBoard.classList.remove('hidden');
                 }
             }
             
-            // 6. Scoreboard Text & Run Rates Updates
+            // 7. Scoreboard Text & Run Rates Updates
             document.getElementById('disp-team').innerText = data.batTeamName || 'TEAM A';
             document.getElementById('disp-score').innerHTML = `${data.runs || 0}<span class="wickets">/${data.wickets || 0}</span>`;
             document.getElementById('disp-overs').innerText = data.overs || '0.0';
@@ -887,7 +889,7 @@
             document.getElementById('disp-bowler-fig').innerText = data.bowlerFig || '0-0'; 
             document.getElementById('disp-bowler-overs').innerText = data.bowlerOvers || '0.0';
 
-            // 7. Trigger Animation Queue
+            // 8. Trigger Animation Queue
             if (data.triggerId && data.triggerId !== lastTriggerId && data.triggerEvent && data.triggerEvent !== "") {
                 lastTriggerId = data.triggerId;
                 if (!data.showSquadsOnScreen && !data.showPointsTableOnScreen && !data.showSummaryOnScreen && !data.showProgressionOnScreen) {
@@ -908,4 +910,5 @@
     </script>
 </body>
 </html>
+
 
