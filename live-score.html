@@ -26,17 +26,15 @@
 
     <div class="p-4 max-w-md mx-auto">
 
-        <!-- 1. LIVE TAB (SUMMARY + BATTING ORDER + WICKET SEQUENCE CARD) -->
+        <!-- 1. LIVE TAB (CLEAN LIVE SCOREBOARD CARD) -->
         <div id="live-tab" class="tab-content active">
-            <div class="bg-slate-900 rounded-2xl shadow-xl p-5 border border-slate-800 space-y-4">
-                <!-- Header Status & Overs -->
-                <div class="flex justify-between items-center text-xs text-emerald-400 font-semibold">
+            <div class="bg-slate-900 rounded-2xl shadow-xl p-5 border border-slate-800">
+                <div class="flex justify-between items-center text-xs text-emerald-400 font-semibold mb-3">
                     <span id="match-status" class="bg-emerald-950 px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-800">LIVE</span>
                     <span id="match-overs-info" class="text-slate-400">Overs: 0.0</span>
                 </div>
 
-                <!-- Main Teams & Score -->
-                <div class="flex justify-between items-center bg-slate-800/60 p-4 rounded-xl border border-slate-700/60">
+                <div class="flex justify-between items-center my-4 bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
                     <div class="text-center w-5/12">
                         <h2 id="team1-name" class="text-base font-bold text-slate-200">TEAM 1</h2>
                         <p id="team1-score" class="text-3xl font-extrabold text-amber-400 mt-1">0-0</p>
@@ -48,88 +46,86 @@
                     </div>
                 </div>
 
-                <!-- Target, Run Rates & Wickets/Bowlers Strip -->
-                <div class="bg-slate-800/40 border border-slate-800 rounded-xl p-3 space-y-2">
-                    <p id="match-target-info" class="text-xs text-center text-sky-300 font-semibold">1st Innings is going on...</p>
-                    <div class="flex flex-wrap justify-between items-center gap-2 text-xs border-t border-slate-800 pt-2">
-                        <span id="live-crr-text" class="font-bold text-cyan-400">CRR: 0.00</span>
-                        <span id="live-rrr-text" class="font-bold text-orange-400 hidden">RRR: 0.00</span>
-                        <span id="live-wickets-fallen" class="font-bold text-rose-400">Out: 0</span>
-                        <span id="live-bowlers-count" class="font-bold text-amber-300">Bowlers: 0</span>
-                    </div>
-                </div>
+                <p id="match-target-info" class="text-xs text-center text-sky-300 mb-3"></p>
 
-                <!-- Active Batters & Bowler -->
-                <div class="border-t border-slate-800 pt-3 text-sm space-y-1.5">
+                <div class="mt-4 border-t border-slate-800 pt-3 text-sm">
                     <div class="flex justify-between items-center py-1.5 border-b border-slate-800/60">
-                        <span id="batter1-name" class="text-slate-300 font-bold">Striker *</span>
-                        <span id="batter1-stats" class="font-bold text-emerald-400">0 <span class="text-xs text-slate-400">(0)</span></span>
+                        <span id="batter1-name" class="text-slate-300 font-medium">Striker *</span>
+                        <span id="batter1-stats" class="font-bold text-slate-100">0 <span class="text-xs text-slate-400">(0)</span></span>
                     </div>
-                    <div class="flex justify-between items-center py-1.5 border-b border-slate-800/60">
+                    <div class="flex justify-between items-center py-1.5 mb-3 border-b border-slate-800/60">
                         <span id="batter2-name" class="text-slate-300 font-medium">Non-Striker</span>
                         <span id="batter2-stats" class="font-bold text-slate-100">0 <span class="text-xs text-slate-400">(0)</span></span>
                     </div>
-                    <div class="flex justify-between items-center py-2 px-3 bg-slate-800 rounded-lg border border-slate-700/60 mt-2">
-                        <span id="bowler-name" class="text-amber-300 font-semibold">Bowler</span>
+                    <div class="flex justify-between items-center py-2 bg-slate-800 px-3 rounded-lg border border-slate-700/60">
+                        <span id="bowler-name" class="text-amber-300 font-medium">Bowler</span>
                         <span id="bowler-stats" class="font-bold text-amber-200">0-0 (0.0)</span>
-                    </div>
-                </div>
-
-                <!-- Current Over Balls -->
-                <div class="border-t border-slate-800 pt-3">
-                    <p class="text-xs font-bold text-slate-400 mb-2">Current Over Balls</p>
-                    <div id="live-current-balls" class="flex flex-wrap gap-2">
-                        <span class="text-xs text-slate-500">No balls bowled yet</span>
-                    </div>
-                </div>
-
-                <!-- Summary Sections Inside Live Card -->
-                <div id="live-detailed-summary" class="border-t border-slate-800 pt-3 space-y-3 text-xs">
-                    <!-- Serial Batting Order & Runs -->
-                    <div class="bg-slate-800/40 rounded-xl p-3 border border-slate-800">
-                        <div class="flex justify-between items-center mb-2">
-                            <h4 class="font-bold text-amber-400">🏏 Batting Order & Runs</h4>
-                            <span id="batting-serial-badge" class="text-[11px] text-slate-400">Crease Order</span>
-                        </div>
-                        <div id="summary-batting-list" class="space-y-1.5 text-slate-300">
-                            <p class="text-slate-500">No batting data yet.</p>
-                        </div>
-                    </div>
-
-                    <!-- Out Sequence & Count -->
-                    <div class="bg-slate-800/40 rounded-xl p-3 border border-slate-800">
-                        <div class="flex justify-between items-center mb-2">
-                            <h4 class="font-bold text-rose-400">❌ Out Players & Sequence</h4>
-                            <span id="out-count-badge" class="text-[11px] font-bold text-rose-300">0 Out</span>
-                        </div>
-                        <div id="summary-out-list" class="space-y-1.5 text-slate-300">
-                            <p class="text-slate-500">No wickets fallen yet.</p>
-                        </div>
-                    </div>
-
-                    <!-- Bowling Summary -->
-                    <div class="bg-slate-800/40 rounded-xl p-3 border border-slate-800">
-                        <h4 class="font-bold text-sky-400 mb-2">⚾ Bowling Summary</h4>
-                        <div id="summary-bowling-list" class="space-y-1.5 text-slate-300">
-                            <p class="text-slate-500">No bowling data yet.</p>
-                        </div>
-                    </div>
-
-                    <!-- Over-by-Over Progression -->
-                    <div class="bg-slate-800/40 rounded-xl p-3 border border-slate-800">
-                        <h4 class="font-bold text-emerald-400 mb-2">📊 Over-by-Over Progression</h4>
-                        <div id="summary-overs-list" class="space-y-1.5 text-slate-300">
-                            <p class="text-slate-500">No completed overs yet.</p>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 2. SCORECARD TAB -->
+        <!-- 2. SCORECARD TAB (FULL SUMMARY + BATTING ORDER + OUT + BOWLING) -->
         <div id="scorecard-tab" class="tab-content">
-            <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 text-center text-slate-400 py-10">
-                <p class="text-base font-semibold">The full scorecard will be displayed here in detail.</p>
+            <div class="bg-slate-900 rounded-2xl shadow-xl p-5 border border-slate-800 space-y-4">
+                <!-- Header Match & Overs -->
+                <div class="flex justify-between items-center text-xs border-b border-slate-800 pb-2.5">
+                    <span id="sc-match-title" class="font-bold text-amber-400 text-sm">TEAM 1 vs TEAM 2</span>
+                    <span id="sc-overs-info" class="text-slate-400 font-semibold">Overs: 0.0</span>
+                </div>
+
+                <!-- Score & Run Rates Strip -->
+                <div class="bg-slate-800/50 border border-slate-800 rounded-xl p-3 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span id="sc-batting-team" class="font-bold text-slate-200 text-sm">TEAM 1</span>
+                        <span id="sc-main-score" class="font-extrabold text-amber-400 text-xl">0-0</span>
+                    </div>
+                    <p id="sc-target-msg" class="text-xs text-sky-300 font-semibold">1st Innings is going on...</p>
+                    <div class="flex flex-wrap justify-between items-center gap-2 text-xs border-t border-slate-800 pt-2">
+                        <span id="sc-crr-text" class="font-bold text-cyan-400">CRR: 0.00</span>
+                        <span id="sc-rrr-text" class="font-bold text-orange-400 hidden">RRR: 0.00</span>
+                        <span id="sc-wickets-fallen" class="font-bold text-rose-400">Out: 0</span>
+                        <span id="sc-bowlers-count" class="font-bold text-amber-300">Bowlers: 0</span>
+                    </div>
+                </div>
+
+                <!-- Serial Batting Order & Runs -->
+                <div class="bg-slate-800/40 rounded-xl p-3 border border-slate-800 text-xs">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-bold text-amber-400">🏏 Batting Order & Runs</h4>
+                        <span id="sc-batting-serial-badge" class="text-[11px] text-slate-400">Crease Order</span>
+                    </div>
+                    <div id="sc-batting-list" class="space-y-1.5 text-slate-300">
+                        <p class="text-slate-500">No batting data yet.</p>
+                    </div>
+                </div>
+
+                <!-- Out Players & Sequence -->
+                <div class="bg-slate-800/40 rounded-xl p-3 border border-slate-800 text-xs">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-bold text-rose-400">❌ Out Players & Sequence</h4>
+                        <span id="sc-out-count-badge" class="text-[11px] font-bold text-rose-300">0 Wickets</span>
+                    </div>
+                    <div id="sc-out-list" class="space-y-1.5 text-slate-300">
+                        <p class="text-slate-500">No wickets fallen yet.</p>
+                    </div>
+                </div>
+
+                <!-- Bowling Summary -->
+                <div class="bg-slate-800/40 rounded-xl p-3 border border-slate-800 text-xs">
+                    <h4 class="font-bold text-sky-400 mb-2">⚾ Bowling Summary</h4>
+                    <div id="sc-bowling-list" class="space-y-1.5 text-slate-300">
+                        <p class="text-slate-500">No bowling data yet.</p>
+                    </div>
+                </div>
+
+                <!-- Over-by-Over Progression -->
+                <div class="bg-slate-800/40 rounded-xl p-3 border border-slate-800 text-xs">
+                    <h4 class="font-bold text-emerald-400 mb-2">📊 Over-by-Over Progression</h4>
+                    <div id="sc-overs-list" class="space-y-1.5 text-slate-300">
+                        <p class="text-slate-500">No completed overs yet.</p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -349,42 +345,53 @@
             return html;
         }
 
-        function renderLiveSummaryDetails(data) {
+        function renderScorecardTabDetails(data, batTeam, bowlTeam, runs, wickets, overs, totalOvers, targetMsg, rates) {
+            document.getElementById('sc-match-title').innerText = `${batTeam} vs ${bowlTeam}`;
+            document.getElementById('sc-overs-info').innerText = totalOvers ? `Overs: ${overs} / ${totalOvers}` : `Overs: ${overs}`;
+            document.getElementById('sc-batting-team').innerText = batTeam;
+            document.getElementById('sc-main-score').innerText = `${runs}-${wickets}`;
+            document.getElementById('sc-target-msg').innerText = targetMsg || "1st Innings is going on...";
+
+            document.getElementById('sc-crr-text').innerText = `CRR: ${rates.crr}`;
+            const scRrrEl = document.getElementById('sc-rrr-text');
+            if (rates.rrr !== null) {
+                scRrrEl.innerText = `RRR: ${rates.rrr}`;
+                scRrrEl.classList.remove('hidden');
+            } else {
+                scRrrEl.classList.add('hidden');
+            }
+
             const outList = Array.isArray(data.outPlayers) ? data.outPlayers.filter(Boolean) : [];
             const outCount = outList.length;
-            const totalWickets = parseInt(data.wickets, 10) || outCount;
+            const totalWickets = wickets || outCount;
 
-            document.getElementById('live-wickets-fallen').innerText = `Out: ${totalWickets}`;
-            document.getElementById('out-count-badge').innerText = `${totalWickets} Wicket${totalWickets === 1 ? "" : "s"}`;
+            document.getElementById('sc-wickets-fallen').innerText = `Out: ${totalWickets}`;
+            document.getElementById('sc-out-count-badge').innerText = `${totalWickets} Wicket${totalWickets === 1 ? "" : "s"}`;
 
-            // সিরিয়াল অনুসারে বর্তমান ক্রিজে থাকা ব্যাটারদের পজিশন নির্ণয়
-            // যেমন: শুরুতে #1 ও #2 ব্যাট করে; 1 জন আউট হলে পরেরজন #3, 2 জন আউট হলে #4...
-            const bat1Name = data.bat1Name || "";
-            const bat2Name = data.bat2Name || "";
+            // সিরিয়াল অনুসারে বর্তমান ব্যাটারদের অবস্থান (#1, #2, #3...)
             const activeSlots = [];
-
-            if (bat1Name) {
+            if (data.bat1Name) {
                 activeSlots.push({
-                    name: bat1Name,
+                    name: data.bat1Name,
                     runs: data.bat1Runs ?? 0,
                     balls: data.bat1Balls ?? 0,
                     striker: true
                 });
             }
-            if (bat2Name) {
+            if (data.bat2Name) {
                 activeSlots.push({
-                    name: bat2Name,
+                    name: data.bat2Name,
                     runs: data.bat2Runs ?? 0,
                     balls: data.bat2Balls ?? 0,
                     striker: false
                 });
             }
 
-            const battingListEl = document.getElementById('summary-batting-list');
+            const batListEl = document.getElementById('sc-batting-list');
             if (activeSlots.length > 0) {
                 const basePos = outCount + 1;
-                document.getElementById('batting-serial-badge').innerText = `After ${outCount} Out`;
-                battingListEl.innerHTML = activeSlots.map((slot, idx) => {
+                document.getElementById('sc-batting-serial-badge').innerText = `After ${outCount} Out`;
+                batListEl.innerHTML = activeSlots.map((slot, idx) => {
                     const posNum = basePos + idx;
                     return `
                         <div class="flex justify-between items-center bg-slate-900/70 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
@@ -397,12 +404,12 @@
                     `;
                 }).join('');
             } else {
-                document.getElementById('batting-serial-badge').innerText = "Crease Order";
-                battingListEl.innerHTML = `<p class="text-slate-500">No active batters at crease.</p>`;
+                document.getElementById('sc-batting-serial-badge').innerText = "Crease Order";
+                batListEl.innerHTML = `<p class="text-slate-500">No active batters at crease.</p>`;
             }
 
-            // আউট হওয়া প্লেয়ারদের সিরিয়াল (1st Out, 2nd Out...)
-            const outListEl = document.getElementById('summary-out-list');
+            // আউট হওয়া প্লেয়ারদের সিরিয়াল
+            const outListEl = document.getElementById('sc-out-list');
             if (outList.length > 0) {
                 outListEl.innerHTML = outList.map((pName, idx) => `
                     <div class="flex justify-between items-center bg-rose-950/30 text-rose-200 border border-rose-900/50 px-2.5 py-1.5 rounded-lg">
@@ -439,8 +446,8 @@
             }
 
             const bowlEntries = Object.entries(bowlMap);
-            document.getElementById('live-bowlers-count').innerText = `Bowlers: ${bowlEntries.length}`;
-            const bowlListEl = document.getElementById('summary-bowling-list');
+            document.getElementById('sc-bowlers-count').innerText = `Bowlers: ${bowlEntries.length}`;
+            const bowlListEl = document.getElementById('sc-bowling-list');
             if (bowlEntries.length > 0) {
                 bowlListEl.innerHTML = bowlEntries.map(([bName, st], i) => `
                     <div class="flex justify-between items-center bg-slate-900/70 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
@@ -454,7 +461,7 @@
 
             // ওভার-বাই-ওভার প্রোগ্রেশন
             const overHist = Array.isArray(data.overHistory) ? data.overHistory : [];
-            const oversListEl = document.getElementById('summary-overs-list');
+            const oversListEl = document.getElementById('sc-overs-list');
             if (overHist.length > 0) {
                 oversListEl.innerHTML = overHist.map(ov => `
                     <div class="flex justify-between items-center bg-slate-900/70 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
@@ -485,6 +492,7 @@
             const totalOversNum = parseInt(totalOvers, 10) || 10;
             const targetMsg = data.target || "";
 
+            // Live Tab Update
             document.getElementById('match-status').innerText = data.matchEnded ? "FINISHED" : "LIVE";
             document.getElementById('match-overs-info').innerText = totalOvers ? `Overs: ${overs} / ${totalOvers}` : `Overs: ${overs}`;
             document.getElementById('team1-name').innerText = batTeam;
@@ -499,17 +507,7 @@
                 document.getElementById('team2-score').className = "text-lg font-bold text-slate-400 mt-1";
             }
 
-            document.getElementById('match-target-info').innerText = targetMsg || "1st Innings is going on...";
-
-            const rates = computeRates(runs, overs, targetMsg, totalOversNum);
-            document.getElementById('live-crr-text').innerText = `CRR: ${rates.crr}`;
-            const rrrEl = document.getElementById('live-rrr-text');
-            if (rates.rrr !== null) {
-                rrrEl.innerText = `RRR: ${rates.rrr}`;
-                rrrEl.classList.remove('hidden');
-            } else {
-                rrrEl.classList.add('hidden');
-            }
+            document.getElementById('match-target-info').innerText = targetMsg;
 
             document.getElementById('batter1-name').innerText = (data.bat1Name || "Striker") + " *";
             document.getElementById('batter1-stats').innerHTML = `${data.bat1Runs ?? 0} <span class="text-xs text-slate-400">(${data.bat1Balls ?? 0})</span>`;
@@ -521,24 +519,14 @@
             document.getElementById('bowler-name').innerText = bowlerDisplay;
             document.getElementById('bowler-stats').innerText = `${data.bowlerFig || "0-0"} (${data.bowlerOvers || "0.0"})`;
 
-            const ballsEl = document.getElementById('live-current-balls');
-            if (Array.isArray(data.currentOverBalls) && data.currentOverBalls.length > 0) {
-                ballsEl.innerHTML = data.currentOverBalls.map(b => {
-                    const upper = String(b).toUpperCase().trim();
-                    let cls = "bg-slate-800 text-amber-300 border-slate-700";
-                    if (upper === "4") cls = "bg-emerald-600 text-white border-emerald-500";
-                    else if (upper === "6") cls = "bg-sky-600 text-white border-sky-500";
-                    else if (upper.includes("W") || upper.includes("OUT") || upper === "LBW") cls = "bg-rose-600 text-white border-rose-500";
-                    else if (upper.startsWith("WD") || upper.startsWith("NB") || upper.startsWith("LB")) cls = "bg-amber-500 text-slate-950 border-amber-400";
-                    return `<span class="w-8 h-8 rounded-full border flex items-center justify-center text-xs font-extrabold ${cls}">${b}</span>`;
-                }).join('');
-            } else {
-                ballsEl.innerHTML = `<span class="text-xs text-slate-500">No balls bowled yet</span>`;
-            }
+            // Scorecard Tab Update
+            const rates = computeRates(runs, overs, targetMsg, totalOversNum);
+            renderScorecardTabDetails(data, batTeam, bowlTeam, runs, wickets, overs, totalOvers, targetMsg, rates);
 
-            renderLiveSummaryDetails(data);
+            // Commentary Tab Update
             document.getElementById('commentary-container').innerHTML = buildCommentaryHtml(data);
 
+            // Squads Tab Update
             const p1 = parseSquadLines(data.squad1Data, batTeam);
             const p2 = parseSquadLines(data.squad2Data, bowlTeam);
             document.getElementById('squads-container').innerHTML = `
