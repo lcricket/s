@@ -420,6 +420,21 @@
             event.currentTarget.classList.add('text-amber-400', 'border-b-2', 'border-amber-400');
             event.currentTarget.classList.remove('text-slate-400');
         }
+
+
+        onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUserId = user.uid;
+            if (!currentMatchUser) {
+                currentMatchUser = localStorage.getItem('proCricketUsername') || "user";
+            }
+            if (mainContainer) mainContainer.style.display = 'block';
+            initPage();
+        } else {
+            window.location.replace("index.html");
+        }
+    });
+        
     </script>
 </body>
 </html>
