@@ -41,9 +41,9 @@
         const container = document.getElementById('match-list-container');
 
         const urlParams = new URLSearchParams(window.location.search);
-        let matchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername') || "";
         let latestLiveScore = null;
         let latestTourMatches = null;
+        const scoreUserNode = "cricketer";
 
         function renderLiveMatches() {
             container.innerHTML = "";
@@ -115,7 +115,7 @@
                     const params = new URLSearchParams({
                         matchId: item.matchId,
                         t: item.tourId || "",
-                        u: matchUser || ""
+                        u: urlParams.get('u') || localStorage.getItem('proCricketUsername') || scoreUserNode
                     });
                     window.location.href = `live-score.html?${params.toString()}`;
                 };
@@ -124,20 +124,13 @@
             });
         }
 
-        function listenLiveScore(uName) {
-            if (!uName) return;
-            onValue(ref(db, `live_matches/${uName}/score`), (snap) => {
-                latestLiveScore = snap.val();
-                renderLiveMatches();
-            });
-        }
+        // সরাসরি live_matches/cricketer/score থেকে রিড
+        onValue(ref(db, `live_matches/${scoreUserNode}/score`), (snap) => {
+            latestLiveScore = snap.val();
+            renderLiveMatches();
+        });
 
         onAuthStateChanged(auth, (user) => {
-            if (!matchUser && user) {
-                matchUser = localStorage.getItem('proCricketUsername') || "user";
-            }
-            listenLiveScore(matchUser);
-
             if (user) {
                 onValue(ref(db, `users/${user.uid}/tournaments`), (snap) => {
                     latestTourMatches = snap.val();
@@ -150,4 +143,3 @@
     </script>
 </body>
 </html>
-
