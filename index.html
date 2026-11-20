@@ -4,73 +4,257 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scoreboard - Authentication & Dashboard</title>
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
     <style>
-        * { box-sizing: border-box; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0;
+            padding: 0;
+        }
+
         body { 
             font-family: 'Poppins', sans-serif; 
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
-            display: flex; 
-            flex-direction: column;
-            justify-content: center; 
-            align-items: center; 
             min-height: 100vh; 
-            margin: 0; 
-            padding: 15px;
-            padding-top: 115px; /* ফিক্সড হেডারের জন্য জায়গা */
+            display: flex;
+            flex-direction: column;
         }
 
-        /* ================= সব পেজের জন্য সমান হেডার ================= */
-.fb-header-wrapper {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 42px;
-    background: #ffffff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-    z-index: 1000;
-    font-family: 'Poppins', sans-serif;
-    text-transform: none;
-    box-sizing: border-box;
-}
+        /* ================= এক সারির ফেসবুক স্টাইল হেডার ================= */
+        .fb-single-header {
+            background-color: #ffffff;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 54px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8px;
+            border-bottom: 1px solid #dddfe2;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+            gap: 6px;
+        }
 
-.fb-nav-tabs {
-    display: flex;
-    width: 100%;
-    height: 42px;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0;
-    box-sizing: border-box;
-}
+        /* বাম পাশের থ্রি-লাইন মেনু বাটন এবং লোগো */
+        .left-brand-area {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
 
-.fb-tab-btn {
-    flex: 1 1 0;
-    width: 0;
-    height: 42px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    color: #65676b;
-    font-size: 18px;
-    line-height: 1;
-    padding: 0;
-    margin: 0;
-    border: none;
-    border-bottom: 3px solid transparent;
-    background: transparent;
-    box-sizing: border-box;
-    overflow: hidden;
-}
+        .menu-trigger {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #050505;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 0;
+            transition: background 0.2s;
+        }
 
-.fb-tab-btn:hover,
-.fb-tab-btn.active {
-    color: #1877f2;
-    border-bottom-color: #1877f2;
-}
-/* ============================================================ */
+        .menu-trigger:hover {
+            background-color: #f2f2f2;
+        }
+
+        .brand-logo {
+            color: #1877f2;
+            font-family: 'Oswald', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .brand-logo img {
+            height: 28px;
+            width: auto;
+            display: block;
+        }
+
+        /* হেডারের ৬টি বাটন/ট্যাব */
+        .fb-nav-tabs {
+            display: flex;
+            flex: 1;
+            justify-content: space-around;
+            align-items: center;
+            height: 100%;
+            max-width: 600px;
+        }
+
+        .fb-tab-btn {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #65676b;
+            font-size: 18px;
+            position: relative;
+            transition: background 0.2s;
+            min-width: 32px;
+        }
+
+        .fb-tab-btn:hover {
+            background-color: #f2f2f2;
+            border-radius: 8px;
+            color: #1877f2;
+        }
+
+        .fb-tab-btn.active {
+            color: #1877f2;
+        }
+
+        .fb-tab-btn.active::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 12%;
+            width: 76%;
+            height: 3px;
+            background-color: #1877f2;
+            border-radius: 3px 3px 0 0;
+        }
+
+        @media (max-width: 420px) {
+            .brand-logo {
+                font-size: 18px;
+            }
+            .fb-tab-btn {
+                font-size: 16px;
+            }
+            .menu-trigger {
+                width: 32px;
+                height: 32px;
+                font-size: 18px;
+            }
+        }
+
+        /* ================= সাইড মেনু (Drawer) ================= */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1001;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        .side-drawer {
+            position: fixed;
+            top: 0;
+            left: -290px;
+            width: 280px;
+            height: 100%;
+            background-color: #ffffff;
+            z-index: 1002;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .side-drawer.open {
+            left: 0;
+        }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            border-bottom: 1px solid #e4e6eb;
+        }
+
+        .drawer-header h3 {
+            font-size: 18px;
+            color: #1e3c72;
+            font-family: 'Oswald', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        .close-drawer {
+            background: #e4e6eb;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            color: #050505;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .drawer-links {
+            list-style: none;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .drawer-links li {
+            margin-bottom: 4px;
+        }
+
+        .drawer-links a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 11px 14px;
+            text-decoration: none;
+            color: #050505;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .drawer-links a:hover {
+            background-color: #f0f2f5;
+            color: #1877f2;
+        }
+
+        .drawer-links i {
+            width: 22px;
+            text-align: center;
+            font-size: 17px;
+            color: #1877f2;
+        }
+
+        /* ================= মূল কনটেন্ট ও লগইন বক্স ================= */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 75px 15px 25px 15px; /* হেডারের নিচে জায়গা রাখার জন্য */
+            width: 100%;
+        }
 
         .container { 
             background: #ffffff; 
@@ -81,7 +265,16 @@
             max-width: 650px; 
             text-align: center; 
         }
-        h2 { color: #1e3c72; margin-top: 0; margin-bottom: 15px; font-family: 'Oswald', sans-serif; letter-spacing: 1px; text-transform: uppercase; }
+
+        h2 { 
+            color: #1e3c72; 
+            margin-top: 0; 
+            margin-bottom: 15px; 
+            font-family: 'Oswald', sans-serif; 
+            letter-spacing: 1px; 
+            text-transform: uppercase; 
+        }
+
         input, select, textarea { 
             width: 100%; 
             padding: 10px; 
@@ -89,8 +282,13 @@
             border: 1px solid #ddd; 
             border-radius: 6px; 
             font-size: 14px;
+            font-family: 'Poppins', sans-serif;
         }
-        input:focus, select:focus, textarea:focus { border-color: #2a5298; outline: none; }
+
+        input:focus, select:focus, textarea:focus { 
+            border-color: #2a5298; 
+            outline: none; 
+        }
         
         .password-container { position: relative; width: 100%; }
         .password-container input { padding-right: 40px; }
@@ -105,7 +303,7 @@
             color: #777;
         }
 
-        button { 
+        .action-btn-full { 
             width: 100%; 
             padding: 11px; 
             margin: 8px 0; 
@@ -116,12 +314,17 @@
             font-weight: bold;
             color: #fff; 
             transition: 0.3s;
+            font-family: 'Poppins', sans-serif;
         }
+
         .btn-login { background-color: #28a745; }
+        .btn-login:hover { background-color: #218838; }
         .btn-signup { background-color: #007bff; }
+        .btn-signup:hover { background-color: #0069d9; }
         .btn-logout { background-color: #4a5568; }
+        .btn-logout:hover { background-color: #2d3748; }
         .btn-delete-acc { background-color: #dc3545; }
-        .btn-dash-link { background: #0056b3; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-delete-acc:hover { background-color: #c82333; }
         
         .dashboard-profile-container {
             margin: 15px 0;
@@ -149,6 +352,11 @@
 
         .btn-copy { 
             background-color: #17a2b8; 
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
             padding: 8px 14px; 
             font-size: 14px; 
             margin: 0; 
@@ -194,131 +402,173 @@
             border: 1px solid #c8e1b9;
             font-weight: 500;
         }
-        
-        .credit-box { 
-            background: #e8f5e9;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 17px; 
-            font-weight: bold; 
-            color: #2e7d32; 
-            margin-bottom: 15px; 
-            border: 1px solid #c8e6c9;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
 
-<!-- ================= ফেসবুক স্টাইল হেডার শুরু ================= -->
-<header class="fb-header-wrapper">
-    <nav class="fb-nav-tabs">
-        <!-- Home লোগো -->
-        <a href="https://lcricket.github.io/s/feed.html" class="fb-tab-btn active" title="Home">🏠</a>
+<!-- ================= এক সারির ফেসবুক স্টাইল হেডার শুরু ================= -->
+<header class="fb-single-header">
+    <!-- বাম পাশের থ্রি-লাইন মেনু বাটন ও লোগো -->
+    <div class="left-brand-area">
+        <button class="menu-trigger" onclick="toggleDrawer()" aria-label="Menu">
+            <i class="fa-solid fa-bars"></i>
+        </button>
 
-        <!-- Tournament লোগো -->
+        <!-- লোগো ও হোম লিংক -->
+        <a href="https://lcricket.github.io/s/feed.html" class="brand-logo">
+            Scoreboard
+            <!-- ছবির লোগো দিতে চাইলে উপরের লেখা মুছে নিচের লাইন চালু করুন: -->
+            <!-- <img src="YOUR_LOGO_URL" alt="Logo"> -->
+        </a>
+    </div>
+
+    <!-- একই হেডারের ডান পাশে আপনার দেওয়া ৬টি বাটন/ট্যাব -->
+    <nav class="fb-nav-tabs">
+        <!-- ১. Home -->
+        <a href="https://lcricket.github.io/s/feed.html" class="fb-tab-btn" title="Home">🏠</a>
+
+        <!-- ২. Tournament -->
         <a href="https://lcricket.github.io/s/match.html" class="fb-tab-btn" title="Tournament">🏆</a>
         
-        <!-- Match লোগো -->
-<a href="https://lcricket.github.io/s/tournament_panel.html" class="fb-tab-btn" title="Match">🏏</a>
+        <!-- ৩. Match -->
+        <a href="https://lcricket.github.io/s/tournament_panel.html" class="fb-tab-btn" title="Match">🏏</a>
 
-         <!-- Controller লোগো -->
+        <!-- ৪. Controller -->
         <a href="https://lcricket.github.io/s/controller.html" class="fb-tab-btn" title="Controller">🎛️</a>
 
-
-        <!-- Live লোগো -->
+        <!-- ৫. Live -->
         <a href="https://lcricket.github.io/s/allmatch.html" class="fb-tab-btn" title="Live Match">📡</a>
 
-        
-        <!-- Profile লোগো -->
-        <a href="https://lcricket.github.io/s/profile.html" class="fb-tab-btn" title="Profile">👤</a>
+        <!-- ৬. Profile (Current Active Page) -->
+        <a href="https://lcricket.github.io/s/profile.html" class="fb-tab-btn active" title="Profile">👤</a>
     </nav>
 </header>
+<!-- ================= হেডার শেষ ================= -->
 
-<div class="container">
-    
-    <!-- Login Form -->
-    <div id="login-section" class="hidden">
-        <h2>Sign In</h2>
-        <input type="email" id="login-email" placeholder="Enter your email" required>
-        
-        <div class="password-container">
-            <input type="password" id="login-password" placeholder="Enter password" required>
-            <span class="toggle-password" onclick="togglePasswordVisibility('login-password', this)">👁</span>
-        </div>
+<!-- ================= সাইড মেনু বার (৯টি লিংকসহ) ================= -->
+<div class="overlay" id="overlay" onclick="toggleDrawer()"></div>
 
-        <button class="btn-login" onclick="login()">Login</button>
-        <br>
-        <span class="toggle-text" style="color: #666; font-size: 13px;" onclick="resetPassword()">Forgot Password?</span>
-        <br>
-        <span class="toggle-text" onclick="toggleAuth('signup')">Don't have an account? Sign Up</span>
-        <p id="login-message" class="msg"></p>
+<aside class="side-drawer" id="sideDrawer">
+    <div class="drawer-header">
+        <h3>MENU</h3>
+        <button class="close-drawer" onclick="toggleDrawer()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
     </div>
 
-    <!-- Sign-Up Form -->
-    <div id="signup-section" class="hidden">
-        <h2>Create Account</h2>
+    <ul class="drawer-links">
+        <!-- সাইড মেনুর ৯টি লিংক (এখানে আপনার লিংকগুলো পেস্ট করুন) -->
+        <li><a href="SIDE_LINK_1_HERE"><i class="fa-solid fa-house"></i> Home Feed</a></li>
+        <li><a href="SIDE_LINK_2_HERE"><i class="fa-solid fa-trophy"></i> Tournaments</a></li>
+        <li><a href="SIDE_LINK_3_HERE"><i class="fa-solid fa-baseball-bat-ball"></i> Match Panel</a></li>
+        <li><a href="SIDE_LINK_4_HERE"><i class="fa-solid fa-sliders"></i> Live Controller</a></li>
+        <li><a href="SIDE_LINK_5_HERE"><i class="fa-solid fa-tower-broadcast"></i> All Live Matches</a></li>
+        <li><a href="SIDE_LINK_6_HERE"><i class="fa-solid fa-user"></i> My Profile</a></li>
+        <li><a href="SIDE_LINK_7_HERE"><i class="fa-solid fa-coins"></i> Buy Credits</a></li>
+        <li><a href="SIDE_LINK_8_HERE"><i class="fa-solid fa-circle-info"></i> How to Use (OBS)</a></li>
+        <li><a href="SIDE_LINK_9_HERE"><i class="fa-solid fa-headset"></i> Contact Support</a></li>
+		<li><a href="SIDE_LINK_9_HERE"><i class="fa-solid fa-headset"></i> Contact Support</a></li>
+    </ul>
+</aside>
+<!-- ================= সাইড মেনু শেষ ================= -->
+
+<!-- ================= লগইন / সাইনআপ / ড্যাশবোর্ড কন্টেইনার ================= -->
+<div class="main-wrapper">
+    <div class="container">
         
-        <div class="promo-banner">
-            🎉 Sign up now and get <b>1 Free Credit</b> instantly!
-        </div>
-
-        <input type="text" id="signup-username" placeholder="Username (e.g. indronil)" maxlength="15" required>
-        <input type="email" id="signup-email" placeholder="Enter your email" required>
-        
-        <div class="password-container">
-            <input type="password" id="signup-password" placeholder="Create password" required>
-            <span class="toggle-password" onclick="togglePasswordVisibility('signup-password', this)">👁</span>
-        </div>
-
-        <div style="margin-top: 12px; font-size: 12px; color: #555;">
-            By signing up, you agree to our <a href="#" style="color: #007bff; text-decoration: underline;">Privacy Policy</a> & Terms.
-        </div>
-
-        <button class="btn-signup" onclick="signup()">Register</button>
-        <br>
-        <span class="toggle-text" onclick="toggleAuth('login')">Already have an account? Sign In</span>
-        <p id="signup-message" class="msg" style="color: red;"></p>
-    </div>
-
-    <!-- Email Verification Section -->
-    <div id="verify-section" class="hidden">
-        <h2>Verify Your Email</h2>
-        <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; font-size: 14px; margin-bottom: 15px; border: 1px solid #ffeeba;">
-            ⚠️ We've sent a verification link to <b><span id="verify-email-display"></span></b>. <br><br>Please check your inbox (and spam folder) and click the link to activate your account.
-        </div>
-        <button class="btn-login" onclick="checkVerification()">✅ I have verified my email</button>
-        <button class="btn-signup" onclick="resendVerification()">📩 Resend Link</button>
-        <button class="btn-logout" style="margin-top: 15px;" onclick="logout()">Logout</button>
-    </div>
-
-    <!-- User Dashboard -->
-    <div id="dashboard-section" class="hidden">
-        <div id="homeMainView">
-            <h2 style="text-align: center; margin-bottom: 5px;">Welcome, <span id="display-username" style="color: #ff9800;">Loading...</span>!</h2>
+        <!-- Login Form -->
+        <div id="login-section" class="hidden">
+            <h2>Sign In</h2>
+            <input type="email" id="login-email" placeholder="Enter your email" required>
             
-            <div class="dashboard-profile-container">
-                <div class="dashboard-profile-avatar">
-                    <img id="dashboardLargeAvatar" src="https://via.placeholder.com/110" alt="Profile Avatar" class="dashboard-large-avatar">
-                </div>
+            <div class="password-container">
+                <input type="password" id="login-password" placeholder="Enter password" required>
+                <span class="toggle-password" onclick="togglePasswordVisibility('login-password', this)">👁</span>
             </div>
 
-            <!-- ক্যামেরা লাইভ ও OBS লিংক বক্স -->
-            <div class="link-box">
-                <b style="font-size: 13px; color: #333;">Copy this Link for CameraFi LIVE & OBS Studio:</b>
-                <div class="link-input-group">
-                    <input type="text" id="viewer-link-input" readonly onclick="this.select()" placeholder="Generating link...">
-                    <button class="btn-copy" onclick="copyLink()">📋 Copy</button>
-                </div>
+            <button class="action-btn-full btn-login" onclick="login()">Login</button>
+            <br>
+            <span class="toggle-text" style="color: #666; font-size: 13px;" onclick="resetPassword()">Forgot Password?</span>
+            <br>
+            <span class="toggle-text" onclick="toggleAuth('signup')">Don't have an account? Sign Up</span>
+            <p id="login-message" class="msg"></p>
+        </div>
+
+        <!-- Sign-Up Form -->
+        <div id="signup-section" class="hidden">
+            <h2>Create Account</h2>
+            
+            <div class="promo-banner">
+                🎉 Sign up now and get <b>1 Free Credit</b> instantly!
             </div>
 
-            <div style="margin-top: 15px; display: flex; gap: 10px;">
-                <button class="btn-logout" style="flex: 1;" onclick="logout()">Logout</button>
-                <button class="btn-delete-acc" style="flex: 1; padding: 11px; margin: 8px 0; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; color: #fff; transition: 0.3s;" onclick="deleteMyAccount()">🗑️ Delete Account</button>
+            <input type="text" id="signup-username" placeholder="Username (e.g. indronil)" maxlength="15" required>
+            <input type="email" id="signup-email" placeholder="Enter your email" required>
+            
+            <div class="password-container">
+                <input type="password" id="signup-password" placeholder="Create password" required>
+                <span class="toggle-password" onclick="togglePasswordVisibility('signup-password', this)">👁</span>
+            </div>
+
+            <div style="margin-top: 12px; font-size: 12px; color: #555;">
+                By signing up, you agree to our <a href="#" style="color: #007bff; text-decoration: underline;">Privacy Policy</a> & Terms.
+            </div>
+
+            <button class="action-btn-full btn-signup" onclick="signup()">Register</button>
+            <br>
+            <span class="toggle-text" onclick="toggleAuth('login')">Already have an account? Sign In</span>
+            <p id="signup-message" class="msg" style="color: red;"></p>
+        </div>
+
+        <!-- Email Verification Section -->
+        <div id="verify-section" class="hidden">
+            <h2>Verify Your Email</h2>
+            <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; font-size: 14px; margin-bottom: 15px; border: 1px solid #ffeeba;">
+                ⚠️ We've sent a verification link to <b><span id="verify-email-display"></span></b>. <br><br>Please check your inbox (and spam folder) and click the link to activate your account.
+            </div>
+            <button class="action-btn-full btn-login" onclick="checkVerification()">✅ I have verified my email</button>
+            <button class="action-btn-full btn-signup" onclick="resendVerification()">📩 Resend Link</button>
+            <button class="action-btn-full btn-logout" style="margin-top: 15px;" onclick="logout()">Logout</button>
+        </div>
+
+        <!-- User Dashboard -->
+        <div id="dashboard-section" class="hidden">
+            <div id="homeMainView">
+                <h2 style="text-align: center; margin-bottom: 5px;">Welcome, <span id="display-username" style="color: #ff9800;">Loading...</span>!</h2>
+                
+                <div class="dashboard-profile-container">
+                    <div class="dashboard-profile-avatar">
+                        <img id="dashboardLargeAvatar" src="https://via.placeholder.com/110" alt="Profile Avatar" class="dashboard-large-avatar">
+                    </div>
+                </div>
+
+                <!-- ক্যামেরা লাইভ ও OBS লিংক বক্স -->
+                <div class="link-box">
+                    <b style="font-size: 13px; color: #333;">Copy this Link for CameraFi LIVE & OBS Studio:</b>
+                    <div class="link-input-group">
+                        <input type="text" id="viewer-link-input" readonly onclick="this.select()" placeholder="Generating link...">
+                        <button class="btn-copy" onclick="copyLink()">📋 Copy</button>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <button class="action-btn-full btn-logout" style="flex: 1;" onclick="logout()">Logout</button>
+                    <button class="action-btn-full btn-delete-acc" style="flex: 1;" onclick="deleteMyAccount()">🗑️ Delete Account</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- সাইড মেনু টগল স্ক্রিপ্ট -->
+<script>
+    function toggleDrawer() {
+        const drawer = document.getElementById('sideDrawer');
+        const overlay = document.getElementById('overlay');
+        drawer.classList.toggle('open');
+        overlay.classList.toggle('show');
+    }
+</script>
 
 <!-- Firebase Scripts -->
 <script type="module">
@@ -427,7 +677,6 @@
             return msg.innerText = "Please fill in all fields.";
         }
 
-        // ইউজারনেম স্বয়ংক্রিয়ভাবে ক্লিন ও ফরম্যাট করা (স্পেস বা স্পেশাল ক্যারেক্টার রিমুভ করে ছোট হাতের অক্ষরে রূপান্তর)
         let username = rawInputName
             .toLowerCase()
             .replace(/\s+/g, '')
@@ -462,17 +711,14 @@
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            // সঠিক ইউজারনেম দিয়ে usernames ইনডেক্স তৈরি করা হলো
             await set(ref(db, 'usernames/' + username), user.uid);
             
-            // claimed_emails এ রেকর্ড সেভ করা হলো
             await set(ref(db, 'claimed_emails/' + encodedEmail), {
                 uid: user.uid,
                 claimed_credit: true,
                 signup_date: new Date().toISOString()
             });
             
-            // users/{uid} এ সঠিক ইউজারনেম ও ক্রেডিট সেট করা হলো
             await set(ref(db, `users/${user.uid}`), { 
                 email: email, 
                 username: username,
@@ -573,7 +819,6 @@
         const userId = user.uid;
         const userRef = ref(db, `users/${userId}`);
         
-        // রিয়েলটাইমে ডেটাবেজ থেকে ইউজারের লেটেস্ট তথ্য ও ইউজারনেম ফেচ করা
         onValue(userRef, (snapshot) => {
             if (snapshot.exists()) {
                 const userData = snapshot.val();
@@ -582,7 +827,6 @@
                 localStorage.setItem('proCricketUsername', username);
                 document.getElementById('display-username').innerText = username;
                 
-                // ভিউয়ার লিংক রিয়েলটাইমে আপডেট করা
                 const linkInput = document.getElementById('viewer-link-input');
                 if (linkInput) {
                     linkInput.value = `https://lcricket.github.io/s/viewer.html?u=${username}`;
