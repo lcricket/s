@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Full Match View</title>
+    <title>Crex Style Full Match View</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -83,7 +83,7 @@
         <!-- 4. COMMENTARY TAB -->
         <div id="commentary-tab" class="tab-content">
             <div id="commentary-container" class="bg-slate-900 rounded-2xl p-4 border border-slate-800 space-y-3">
-                <p class="text-xs text-slate-400">No live commentary feed in score node.</p>
+                <p class="text-xs text-slate-400">Commentary is loading...</p>
             </div>
         </div>
 
@@ -91,7 +91,7 @@
         <div id="points-tab" class="tab-content">
             <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800">
                 <h3 class="font-bold text-amber-400 mb-3 text-sm border-b border-slate-800 pb-2">Points Table</h3>
-                <div id="points-container">
+                <div id="points-container" class="overflow-x-auto">
                     <p class="text-xs text-slate-400">Points Table is loading...</p>
                 </div>
             </div>
@@ -100,8 +100,17 @@
         <!-- 6. LEADERBOARD TAB -->
         <div id="leaderboard-tab" class="tab-content">
             <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800">
-                <h3 class="font-bold text-amber-400 mb-3 text-sm border-b border-slate-800 pb-2">Leaderboard</h3>
-                <div id="leaderboard-container">
+                <div class="flex justify-between items-center mb-3 border-b border-slate-800 pb-2 gap-2">
+                    <h3 class="font-bold text-amber-400 text-sm">Leaderboard</h3>
+                    <select id="leaderboardCategorySelect" onchange="window.renderLiveLeaderboard()" class="bg-slate-800 text-slate-200 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-700 outline-none">
+                        <option value="best_scorer">🏏 Best Scorer</option>
+                        <option value="best_bowler">⚾ Best Bowler</option>
+                        <option value="best_wk">🧤 Best WK</option>
+                        <option value="best_fielder">🏃 Best Fielder</option>
+                        <option value="best_catcher">👐 Best Catcher</option>
+                    </select>
+                </div>
+                <div id="leaderboard-container" class="overflow-x-auto">
                     <p class="text-xs text-slate-400">Leaderboard is loading...</p>
                 </div>
             </div>
@@ -109,6 +118,7 @@
 
     </div>
 
+    <!-- Firebase Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
@@ -130,7 +140,10 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         let matchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername') || "";
-        const tourId = urlParams.get('t') || localStorage.getItem('activeTournamentId') || "";
+        let tourId = urlParams.get('t') || localStorage.getItem('activeTournamentId') || "";
+        let pointsListenerAttached = false;
+        let leaderboardListenerAttached = false;
+        let cachedPlayersData = {};
 
         function parseSquadLines(rawStr, teamLabel) {
             if (!rawStr || typeof rawStr !== "string") return [];
@@ -146,6 +159,12 @@
             onValue(ref(db, `live_matches/${uName}/score`), (snapshot) => {
                 const data = snapshot.val();
                 if (!data) return;
+
+                if (!tourId && data.tournamentId) {
+                    tourId = data.tournamentId;
+                    attachPointsTable(matchUser, tourId);
+                    attachLeaderboard(matchUser, tourId);
+                }
 
                 const batTeam = data.batTeamName || "TEAM 1";
                 const bowlTeam = data.bowlTeamName || "TEAM 2";
@@ -179,7 +198,6 @@
                 document.getElementById('bowler-name').innerText = data.bowlerName || "Bowler";
                 document.getElementById('bowler-stats').innerText = `${data.bowlerFig || "0-0"} (${data.bowlerOvers || "0.0"})`;
 
-                // Current over balls as mini commentary
                 const commContainer = document.getElementById('commentary-container');
                 if (Array.isArray(data.currentOverBalls) && data.currentOverBalls.length > 0) {
                     commContainer.innerHTML = `
@@ -190,9 +208,10 @@
                             </div>
                         </div>
                     `;
+                } else {
+                    commContainer.innerHTML = `<p class="text-xs text-slate-500">No balls bowled yet.</p>`;
                 }
 
-                // Squads from squad1Data & squad2Data
                 const p1 = parseSquadLines(data.squad1Data, batTeam);
                 const p2 = parseSquadLines(data.squad2Data, bowlTeam);
                 document.getElementById('squads-container').innerHTML = `
@@ -210,73 +229,147 @@
             });
         }
 
-        function attachTournamentTables(uName, tId) {
-            if (!uName || !tId) return;
+        function attachPointsTable(uName, tId) {
+            const pointsContainer = document.getElementById('points-container');
+            if (!uName || !tId || pointsListenerAttached) return;
+            pointsListenerAttached = true;
 
             onValue(ref(db, `live_matches/${uName}/tournaments_data/${tId}/teams`), (snap) => {
-                const pointsData = snap.val();
-                const pointsContainer = document.getElementById('points-container');
-                if (pointsData) {
-                    let tableHTML = `
-                        <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="text-amber-400 border-b border-slate-800">
-                                    <th class="py-2">Team</th>
-                                    <th class="py-2 text-center">M</th>
-                                    <th class="py-2 text-center">W</th>
-                                    <th class="py-2 text-center">L</th>
-                                    <th class="py-2 text-right">Pts</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-800/60">
-                    `;
-                    Object.values(pointsData).forEach(team => {
-                        tableHTML += `
-                            <tr class="text-slate-300">
-                                <td class="py-2.5 font-semibold">${team.name || ''}</td>
-                                <td class="py-2.5 text-center">${team.matchesPlayed || 0}</td>
-                                <td class="py-2.5 text-center">${team.won || 0}</td>
-                                <td class="py-2.5 text-center">${team.lost || 0}</td>
-                                <td class="py-2.5 text-right font-bold text-amber-400">${team.points || 0}</td>
-                            </tr>
-                        `;
-                    });
-                    tableHTML += `</tbody></table>`;
-                    pointsContainer.innerHTML = tableHTML;
-                } else {
-                    pointsContainer.innerHTML = `<p class="text-xs text-slate-500">No data found.</p>`;
+                if (!snap.exists()) {
+                    pointsContainer.innerHTML = `<p class="text-xs text-rose-400 text-center py-3">No teams registered in this tournament yet!</p>`;
+                    return;
                 }
+
+                const teamsData = snap.val() || {};
+                const teamsArray = Object.keys(teamsData)
+                    .map(key => teamsData[key])
+                    .filter(item => item !== null && typeof item === 'object' && item.name);
+
+                if (teamsArray.length === 0) {
+                    pointsContainer.innerHTML = `<p class="text-xs text-rose-400 text-center py-3">No teams registered in this tournament yet!</p>`;
+                    return;
+                }
+
+                teamsArray.sort((a, b) => {
+                    const ptsA = Number(a.points) || 0;
+                    const ptsB = Number(b.points) || 0;
+                    const nrrA = parseFloat(a.netRunRate) || 0;
+                    const nrrB = parseFloat(b.netRunRate) || 0;
+                    return ptsB - ptsA || nrrB - nrrA;
+                });
+
+                let tableHTML = `
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="text-amber-400 border-b border-slate-800">
+                                <th class="py-2">Team Name</th>
+                                <th class="py-2 text-center">P</th>
+                                <th class="py-2 text-center">W</th>
+                                <th class="py-2 text-center">L</th>
+                                <th class="py-2 text-center">Pts</th>
+                                <th class="py-2 text-right">NRR</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/60">
+                `;
+
+                teamsArray.forEach((team, index) => {
+                    tableHTML += `
+                        <tr class="text-slate-300">
+                            <td class="py-2.5 font-semibold">${index + 1}. ${team.name}</td>
+                            <td class="py-2.5 text-center">${team.matchesPlayed || 0}</td>
+                            <td class="py-2.5 text-center">${team.won || 0}</td>
+                            <td class="py-2.5 text-center">${team.lost || 0}</td>
+                            <td class="py-2.5 text-center font-bold text-emerald-400">${team.points || 0}</td>
+                            <td class="py-2.5 text-right">${team.netRunRate || '+0.000'}</td>
+                        </tr>
+                    `;
+                });
+
+                tableHTML += `</tbody></table>`;
+                pointsContainer.innerHTML = tableHTML;
+            });
+        }
+
+        window.renderLiveLeaderboard = function() {
+            const lbContainer = document.getElementById('leaderboard-container');
+            const cat = document.getElementById('leaderboardCategorySelect').value;
+
+            const pArr = Object.keys(cachedPlayersData).map(name => ({
+                name: name,
+                data: cachedPlayersData[name] || {}
+            }));
+
+            if (pArr.length === 0) {
+                lbContainer.innerHTML = `<p class="text-xs text-slate-500 text-center py-3">No player records found</p>`;
+                return;
+            }
+
+            if (cat === "best_scorer") pArr.sort((a, b) => (b.data.runs || 0) - (a.data.runs || 0));
+            else if (cat === "best_bowler") pArr.sort((a, b) => (b.data.wickets || 0) - (a.data.wickets || 0));
+            else if (cat === "best_wk") pArr.sort((a, b) => (b.data.stumpings || 0) - (a.data.stumpings || 0));
+            else if (cat === "best_fielder") pArr.sort((a, b) => ((b.data.runOuts || 0) + (b.data.catches || 0)) - ((a.data.runOuts || 0) + (a.data.catches || 0)));
+            else if (cat === "best_catcher") pArr.sort((a, b) => (b.data.catches || 0) - (a.data.catches || 0));
+
+            let lbHTML = `
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="text-amber-400 border-b border-slate-800">
+                            <th class="py-2 w-10">Pos</th>
+                            <th class="py-2">Player & Stats</th>
+                            <th class="py-2 text-right">Stat</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60">
+            `;
+
+            pArr.forEach((p, idx) => {
+                let statText = "";
+                let mainVal = "";
+
+                if (cat === "best_scorer") {
+                    const sr = p.data.balls > 0 ? ((p.data.runs / p.data.balls) * 100).toFixed(1) : "0.0";
+                    mainVal = `${p.data.runs || 0} <span class="text-[11px] font-normal text-slate-400">(${p.data.balls || 0}b)</span>`;
+                    statText = `SR: ${sr} | 4s: ${p.data.fours || 0} | 6s: ${p.data.sixes || 0} | Mat: ${p.data.matchesPlayed || 1}`;
+                } else if (cat === "best_bowler") {
+                    const ovFloat = parseFloat(p.data.oversBowled) || 0;
+                    const econ = ovFloat > 0 ? (p.data.runsConceded / ovFloat).toFixed(1) : "0.0";
+                    mainVal = `${p.data.wickets || 0} Wkts`;
+                    statText = `Econ: ${econ} | Ov: ${p.data.oversBowled || "0.0"} | R: ${p.data.runsConceded || 0} | Mat: ${p.data.matchesPlayed || 1}`;
+                } else if (cat === "best_wk") {
+                    mainVal = `${p.data.stumpings || 0} Stumps`;
+                    statText = `Catches: ${p.data.catches || 0} | Mat: ${p.data.matchesPlayed || 1}`;
+                } else if (cat === "best_fielder") {
+                    mainVal = `${(p.data.runOuts || 0) + (p.data.catches || 0)} Dismissals`;
+                    statText = `RO: ${p.data.runOuts || 0} | Catches: ${p.data.catches || 0} | Mat: ${p.data.matchesPlayed || 1}`;
+                } else if (cat === "best_catcher") {
+                    mainVal = `${p.data.catches || 0} Catches`;
+                    statText = `RO: ${p.data.runOuts || 0} | Mat: ${p.data.matchesPlayed || 1}`;
+                }
+
+                lbHTML += `
+                    <tr class="text-slate-300">
+                        <td class="py-2.5 font-bold text-amber-400 align-top">${idx + 1}.</td>
+                        <td class="py-2.5">
+                            <div class="font-bold text-slate-100 text-sm">${p.name}</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">${statText}</div>
+                        </td>
+                        <td class="py-2.5 text-right font-bold text-emerald-400 whitespace-nowrap align-top">${mainVal}</td>
+                    </tr>
+                `;
             });
 
+            lbHTML += `</tbody></table>`;
+            lbContainer.innerHTML = lbHTML;
+        };
+
+        function attachLeaderboard(uName, tId) {
+            if (!uName || !tId || leaderboardListenerAttached) return;
+            leaderboardListenerAttached = true;
+
             onValue(ref(db, `live_matches/${uName}/tournaments_data/${tId}/players`), (snap) => {
-                const lbData = snap.val();
-                const lbContainer = document.getElementById('leaderboard-container');
-                if (lbData) {
-                    let lbHTML = `
-                        <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="text-amber-400 border-b border-slate-800">
-                                    <th class="py-2">Player</th>
-                                    <th class="py-2 text-center">Mat</th>
-                                    <th class="py-2 text-right">Runs / Wkts</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-800/60">
-                    `;
-                    Object.entries(lbData).forEach(([pName, p]) => {
-                        lbHTML += `
-                            <tr class="text-slate-300">
-                                <td class="py-2.5 font-semibold">${pName}</td>
-                                <td class="py-2.5 text-center">${p.matchesPlayed || 0}</td>
-                                <td class="py-2.5 text-right font-bold text-amber-400">${p.runs || 0} / ${p.wickets || 0}</td>
-                            </tr>
-                        `;
-                    });
-                    lbHTML += `</tbody></table>`;
-                    lbContainer.innerHTML = lbHTML;
-                } else {
-                    lbContainer.innerHTML = `<p class="text-xs text-slate-500">No data found.</p>`;
-                }
+                cachedPlayersData = snap.val() || {};
+                window.renderLiveLeaderboard();
             });
         }
 
@@ -285,7 +378,8 @@
                 matchUser = localStorage.getItem('proCricketUsername') || "user";
             }
             attachScoreListener(matchUser);
-            attachTournamentTables(matchUser, tourId);
+            attachPointsTable(matchUser, tourId);
+            attachLeaderboard(matchUser, tourId);
         });
     </script>
 
@@ -308,5 +402,4 @@
     </script>
 </body>
 </html>
-
 
