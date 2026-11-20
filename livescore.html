@@ -46,9 +46,11 @@
                     </div>
                 </div>
 
+                <p id="match-target-info" class="text-xs text-center text-sky-300 mb-3"></p>
+
                 <div class="mt-4 border-t border-slate-800 pt-3 text-sm">
                     <div class="flex justify-between items-center py-1.5 border-b border-slate-800/60">
-                        <span id="batter1-name" class="text-slate-300 font-medium">Striker (C)</span>
+                        <span id="batter1-name" class="text-slate-300 font-medium">Striker *</span>
                         <span id="batter1-stats" class="font-bold text-slate-100">0 <span class="text-xs text-slate-400">(0)</span></span>
                     </div>
                     <div class="flex justify-between items-center py-1.5 mb-3 border-b border-slate-800/60">
@@ -81,7 +83,7 @@
         <!-- 4. COMMENTARY TAB -->
         <div id="commentary-tab" class="tab-content">
             <div id="commentary-container" class="bg-slate-900 rounded-2xl p-4 border border-slate-800 space-y-3">
-                <p class="text-xs text-slate-400">Commentary is loading...</p>
+                <p class="text-xs text-slate-400">No live commentary feed in score node.</p>
             </div>
         </div>
 
@@ -107,11 +109,10 @@
 
     </div>
 
-    <!-- Firebase Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-        import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyABphVo2kWvqHEkxWSsZuDvnyXk05XzX-0",
@@ -128,184 +129,163 @@
         const db = getDatabase(app);
 
         const urlParams = new URLSearchParams(window.location.search);
-        const matchId = urlParams.get('matchId') || urlParams.get('m');
-        const tourId = urlParams.get('t');
+        let matchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername') || "";
+        const tourId = urlParams.get('t') || localStorage.getItem('activeTournamentId') || "";
 
-        async function loadTeamsSquads(userId, tId, t1Name, t2Name) {
-            const squadsContainer = document.getElementById('squads-container');
-            if (!userId || !tId) {
-                squadsContainer.innerHTML = `<p class="text-xs text-slate-500">No squad data available.</p>`;
-                return;
+        function parseSquadLines(rawStr, teamLabel) {
+            if (!rawStr || typeof rawStr !== "string") return [];
+            const lines = rawStr.split('\n').map(s => s.trim()).filter(Boolean);
+            if (lines.length > 0 && lines[0].toLowerCase() === (teamLabel || "").toLowerCase()) {
+                return lines.slice(1);
             }
-            try {
-                const teamsSnap = await get(ref(db, `users/${userId}/tournaments/${tId}/teams`));
-                if (teamsSnap.exists()) {
-                    const teams = teamsSnap.val();
-                    const p1 = teams[t1Name]?.players || [];
-                    const p2 = teams[t2Name]?.players || [];
-                    squadsContainer.innerHTML = `
-                        <div class="grid grid-cols-2 gap-4 text-xs">
-                            <div>
-                                <p class="font-bold text-slate-200 mb-2">${t1Name || 'Team 1'}</p>
-                                <ul class="space-y-1 text-slate-400">${p1.length ? p1.map(p => `<li>• ${p}</li>`).join('') : '<li>No players</li>'}</ul>
-                            </div>
-                            <div>
-                                <p class="font-bold text-slate-200 mb-2">${t2Name || 'Team 2'}</p>
-                                <ul class="space-y-1 text-slate-400">${p2.length ? p2.map(p => `<li>• ${p}</li>`).join('') : '<li>No players</li>'}</ul>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    squadsContainer.innerHTML = `<p class="text-xs text-slate-500">No squad data found.</p>`;
-                }
-            } catch (e) {
-                console.error(e);
-            }
+            return lines;
         }
 
-        function attachMatchListener(path, userId, tId) {
-            const matchRef = ref(db, path);
-            onValue(matchRef, (snapshot) => {
+        function attachScoreListener(uName) {
+            if (!uName) return;
+            onValue(ref(db, `live_matches/${uName}/score`), (snapshot) => {
                 const data = snapshot.val();
                 if (!data) return;
 
-                const t1Name = data.team1 || data.team1Name || urlParams.get('t1') || "TEAM 1";
-                const t2Name = data.team2 || data.team2Name || urlParams.get('t2') || "TEAM 2";
-                const runs = data.runs ?? data.score ?? 0;
+                const batTeam = data.batTeamName || "TEAM 1";
+                const bowlTeam = data.bowlTeamName || "TEAM 2";
+                const runs = data.runs ?? 0;
                 const wickets = data.wickets ?? 0;
+                const overs = data.overs || "0.0";
+                const totalOvers = data.totalOvers || "";
 
-                document.getElementById('match-status').innerText = (data.status === "running" ? "LIVE" : (data.status || "LIVE")).toUpperCase();
-                document.getElementById('match-overs-info').innerText = "Overs: " + (data.overs || "0.0");
-                document.getElementById('team1-name').innerText = t1Name;
+                document.getElementById('match-status').innerText = data.matchEnded ? "FINISHED" : "LIVE";
+                document.getElementById('match-overs-info').innerText = totalOvers ? `Overs: ${overs} / ${totalOvers}` : `Overs: ${overs}`;
+                document.getElementById('team1-name').innerText = batTeam;
                 document.getElementById('team1-score').innerText = `${runs}-${wickets}`;
-                document.getElementById('team2-name').innerText = t2Name;
+                document.getElementById('team2-name').innerText = bowlTeam;
 
-                if (data.team2Score) {
-                    document.getElementById('team2-score').innerText = data.team2Score;
-                    document.getElementById('team2-score').className = "text-3xl font-extrabold text-amber-400 mt-1";
+                if (String(data.innings) === "2" && data.firstInningsRuns !== undefined) {
+                    document.getElementById('team2-score').innerText = `${data.firstInningsRuns} (${data.firstInningsOvers || "0.0"})`;
+                    document.getElementById('team2-score').className = "text-lg font-bold text-slate-300 mt-1";
+                } else {
+                    document.getElementById('team2-score').innerText = "Yet to bat";
+                    document.getElementById('team2-score').className = "text-lg font-bold text-slate-400 mt-1";
                 }
 
-                document.getElementById('batter1-name').innerText = data.batter1Name || "Striker";
-                document.getElementById('batter1-stats').innerHTML = `${data.batter1Runs || 0} <span class="text-xs text-slate-400">(${data.batter1Balls || 0})</span>`;
+                document.getElementById('match-target-info').innerText = data.target || "";
 
-                document.getElementById('batter2-name').innerText = data.batter2Name || "Non-Striker";
-                document.getElementById('batter2-stats').innerHTML = `${data.batter2Runs || 0} <span class="text-xs text-slate-400">(${data.batter2Balls || 0})</span>`;
+                document.getElementById('batter1-name').innerText = (data.bat1Name || "Striker") + " *";
+                document.getElementById('batter1-stats').innerHTML = `${data.bat1Runs ?? 0} <span class="text-xs text-slate-400">(${data.bat1Balls ?? 0})</span>`;
+
+                document.getElementById('batter2-name').innerText = data.bat2Name || "Non-Striker";
+                document.getElementById('batter2-stats').innerHTML = `${data.bat2Runs ?? 0} <span class="text-xs text-slate-400">(${data.bat2Balls ?? 0})</span>`;
 
                 document.getElementById('bowler-name').innerText = data.bowlerName || "Bowler";
-                document.getElementById('bowler-stats').innerText = `${data.bowlerWickets || 0}-${data.bowlerRuns || 0} (${data.bowlerOvers || 0.0})`;
+                document.getElementById('bowler-stats').innerText = `${data.bowlerFig || "0-0"} (${data.bowlerOvers || "0.0"})`;
 
-                // কমেন্ট্রি লোড
+                // Current over balls as mini commentary
                 const commContainer = document.getElementById('commentary-container');
-                if (data.commentary) {
-                    commContainer.innerHTML = "";
-                    Object.values(data.commentary).reverse().forEach(item => {
-                        commContainer.innerHTML += `
-                            <div class="text-xs text-slate-300 border-b border-slate-800 pb-2.5 pt-1 flex items-start gap-2">
-                                <span class="font-bold text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded">${item.over || ''}</span> 
-                                <span>${item.text || ''}</span>
-                            </div>
-                        `;
-                    });
-                } else {
-                    commContainer.innerHTML = `<p class="text-xs text-slate-500">No commentary yet.</p>`;
-                }
-
-                // স্কোয়াড লোড
-                if (data.squads) {
-                    document.getElementById('squads-container').innerHTML = `
-                        <div class="grid grid-cols-2 gap-4 text-xs">
-                            <div>
-                                <p class="font-bold text-slate-200 mb-2">${t1Name}</p>
-                                <ul class="space-y-1 text-slate-400">${(data.squads.team1 || []).map(p => `<li>• ${p}</li>`).join('')}</ul>
-                            </div>
-                            <div>
-                                <p class="font-bold text-slate-200 mb-2">${t2Name}</p>
-                                <ul class="space-y-1 text-slate-400">${(data.squads.team2 || []).map(p => `<li>• ${p}</li>`).join('')}</ul>
+                if (Array.isArray(data.currentOverBalls) && data.currentOverBalls.length > 0) {
+                    commContainer.innerHTML = `
+                        <div class="text-xs text-slate-300 pb-2">
+                            <p class="font-bold text-emerald-400 mb-2">Current Over Balls:</p>
+                            <div class="flex flex-wrap gap-2">
+                                ${data.currentOverBalls.map(b => `<span class="px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 font-bold text-amber-300">${b}</span>`).join('')}
                             </div>
                         </div>
                     `;
+                }
+
+                // Squads from squad1Data & squad2Data
+                const p1 = parseSquadLines(data.squad1Data, batTeam);
+                const p2 = parseSquadLines(data.squad2Data, bowlTeam);
+                document.getElementById('squads-container').innerHTML = `
+                    <div class="grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <p class="font-bold text-slate-200 mb-2">${batTeam}</p>
+                            <ul class="space-y-1 text-slate-400">${p1.length ? p1.map(p => `<li>• ${p}</li>`).join('') : '<li>No players</li>'}</ul>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-200 mb-2">${bowlTeam}</p>
+                            <ul class="space-y-1 text-slate-400">${p2.length ? p2.map(p => `<li>• ${p}</li>`).join('') : '<li>No players</li>'}</ul>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function attachTournamentTables(uName, tId) {
+            if (!uName || !tId) return;
+
+            onValue(ref(db, `live_matches/${uName}/tournaments_data/${tId}/teams`), (snap) => {
+                const pointsData = snap.val();
+                const pointsContainer = document.getElementById('points-container');
+                if (pointsData) {
+                    let tableHTML = `
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="text-amber-400 border-b border-slate-800">
+                                    <th class="py-2">Team</th>
+                                    <th class="py-2 text-center">M</th>
+                                    <th class="py-2 text-center">W</th>
+                                    <th class="py-2 text-center">L</th>
+                                    <th class="py-2 text-right">Pts</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/60">
+                    `;
+                    Object.values(pointsData).forEach(team => {
+                        tableHTML += `
+                            <tr class="text-slate-300">
+                                <td class="py-2.5 font-semibold">${team.name || ''}</td>
+                                <td class="py-2.5 text-center">${team.matchesPlayed || 0}</td>
+                                <td class="py-2.5 text-center">${team.won || 0}</td>
+                                <td class="py-2.5 text-center">${team.lost || 0}</td>
+                                <td class="py-2.5 text-right font-bold text-amber-400">${team.points || 0}</td>
+                            </tr>
+                        `;
+                    });
+                    tableHTML += `</tbody></table>`;
+                    pointsContainer.innerHTML = tableHTML;
                 } else {
-                    loadTeamsSquads(userId, tId, t1Name, t2Name);
+                    pointsContainer.innerHTML = `<p class="text-xs text-slate-500">No data found.</p>`;
+                }
+            });
+
+            onValue(ref(db, `live_matches/${uName}/tournaments_data/${tId}/players`), (snap) => {
+                const lbData = snap.val();
+                const lbContainer = document.getElementById('leaderboard-container');
+                if (lbData) {
+                    let lbHTML = `
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="text-amber-400 border-b border-slate-800">
+                                    <th class="py-2">Player</th>
+                                    <th class="py-2 text-center">Mat</th>
+                                    <th class="py-2 text-right">Runs / Wkts</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/60">
+                    `;
+                    Object.entries(lbData).forEach(([pName, p]) => {
+                        lbHTML += `
+                            <tr class="text-slate-300">
+                                <td class="py-2.5 font-semibold">${pName}</td>
+                                <td class="py-2.5 text-center">${p.matchesPlayed || 0}</td>
+                                <td class="py-2.5 text-right font-bold text-amber-400">${p.runs || 0} / ${p.wickets || 0}</td>
+                            </tr>
+                        `;
+                    });
+                    lbHTML += `</tbody></table>`;
+                    lbContainer.innerHTML = lbHTML;
+                } else {
+                    lbContainer.innerHTML = `<p class="text-xs text-slate-500">No data found.</p>`;
                 }
             });
         }
 
         onAuthStateChanged(auth, (user) => {
-            if (user && tourId && matchId) {
-                attachMatchListener(`users/${user.uid}/tournaments/${tourId}/matches/${matchId}`, user.uid, tourId);
-            } else if (matchId) {
-                attachMatchListener(`matches/${matchId}`, null, null);
+            if (!matchUser && user) {
+                matchUser = localStorage.getItem('proCricketUsername') || "user";
             }
-        });
-
-        // পয়েন্ট টেবিল লোড
-        const pointsRef = ref(db, 'pointsTable');
-        onValue(pointsRef, (snapshot) => {
-            const pointsData = snapshot.val();
-            const pointsContainer = document.getElementById('points-container');
-            if (pointsData) {
-                let tableHTML = `
-                    <table class="w-full text-left text-xs border-collapse">
-                        <thead>
-                            <tr class="text-amber-400 border-b border-slate-800">
-                                <th class="py-2">Team</th>
-                                <th class="py-2 text-center">M</th>
-                                <th class="py-2 text-center">W</th>
-                                <th class="py-2 text-center">L</th>
-                                <th class="py-2 text-right">Pts</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800/60">
-                `;
-                Object.values(pointsData).forEach(team => {
-                    tableHTML += `
-                        <tr class="text-slate-300">
-                            <td class="py-2.5 font-semibold">${team.name || ''}</td>
-                            <td class="py-2.5 text-center">${team.played || 0}</td>
-                            <td class="py-2.5 text-center">${team.won || 0}</td>
-                            <td class="py-2.5 text-center">${team.lost || 0}</td>
-                            <td class="py-2.5 text-right font-bold text-amber-400">${team.points || 0}</td>
-                        </tr>
-                    `;
-                });
-                tableHTML += `</tbody></table>`;
-                pointsContainer.innerHTML = tableHTML;
-            } else {
-                pointsContainer.innerHTML = `<p class="text-xs text-slate-500">No data found.</p>`;
-            }
-        });
-
-        // লিডারবোর্ড লোড
-        const leaderboardRef = ref(db, 'leaderboard');
-        onValue(leaderboardRef, (snapshot) => {
-            const lbData = snapshot.val();
-            const lbContainer = document.getElementById('leaderboard-container');
-            if (lbData) {
-                let lbHTML = `
-                    <table class="w-full text-left text-xs border-collapse">
-                        <thead>
-                            <tr class="text-amber-400 border-b border-slate-800">
-                                <th class="py-2">Player</th>
-                                <th class="py-2 text-center">Matches</th>
-                                <th class="py-2 text-right">Runs/Wkts</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800/60">
-                `;
-                Object.values(lbData).forEach(player => {
-                    lbHTML += `
-                        <tr class="text-slate-300">
-                            <td class="py-2.5 font-semibold">${player.name || ''}</td>
-                            <td class="py-2.5 text-center">${player.matches || 0}</td>
-                            <td class="py-2.5 text-right font-bold text-amber-400">${player.score || 0}</td>
-                        </tr>
-                    `;
-                });
-                lbHTML += `</tbody></table>`;
-                lbContainer.innerHTML = lbHTML;
-            } else {
-                lbContainer.innerHTML = `<p class="text-xs text-slate-500">No data found.</p>`;
-            }
+            attachScoreListener(matchUser);
+            attachTournamentTables(matchUser, tourId);
         });
     </script>
 
@@ -328,4 +308,5 @@
     </script>
 </body>
 </html>
+
 
