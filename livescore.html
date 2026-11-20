@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crex Style Full Match View</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Hind Siliguri', sans-serif; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="bg-slate-950 text-white pb-10">
+
+    <!-- Top Navigation Tabs -->
+    <div class="flex bg-slate-900 border-b border-slate-800 sticky top-0 z-50 overflow-x-auto">
+        <button onclick="switchTab(event, 'live-tab')" class="tab-btn px-4 py-3 text-sm font-bold text-amber-400 border-b-2 border-amber-400 whitespace-nowrap">Live</button>
+        <button onclick="switchTab(event, 'scorecard-tab')" class="tab-btn px-4 py-3 text-sm font-semibold text-slate-400 whitespace-nowrap">Scorecard</button>
+        <button onclick="switchTab(event, 'squads-tab')" class="tab-btn px-4 py-3 text-sm font-semibold text-slate-400 whitespace-nowrap">Squads</button>
+        <button onclick="switchTab(event, 'commentary-tab')" class="tab-btn px-4 py-3 text-sm font-semibold text-slate-400 whitespace-nowrap">Commentary</button>
+        <button onclick="switchTab(event, 'points-tab')" class="tab-btn px-4 py-3 text-sm font-semibold text-slate-400 whitespace-nowrap">Points Table</button>
+        <button onclick="switchTab(event, 'leaderboard-tab')" class="tab-btn px-4 py-3 text-sm font-semibold text-slate-400 whitespace-nowrap">Leaderboard</button>
+    </div>
+
+    <div class="p-4 max-w-md mx-auto">
+
+        <!-- 1. LIVE TAB -->
+        <div id="live-tab" class="tab-content active">
+            <div class="bg-slate-900 rounded-2xl shadow-xl p-5 border border-slate-800">
+                <div class="flex justify-between items-center text-xs text-emerald-400 font-semibold mb-3">
+                    <span id="match-status" class="bg-emerald-950 px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-800">LIVE</span>
+                    <span id="match-overs-info" class="text-slate-400">Overs: 0.0</span>
+                </div>
+
+                <div class="flex justify-between items-center my-4 bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                    <div class="text-center w-5/12">
+                        <h2 id="team1-name" class="text-base font-bold text-slate-200">TEAM 1</h2>
+                        <p id="team1-score" class="text-3xl font-extrabold text-amber-400 mt-1">0-0</p>
+                    </div>
+                    <div class="text-xs text-slate-500 font-black uppercase tracking-widest">VS</div>
+                    <div class="text-center w-5/12">
+                        <h2 id="team2-name" class="text-base font-bold text-slate-200">TEAM 2</h2>
+                        <p id="team2-score" class="text-lg font-bold text-slate-400 mt-1">Yet to bat</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 border-t border-slate-800 pt-3 text-sm">
+                    <div class="flex justify-between items-center py-1.5 border-b border-slate-800/60">
+                        <span id="batter1-name" class="text-slate-300 font-medium">Striker (C)</span>
+                        <span id="batter1-stats" class="font-bold text-slate-100">0 <span class="text-xs text-slate-400">(0)</span></span>
+                    </div>
+                    <div class="flex justify-between items-center py-1.5 mb-3 border-b border-slate-800/60">
+                        <span id="batter2-name" class="text-slate-300 font-medium">Non-Striker</span>
+                        <span id="batter2-stats" class="font-bold text-slate-100">0 <span class="text-xs text-slate-400">(0)</span></span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 bg-slate-800 px-3 rounded-lg border border-slate-700/60">
+                        <span id="bowler-name" class="text-amber-300 font-medium">Bowler</span>
+                        <span id="bowler-stats" class="font-bold text-amber-200">0-0-0-0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. SCORECARD TAB -->
+        <div id="scorecard-tab" class="tab-content">
+            <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 text-center text-slate-400 py-10">
+                <p class="text-base font-semibold">The full scorecard will be displayed here in detail.</p>
+            </div>
+        </div>
+
+        <!-- 3. SQUADS TAB -->
+        <div id="squads-tab" class="tab-content">
+            <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800">
+                <h3 class="font-bold text-amber-400 mb-2">খেলোয়াড় তালিকা (Playing XI)</h3>
+                <div id="squads-container" class="text-xs text-slate-400">Squads is loading...</div>
+            </div>
+        </div>
+
+        <!-- 4. COMMENTARY TAB -->
+        <div id="commentary-tab" class="tab-content">
+            <div id="commentary-container" class="bg-slate-900 rounded-2xl p-4 border border-slate-800 space-y-3">
+                <p class="text-xs text-slate-400">Commentary is loading...</p>
+            </div>
+        </div>
+
+        <!-- 5. POINTS TABLE TAB -->
+        <div id="points-tab" class="tab-content">
+            <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800">
+                <h3 class="font-bold text-amber-400 mb-3 text-sm border-b border-slate-800 pb-2">Points Table</h3>
+                <div id="points-container">
+                    <p class="text-xs text-slate-400">Points Table is loading...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. LEADERBOARD TAB -->
+        <div id="leaderboard-tab" class="tab-content">
+            <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800">
+                <h3 class="font-bold text-amber-400 mb-3 text-sm border-b border-slate-800 pb-2">Leaderboard</h3>
+                <div id="leaderboard-container">
+                    <p class="text-xs text-slate-400">Leaderboard is loading...</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyABphVo2kWvqHEkxWSsZuDvnyXk05XzX-0",
+            authDomain: "cricket-score-d187a.firebaseapp.com",
+            databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
+            projectId: "cricket-score-d187a",
+            storageBucket: "cricket-score-d187a.appspot.com",
+            messagingSenderId: "782741896785",
+            appId: "1:782741896785:android:ca8c45a9120f7784928270"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const matchId = urlParams.get('matchId') || 'match_01';
+
+        // ১. নির্দিষ্ট ম্যাচের লাইভ ডেটা রিড করা
+        const matchRef = ref(db, `matches/${matchId}`);
+        onValue(matchRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                document.getElementById('match-status').innerText = data.status || "LIVE";
+                document.getElementById('match-overs-info').innerText = "Overs: " + (data.overs || "0.0");
+                document.getElementById('team1-name').innerText = data.team1Name || "TEAM 1";
+                document.getElementById('team1-score').innerText = `${data.runs || 0}-${data.wickets || 0}`;
+                document.getElementById('team2-name').innerText = data.team2Name || "TEAM 2";
+                
+                document.getElementById('batter1-name').innerText = data.batter1Name || "Striker";
+                document.getElementById('batter1-stats').innerHTML = `${data.batter1Runs || 0} <span class="text-xs text-slate-400">(${data.batter1Balls || 0})</span>`;
+                
+                document.getElementById('batter2-name').innerText = data.batter2Name || "Non-Striker";
+                document.getElementById('batter2-stats').innerHTML = `${data.batter2Runs || 0} <span class="text-xs text-slate-400">(${data.batter2Balls || 0})</span>`;
+                
+                document.getElementById('bowler-name').innerText = data.bowlerName || "Bowler";
+                document.getElementById('bowler-stats').innerText = `${data.bowlerWickets || 0}-${data.bowlerRuns || 0} (${data.bowlerOvers || 0.0})`;
+
+                // কমেন্ট্রি লোড
+                if (data.commentary) {
+                    const commContainer = document.getElementById('commentary-container');
+                    commContainer.innerHTML = "";
+                    Object.values(data.commentary).reverse().forEach(item => {
+                        commContainer.innerHTML += `
+                            <div class="text-xs text-slate-300 border-b border-slate-800 pb-2.5 pt-1 flex items-start gap-2">
+                                <span class="font-bold text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded">${item.over || ''}</span> 
+                                <span>${item.text || ''}</span>
+                            </div>
+                        `;
+                    });
+                }
+
+                // স্কোয়াড লোড
+                if (data.squads) {
+                    document.getElementById('squads-container').innerHTML = `
+                        <div class="grid grid-cols-2 gap-4 text-xs">
+                            <div>
+                                <p class="font-bold text-slate-200 mb-2">${data.team1Name || 'Team 1'}</p>
+                                <ul class="space-y-1 text-slate-400">${(data.squads.team1 || []).map(p => `<li>• ${p}</li>`).join('')}</ul>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-200 mb-2">${data.team2Name || 'Team 2'}</p>
+                                <ul class="space-y-1 text-slate-400">${(data.squads.team2 || []).map(p => `<li>• ${p}</li>`).join('')}</ul>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        });
+
+        // ২. আলাদা পয়েন্ট টেবিল নোড রিড করা (যদি রুট লেভেলে pointsTable থাকে)
+        const pointsRef = ref(db, 'pointsTable');
+        onValue(pointsRef, (snapshot) => {
+            const pointsData = snapshot.val();
+            const pointsContainer = document.getElementById('points-container');
+            if (pointsData) {
+                let tableHTML = `
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="text-amber-400 border-b border-slate-800">
+                                <th class="py-2">Team</th>
+                                <th class="py-2 text-center">M</th>
+                                <th class="py-2 text-center">W</th>
+                                <th class="py-2 text-center">L</th>
+                                <th class="py-2 text-right">Pts</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/60">
+                `;
+                Object.values(pointsData).forEach(team => {
+                    tableHTML += `
+                        <tr class="text-slate-300">
+                            <td class="py-2.5 font-semibold">${team.name || ''}</td>
+                            <td class="py-2.5 text-center">${team.played || 0}</td>
+                            <td class="py-2.5 text-center">${team.won || 0}</td>
+                            <td class="py-2.5 text-center">${team.lost || 0}</td>
+                            <td class="py-2.5 text-right font-bold text-amber-400">${team.points || 0}</td>
+                        </tr>
+                    `;
+                });
+                tableHTML += `</tbody></table>`;
+                pointsContainer.innerHTML = tableHTML;
+            } else {
+                pointsContainer.innerHTML = `<p class="text-xs text-slate-500">No data found.</p>`;
+            }
+        });
+
+        // ৩. আলাদা লিডারবোর্ড নোড রিড করা (যদি রুট লেভেলে leaderboard থাকে)
+        const leaderboardRef = ref(db, 'leaderboard');
+        onValue(leaderboardRef, (snapshot) => {
+            const lbData = snapshot.val();
+            const lbContainer = document.getElementById('leaderboard-container');
+            if (lbData) {
+                let lbHTML = `
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="text-amber-400 border-b border-slate-800">
+                                <th class="py-2">Player</th>
+                                <th class="py-2 text-center">Matches</th>
+                                <th class="py-2 text-right">Runs/Wkts</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/60">
+                `;
+                Object.values(lbData).forEach(player => {
+                    lbHTML += `
+                        <tr class="text-slate-300">
+                            <td class="py-2.5 font-semibold">${player.name || ''}</td>
+                            <td class="py-2.5 text-center">${player.matches || 0}</td>
+                            <td class="py-2.5 text-right font-bold text-amber-400">${player.score || 0}</td>
+                        </tr>
+                    `;
+                });
+                lbHTML += `</tbody></table>`;
+                lbContainer.innerHTML = lbHTML;
+            } else {
+                lbContainer.innerHTML = `<p class="text-xs text-slate-500">No data found.</p>`;
+            }
+        });
+    </script>
+
+    <!-- Tab Switch Script -->
+    <script>
+        function switchTab(event, tabId) {
+            const contents = document.getElementsByClassName('tab-content');
+            for (let c of contents) c.classList.remove('active');
+            
+            const buttons = document.getElementsByClassName('tab-btn');
+            for (let b of buttons) {
+                b.classList.remove('text-amber-400', 'border-b-2', 'border-amber-400');
+                b.classList.add('text-slate-400');
+            }
+            
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('text-amber-400', 'border-b-2', 'border-amber-400');
+            event.currentTarget.classList.remove('text-slate-400');
+        }
+    </script>
+</body>
+</html>
+
