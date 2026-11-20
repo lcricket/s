@@ -572,7 +572,7 @@
     </nav>
 </header>
 
-<!-- ================= সাইড মেনু বার (ছবির ৯টি অপশন ও লোগোসহ) ================= -->
+<!-- ================= সাইড মেনু বার (৯টি অপশন ও লোগোসহ) ================= -->
 <div class="overlay" id="overlay" onclick="toggleDrawer()"></div>
 
 <aside class="side-drawer" id="sideDrawer">
@@ -604,31 +604,31 @@
         </li>
         <!-- ৪. More Apps -->
         <li>
-            <a href="https://play.google.com/store/apps/dev?id=6590894441433938633">
+            <a href="https://play.google.com/store/apps/dev?id=6590894441433938633" target="_blank" rel="noopener noreferrer">
                 <span class="drawer-item-left"><i class="fa-solid fa-border-all" style="color: #42b72a;"></i> More Apps</span>
             </a>
         </li>
-        <!-- ৫. Contact Whatsapp (অটো মেসেজসহ) -->
-       <li>
-           <a href="https://wa.me/918327321495?text=Hello%20Local%20Cricket%20Live%20Support%2C%20I%20need%20help." target="_blank" rel="noopener noreferrer">
-            <span class="drawer-item-left"><i class="fa-brands fa-whatsapp" style="color: #25D366;"></i> Contact Whatsapp</span>
-           </a>
-          </li>
+        <!-- ৫. Contact Whatsapp -->
+        <li>
+            <a href="https://wa.me/918327321495?text=Hello%20Local%20Cricket%20Live%20Support%2C%20I%20need%20help." target="_blank" rel="noopener noreferrer">
+                <span class="drawer-item-left"><i class="fa-brands fa-whatsapp" style="color: #25D366;"></i> Contact Whatsapp</span>
+            </a>
+        </li>
         <!-- ৬. Support -->
         <li>
-            <a href="https://www.facebook.com/kolkatasports0">
+            <a href="https://www.facebook.com/kolkatasports0" target="_blank" rel="noopener noreferrer">
                 <span class="drawer-item-left"><i class="fa-solid fa-headset" style="color: #e67e22;"></i> Support</span>
             </a>
         </li>
         <!-- ৭. privacy Policy -->
         <li>
-            <a href="https://doc-hosting.flycricket.io/cricket-live-with-scoreboard-privacy-policy/190919ed-e06d-4196-bae2-d63052765d2d/privacy">
+            <a href="https://doc-hosting.flycricket.io/cricket-live-with-scoreboard-privacy-policy/190919ed-e06d-4196-bae2-d63052765d2d/privacy" target="_blank" rel="noopener noreferrer">
                 <span class="drawer-item-left"><i class="fa-solid fa-file-shield" style="color: #6c5ce7;"></i> privacy Policy</span>
             </a>
         </li>
         <!-- ৮. Apk Rare -->
         <li>
-            <a href="https://play.google.com/store/apps/details?id=com.localcricket">
+            <a href="https://play.google.com/store/apps/details?id=com.localcricket" target="_blank" rel="noopener noreferrer">
                 <span class="drawer-item-left"><i class="fa-solid fa-android" style="color: #3ddc84;"></i> Apk Rare</span>
             </a>
         </li>
@@ -641,6 +641,35 @@
         </li>
     </ul>
 </aside>
+
+<script>
+    const APP_VERSION = "v1.8";
+    const versionEl = document.getElementById('app-version-display');
+    if (versionEl) versionEl.innerText = APP_VERSION;
+
+    function toggleDrawer() {
+        const drawer = document.getElementById('sideDrawer');
+        const overlay = document.getElementById('overlay');
+        if (drawer && overlay) {
+            drawer.classList.toggle('open');
+            overlay.classList.toggle('show');
+        }
+    }
+
+    function shareApp(event) {
+        const shareUrl = event.currentTarget.getAttribute('href');
+        if (navigator.share) {
+            event.preventDefault();
+            navigator.share({
+                title: 'Local Cricket Live Scoreboard',
+                text: 'Download Local Cricket Live Scoreboard App:',
+                url: shareUrl
+            }).catch(() => {
+                window.open(shareUrl, '_blank');
+            });
+        }
+    }
+</script>
 
 <!-- ================= মূল পেজ কন্টেইনার ================= -->
 <div class="fb-page-wrapper">
