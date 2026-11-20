@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Matches</title>
+    <title>Live Cricket Matches</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
     <style> body { font-family: 'Hind Siliguri', sans-serif; } </style>
@@ -43,9 +43,18 @@
         const urlParams = new URLSearchParams(window.location.search);
         let latestLiveScore = null;
         let latestTourMatches = null;
-        const scoreUserNode = "cricketer";
+        let activeScoreListenerRef = null;
+        let activeScoreListenerFn = null;
 
-        function renderLiveMatches() {
+        function resolveScoreUserName(authUser) {
+            const rawUser = (urlParams.get('u') || localStorage.getItem('proCricketUsername') || "").trim();
+            if (!rawUser || rawUser.toLowerCase() === "user" || rawUser.toLowerCase() === "cricketer") {
+                return "cricketer";
+            }
+            return rawUser;
+        }
+
+        function renderLiveMatches(targetUser) {
             container.innerHTML = "";
             const cards = [];
 
@@ -115,7 +124,7 @@
                     const params = new URLSearchParams({
                         matchId: item.matchId,
                         t: item.tourId || "",
-                        u: urlParams.get('u') || localStorage.getItem('proCricketUsername') || scoreUserNode
+                        u: targetUser
                     });
                     window.location.href = `live-score.html?${params.toString()}`;
                 };
@@ -124,22 +133,31 @@
             });
         }
 
-        // সরাসরি live_matches/cricketer/score থেকে রিড
-        onValue(ref(db, `live_matches/${scoreUserNode}/score`), (snap) => {
-            latestLiveScore = snap.val();
-            renderLiveMatches();
-        });
+        function attachScoreListenerFor(targetUser) {
+            if (activeScoreListenerRef && activeScoreListenerFn) {
+                activeScoreListenerRef();
+            }
+            const scoreRef = ref(db, `live_matches/${targetUser}/score`);
+            activeScoreListenerRef = onValue(scoreRef, (snap) => {
+                latestLiveScore = snap.val();
+                renderLiveMatches(targetUser);
+            });
+        }
 
         onAuthStateChanged(auth, (user) => {
+            const targetUser = resolveScoreUserName(user);
+            attachScoreListenerFor(targetUser);
+
             if (user) {
                 onValue(ref(db, `users/${user.uid}/tournaments`), (snap) => {
                     latestTourMatches = snap.val();
-                    renderLiveMatches();
+                    renderLiveMatches(targetUser);
                 });
             } else {
-                renderLiveMatches();
+                renderLiveMatches(targetUser);
             }
         });
     </script>
 </body>
 </html>
+
