@@ -57,7 +57,7 @@
                     </div>
                     <div class="flex justify-between items-center py-2 bg-slate-800 px-3 rounded-lg border border-slate-700/60">
                         <span id="bowler-name" class="text-amber-300 font-medium">Bowler</span>
-                        <span id="bowler-stats" class="font-bold text-amber-200">0-0-0-0</span>
+                        <span id="bowler-stats" class="font-bold text-amber-200">0-0 (0.0)</span>
                     </div>
                 </div>
             </div>
@@ -109,48 +109,94 @@
 
     <!-- Firebase Script -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyABphVo2kWvqHEkxWSsZuDvnyXk05XzX-0",
             authDomain: "cricket-score-d187a.firebaseapp.com",
             databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
             projectId: "cricket-score-d187a",
-            storageBucket: "cricket-score-d187a.appspot.com",
+            storageBucket: "cricket-score-d187a.firebasestorage.app",
             messagingSenderId: "782741896785",
             appId: "1:782741896785:android:ca8c45a9120f7784928270"
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getDatabase(app);
 
         const urlParams = new URLSearchParams(window.location.search);
-        const matchId = urlParams.get('matchId') || 'match_01';
+        const matchId = urlParams.get('matchId') || urlParams.get('m');
+        const tourId = urlParams.get('t');
 
-        // ১. নির্দিষ্ট ম্যাচের লাইভ ডেটা রিড করা
-        const matchRef = ref(db, `matches/${matchId}`);
-        onValue(matchRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                document.getElementById('match-status').innerText = data.status || "LIVE";
+        async function loadTeamsSquads(userId, tId, t1Name, t2Name) {
+            const squadsContainer = document.getElementById('squads-container');
+            if (!userId || !tId) {
+                squadsContainer.innerHTML = `<p class="text-xs text-slate-500">No squad data available.</p>`;
+                return;
+            }
+            try {
+                const teamsSnap = await get(ref(db, `users/${userId}/tournaments/${tId}/teams`));
+                if (teamsSnap.exists()) {
+                    const teams = teamsSnap.val();
+                    const p1 = teams[t1Name]?.players || [];
+                    const p2 = teams[t2Name]?.players || [];
+                    squadsContainer.innerHTML = `
+                        <div class="grid grid-cols-2 gap-4 text-xs">
+                            <div>
+                                <p class="font-bold text-slate-200 mb-2">${t1Name || 'Team 1'}</p>
+                                <ul class="space-y-1 text-slate-400">${p1.length ? p1.map(p => `<li>• ${p}</li>`).join('') : '<li>No players</li>'}</ul>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-200 mb-2">${t2Name || 'Team 2'}</p>
+                                <ul class="space-y-1 text-slate-400">${p2.length ? p2.map(p => `<li>• ${p}</li>`).join('') : '<li>No players</li>'}</ul>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    squadsContainer.innerHTML = `<p class="text-xs text-slate-500">No squad data found.</p>`;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function attachMatchListener(path, userId, tId) {
+            const matchRef = ref(db, path);
+            onValue(matchRef, (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+
+                const t1Name = data.team1 || data.team1Name || urlParams.get('t1') || "TEAM 1";
+                const t2Name = data.team2 || data.team2Name || urlParams.get('t2') || "TEAM 2";
+                const runs = data.runs ?? data.score ?? 0;
+                const wickets = data.wickets ?? 0;
+
+                document.getElementById('match-status').innerText = (data.status === "running" ? "LIVE" : (data.status || "LIVE")).toUpperCase();
                 document.getElementById('match-overs-info').innerText = "Overs: " + (data.overs || "0.0");
-                document.getElementById('team1-name').innerText = data.team1Name || "TEAM 1";
-                document.getElementById('team1-score').innerText = `${data.runs || 0}-${data.wickets || 0}`;
-                document.getElementById('team2-name').innerText = data.team2Name || "TEAM 2";
-                
+                document.getElementById('team1-name').innerText = t1Name;
+                document.getElementById('team1-score').innerText = `${runs}-${wickets}`;
+                document.getElementById('team2-name').innerText = t2Name;
+
+                if (data.team2Score) {
+                    document.getElementById('team2-score').innerText = data.team2Score;
+                    document.getElementById('team2-score').className = "text-3xl font-extrabold text-amber-400 mt-1";
+                }
+
                 document.getElementById('batter1-name').innerText = data.batter1Name || "Striker";
                 document.getElementById('batter1-stats').innerHTML = `${data.batter1Runs || 0} <span class="text-xs text-slate-400">(${data.batter1Balls || 0})</span>`;
-                
+
                 document.getElementById('batter2-name').innerText = data.batter2Name || "Non-Striker";
                 document.getElementById('batter2-stats').innerHTML = `${data.batter2Runs || 0} <span class="text-xs text-slate-400">(${data.batter2Balls || 0})</span>`;
-                
+
                 document.getElementById('bowler-name').innerText = data.bowlerName || "Bowler";
                 document.getElementById('bowler-stats').innerText = `${data.bowlerWickets || 0}-${data.bowlerRuns || 0} (${data.bowlerOvers || 0.0})`;
 
                 // কমেন্ট্রি লোড
+                const commContainer = document.getElementById('commentary-container');
                 if (data.commentary) {
-                    const commContainer = document.getElementById('commentary-container');
                     commContainer.innerHTML = "";
                     Object.values(data.commentary).reverse().forEach(item => {
                         commContainer.innerHTML += `
@@ -160,27 +206,39 @@
                             </div>
                         `;
                     });
+                } else {
+                    commContainer.innerHTML = `<p class="text-xs text-slate-500">No commentary yet.</p>`;
                 }
 
-                // স্কোয়াড লোড
+                // স্কোয়াড লোড
                 if (data.squads) {
                     document.getElementById('squads-container').innerHTML = `
                         <div class="grid grid-cols-2 gap-4 text-xs">
                             <div>
-                                <p class="font-bold text-slate-200 mb-2">${data.team1Name || 'Team 1'}</p>
+                                <p class="font-bold text-slate-200 mb-2">${t1Name}</p>
                                 <ul class="space-y-1 text-slate-400">${(data.squads.team1 || []).map(p => `<li>• ${p}</li>`).join('')}</ul>
                             </div>
                             <div>
-                                <p class="font-bold text-slate-200 mb-2">${data.team2Name || 'Team 2'}</p>
+                                <p class="font-bold text-slate-200 mb-2">${t2Name}</p>
                                 <ul class="space-y-1 text-slate-400">${(data.squads.team2 || []).map(p => `<li>• ${p}</li>`).join('')}</ul>
                             </div>
                         </div>
                     `;
+                } else {
+                    loadTeamsSquads(userId, tId, t1Name, t2Name);
                 }
+            });
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user && tourId && matchId) {
+                attachMatchListener(`users/${user.uid}/tournaments/${tourId}/matches/${matchId}`, user.uid, tourId);
+            } else if (matchId) {
+                attachMatchListener(`matches/${matchId}`, null, null);
             }
         });
 
-        // ২. আলাদা পয়েন্ট টেবিল নোড রিড করা (যদি রুট লেভেলে pointsTable থাকে)
+        // পয়েন্ট টেবিল লোড
         const pointsRef = ref(db, 'pointsTable');
         onValue(pointsRef, (snapshot) => {
             const pointsData = snapshot.val();
@@ -217,7 +275,7 @@
             }
         });
 
-        // ৩. আলাদা লিডারবোর্ড নোড রিড করা (যদি রুট লেভেলে leaderboard থাকে)
+        // লিডারবোর্ড লোড
         const leaderboardRef = ref(db, 'leaderboard');
         onValue(leaderboardRef, (snapshot) => {
             const lbData = snapshot.val();
