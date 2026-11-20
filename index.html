@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log In or Sign Up</title>
+    <title>Scoreboard - Log In or Sign Up</title>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -551,14 +551,24 @@
 
 <!-- ================= এক সারির ফেসবুক স্টাইল হেডার ================= -->
 <header class="fb-single-header">
-     <!-- আপনার দেওয়া ৬টি বাটন/ট্যাব -->
+    <div class="left-brand-area">
+        <button class="menu-trigger" onclick="toggleDrawer()" aria-label="Menu">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <a href="https://lcricket.github.io/s/feed.html" class="brand-logo">
+            Scoreboard
+        </a>
+    </div>
+
+    <!-- আপনার দেওয়া ৬টি বাটন/ট্যাব (আসল ইমোজি লোগোসহ) -->
     <nav class="fb-nav-tabs">
-        <a href="https://lcricket.github.io/s/feed.html" class="fb-tab-btn" title="Home"><i class="fa-solid fa-house"></i></a>
-        <a href="https://lcricket.github.io/s/match.html" class="fb-tab-btn" title="Tournament"><i class="fa-solid fa-trophy"></i></a>
-        <a href="https://lcricket.github.io/s/tournament_panel.html" class="fb-tab-btn" title="Match"><i class="fa-solid fa-baseball-bat-ball"></i></a>
-        <a href="https://lcricket.github.io/s/controller.html" class="fb-tab-btn" title="Controller"><i class="fa-solid fa-sliders"></i></a>
-        <a href="https://lcricket.github.io/s/allmatch.html" class="fb-tab-btn" title="Live Match"><i class="fa-solid fa-tower-broadcast"></i></a>
-        <a href="https://lcricket.github.io/s/profile.html" class="fb-tab-btn active" title="Profile"><i class="fa-solid fa-circle-user"></i></a>
+        <a href="https://lcricket.github.io/s/feed.html" class="fb-tab-btn" title="Home">🏠</a>
+        <a href="https://lcricket.github.io/s/match.html" class="fb-tab-btn" title="Tournament">🏆</a>
+        <a href="https://lcricket.github.io/s/tournament_panel.html" class="fb-tab-btn" title="Match">🏏</a>
+        <a href="https://lcricket.github.io/s/controller.html" class="fb-tab-btn" title="Controller">🎛️</a>
+        <a href="https://lcricket.github.io/s/allmatch.html" class="fb-tab-btn" title="Live Match">📡</a>
+        <a href="https://lcricket.github.io/s/profile.html" class="fb-tab-btn active" title="Profile">👤</a>
     </nav>
 </header>
 
@@ -655,7 +665,7 @@
                         <span class="toggle-password" onclick="togglePasswordVisibility('login-password', this)">👁</span>
                     </div>
 
-                    <button class="btn-fb-login" onclick="login()"><i class="fa-solid fa-right-to-bracket"></i> Log In</button>
+                    <button class="btn-fb-login" onclick="login()">Log In</button>
                     
                     <div>
                         <span class="fb-forgot-link" onclick="resetPassword()">Forgotten password?</span>
@@ -665,18 +675,18 @@
 
                     <div class="fb-divider"></div>
 
-                    <button class="btn-fb-create" onclick="toggleAuth('signup')"><i class="fa-solid fa-user-plus"></i> Create new account</button>
+                    <button class="btn-fb-create" onclick="toggleAuth('signup')">Create new account</button>
                 </div>
 
                 <!-- Sign-Up Form -->
                 <div id="signup-section" class="hidden">
                     <div class="signup-header">
-                        <h2><i class="fa-solid fa-user-plus" style="color: #42b72a;"></i> Sign Up</h2>
+                        <h2>Sign Up</h2>
                         <p>It's quick and easy.</p>
                     </div>
                     
                     <div class="promo-banner">
-                        <i class="fa-solid fa-gift"></i> Sign up now and get <b>1 Free Credit</b> instantly!
+                        🎉 Sign up now and get <b>1 Free Credit</b> instantly!
                     </div>
 
                     <input type="text" id="signup-username" class="fb-input" placeholder="Username (e.g. indronil)" maxlength="15" required>
@@ -703,20 +713,20 @@
             </div>
 
             <div class="fb-card-footer-note">
-                <a href="https://lcricket.github.io/s/tournament_panel.html"><i class="fa-solid fa-trophy"></i> Create a Tournament</a> for your local cricket league or club.
+                <a href="https://lcricket.github.io/s/tournament_panel.html">Create a Tournament</a> for your local cricket league or club.
             </div>
         </div>
     </div>
 
     <!-- ২. Email Verification Section -->
     <div id="verify-section" class="dashboard-card hidden">
-        <h2 style="color: #0866ff; margin-bottom: 10px;"><i class="fa-solid fa-envelope-circle-check"></i> Verify Your Email</h2>
+        <h2 style="color: #0866ff; margin-bottom: 10px;">Verify Your Email</h2>
         <div style="background: #fff3cd; color: #856404; padding: 12px; border-radius: 6px; font-size: 14px; margin-bottom: 15px; border: 1px solid #ffeeba;">
-            <i class="fa-solid fa-triangle-exclamation"></i> We've sent a verification link to <b><span id="verify-email-display"></span></b>. <br><br>Please check your inbox (and spam folder) and click the link to activate your account.
+            ⚠️ We've sent a verification link to <b><span id="verify-email-display"></span></b>. <br><br>Please check your inbox (and spam folder) and click the link to activate your account.
         </div>
-        <button class="btn-fb-login" style="font-size: 16px; line-height: 40px;" onclick="checkVerification()"><i class="fa-solid fa-check"></i> I have verified my email</button>
-        <button class="btn-fb-create" style="width: 100%; margin-top: 10px; line-height: 40px;" onclick="resendVerification()"><i class="fa-solid fa-paper-plane"></i> Resend Link</button>
-        <button class="btn-logout" style="width: 100%; margin-top: 10px;" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+        <button class="btn-fb-login" style="font-size: 16px; line-height: 40px;" onclick="checkVerification()">✅ I have verified my email</button>
+        <button class="btn-fb-create" style="width: 100%; margin-top: 10px; line-height: 40px;" onclick="resendVerification()">📩 Resend Link</button>
+        <button class="btn-logout" style="width: 100%; margin-top: 10px;" onclick="logout()">Logout</button>
     </div>
 
     <!-- ৩. User Dashboard -->
@@ -731,16 +741,16 @@
             </div>
 
             <div class="link-box">
-                <b style="font-size: 13px; color: #1c1e21;"><i class="fa-solid fa-link" style="color: #0866ff;"></i> Copy this Link for CameraFi LIVE & OBS Studio:</b>
+                <b style="font-size: 13px; color: #1c1e21;">Copy this Link for CameraFi LIVE & OBS Studio:</b>
                 <div class="link-input-group">
                     <input type="text" id="viewer-link-input" readonly onclick="this.select()" placeholder="Generating link...">
-                    <button class="btn-copy" onclick="copyLink()"><i class="fa-regular fa-copy"></i> Copy</button>
+                    <button class="btn-copy" onclick="copyLink()">📋 Copy</button>
                 </div>
             </div>
 
             <div style="margin-top: 15px; display: flex; gap: 10px;">
-                <button class="btn-logout" style="flex: 1;" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button>
-                <button class="btn-delete-acc" style="flex: 1;" onclick="deleteMyAccount()"><i class="fa-solid fa-trash"></i> Delete Account</button>
+                <button class="btn-logout" style="flex: 1;" onclick="logout()">Log Out</button>
+                <button class="btn-delete-acc" style="flex: 1;" onclick="deleteMyAccount()">🗑️ Delete Account</button>
             </div>
         </div>
     </div>
@@ -768,7 +778,6 @@
     function shareApp(event) {
         const linkEl = event.currentTarget;
         const customHref = linkEl.getAttribute('href');
-        // আপনি যদি SIDE_LINK_3_HERE এর বদলে নিজস্ব লিংক বসিয়ে দেন, তবে সরাসরি সেই লিংকেই যাবে
         if (customHref && customHref !== 'SIDE_LINK_3_HERE' && customHref !== '#') {
             return;
         }
