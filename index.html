@@ -17,8 +17,8 @@
 
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f2f5; 
-            color: #1c1e21;
+            background-color: #ffffff; 
+            color: #111827;
             min-height: 100vh; 
             display: flex;
             flex-direction: column;
@@ -78,12 +78,6 @@
             display: flex;
             align-items: center;
             gap: 6px;
-        }
-
-        .brand-logo img {
-            height: 28px;
-            width: auto;
-            display: block;
         }
 
         .fb-nav-tabs {
@@ -246,105 +240,143 @@
             border-radius: 10px;
         }
 
-        /* ================= ফেসবুক লগইন পেজ লেআউট ================= */
+        /* ================= মূল পেজ ও ছবির মতো সাইন-আপ/লগইন স্ক্রিন ================= */
         .fb-page-wrapper {
             flex: 1;
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: 80px 16px 35px 16px;
+            align-items: flex-start;
+            padding: 72px 20px 36px 20px;
             width: 100%;
+            background-color: #ffffff;
         }
 
-        .fb-split-layout {
+        .signup-screen-box {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .screen-title-row {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 980px;
-            gap: 40px;
+            gap: 12px;
+            margin-top: 16px;
+            margin-bottom: 16px;
         }
 
-        .fb-intro-side {
-            flex: 1;
-            max-width: 500px;
-            padding-right: 10px;
-        }
-
-        .fb-hero-title {
-            color: #0866ff;
-            font-family: 'Oswald', sans-serif;
-            font-size: 52px;
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 12px;
-            letter-spacing: -0.5px;
-        }
-
-        .fb-hero-subtitle {
-            font-size: 22px;
-            line-height: 28px;
-            color: #1c1e21;
-            font-weight: 400;
-        }
-
-        .fb-card-side {
-            width: 100%;
-            max-width: 396px;
-            flex-shrink: 0;
-        }
-
-        .fb-auth-card {
-            background: #ffffff;
-            padding: 16px 16px 24px 16px;
+        .back-arrow-btn {
+            background: none;
+            border: none;
+            font-size: 26px;
+            line-height: 1;
+            color: #111827;
+            cursor: pointer;
+            padding: 4px 6px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
-            text-align: center;
         }
 
-        .fb-card-footer-note {
-            text-align: center;
-            font-size: 13px;
-            color: #1c1e21;
-            margin-top: 20px;
+        .back-arrow-btn:hover {
+            background-color: #f3f4f6;
         }
 
-        .fb-card-footer-note a {
-            color: #1c1e21;
+        .screen-title-row h1 {
+            font-size: 23px;
             font-weight: 700;
-            text-decoration: none;
+            color: #111827;
+            letter-spacing: -0.3px;
         }
 
-        .fb-card-footer-note a:hover {
+        .screen-subtitle {
+            font-size: 15.5px;
+            color: #374151;
+            line-height: 1.45;
+            margin-bottom: 26px;
+        }
+
+        .provider-btn-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .provider-btn {
+            position: relative;
+            width: 100%;
+            height: 52px;
+            background-color: #ffffff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: #111827;
+            cursor: pointer;
+            transition: background-color 0.15s ease, border-color 0.15s ease;
+        }
+
+        .provider-btn:hover {
+            background-color: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        .provider-btn .btn-left-icon {
+            position: absolute;
+            left: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .another-way-btn {
+            margin-top: 26px;
+            margin-bottom: 26px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #111827;
+            cursor: pointer;
+            text-align: center;
+            padding: 6px;
+        }
+
+        .another-way-btn:hover {
             text-decoration: underline;
         }
 
-        @media (max-width: 820px) {
-            .fb-split-layout {
-                flex-direction: column;
-                gap: 20px;
-                text-align: center;
-            }
-            .fb-intro-side {
-                padding-right: 0;
-            }
-            .fb-hero-title {
-                font-size: 38px;
-                margin-bottom: 6px;
-            }
-            .fb-hero-subtitle {
-                font-size: 16px;
-                line-height: 22px;
-            }
+        .legal-footer-text {
+            font-size: 14px;
+            line-height: 1.55;
+            color: #374151;
+            text-align: center;
+        }
+
+        .legal-footer-text a {
+            color: #4f46e5;
+            text-decoration: underline;
+        }
+
+        /* Email / Password / Phone ফর্ম প্যানেল */
+        .sub-form-card {
+            margin-top: 18px;
+            padding: 18px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+            background: #f9fafb;
+            text-align: left;
         }
 
         .fb-input {
             width: 100%;
-            padding: 14px 16px;
+            padding: 13px 15px;
             margin: 6px 0;
-            border: 1px solid #dddfe2;
-            border-radius: 6px;
-            font-size: 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 15px;
             color: #1d2129;
             background: #ffffff;
         }
@@ -372,10 +404,10 @@
             width: 100%;
             background-color: #0866ff;
             border: none;
-            border-radius: 6px;
-            font-size: 19px;
+            border-radius: 8px;
+            font-size: 16px;
             font-weight: 700;
-            line-height: 46px;
+            line-height: 44px;
             padding: 0 16px;
             color: #ffffff;
             cursor: pointer;
@@ -390,10 +422,10 @@
         .fb-forgot-link {
             display: inline-block;
             color: #0866ff;
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: 500;
             text-decoration: none;
-            margin-top: 14px;
+            margin-top: 10px;
             cursor: pointer;
         }
 
@@ -401,21 +433,14 @@
             text-decoration: underline;
         }
 
-        .fb-divider {
-            align-items: center;
-            border-bottom: 1px solid #dadde1;
-            display: flex;
-            margin: 18px 0;
-        }
-
         .btn-fb-create {
             background-color: #42b72a;
             border: none;
-            border-radius: 6px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 15px;
             font-weight: 700;
-            line-height: 44px;
-            padding: 0 20px;
+            line-height: 42px;
+            padding: 0 18px;
             color: #ffffff;
             cursor: pointer;
             display: inline-block;
@@ -426,29 +451,11 @@
             background-color: #36a420;
         }
 
-        .signup-header {
-            text-align: left;
-            border-bottom: 1px solid #dadde1;
-            padding-bottom: 10px;
-            margin-bottom: 12px;
-        }
-
-        .signup-header h2 {
-            font-size: 24px;
-            color: #1c1e21;
-            font-weight: 700;
-        }
-
-        .signup-header p {
-            font-size: 14px;
-            color: #606770;
-        }
-
         .promo-banner {
             background: #e7f3ff;
             color: #0866ff;
-            padding: 9px;
-            border-radius: 6px;
+            padding: 9px 12px;
+            border-radius: 8px;
             font-size: 13px;
             margin-bottom: 10px;
             border: 1px solid #cce4ff;
@@ -460,8 +467,9 @@
             margin: 0 auto;
             background: #ffffff;
             padding: 24px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             text-align: center;
         }
 
@@ -584,55 +592,46 @@
     </div>
 
     <ul class="drawer-links">
-        <!-- ১. Login -->
         <li>
             <a href="https://lcricket.github.io/s/index.html">
                 <span class="drawer-item-left"><i class="fa-solid fa-shield-halved" style="color: #0866ff;"></i> Login</span>
             </a>
         </li>
-        <!-- ২. Profile -->
         <li>
             <a href="https://lcricket.github.io/s/profile.html">
                 <span class="drawer-item-left"><i class="fa-solid fa-user" style="color: #1c1e21;"></i> Profile</span>
             </a>
         </li>
-        <!-- ৩. Share -->
         <li>
             <a href="https://play.google.com/store/apps/details?id=com.localcricket" onclick="shareApp(event)">
                 <span class="drawer-item-left"><i class="fa-solid fa-share-nodes" style="color: #0866ff;"></i> Share</span>
             </a>
         </li>
-        <!-- ৪. More Apps -->
         <li>
             <a href="https://play.google.com/store/apps/dev?id=6590894441433938633" target="_blank" rel="noopener noreferrer">
                 <span class="drawer-item-left"><i class="fa-solid fa-border-all" style="color: #42b72a;"></i> More Apps</span>
             </a>
         </li>
-        <!-- ৫. Contact Whatsapp -->
         <li>
             <a href="https://wa.me/918327321495?text=Hello%20Local%20Cricket%20Live%20Support%2C%20I%20need%20help." target="_blank" rel="noopener noreferrer">
                 <span class="drawer-item-left"><i class="fa-brands fa-whatsapp" style="color: #25D366;"></i> Contact Whatsapp</span>
             </a>
         </li>
-        <!-- ৬. Support -->
         <li>
             <a href="https://www.facebook.com/kolkatasports0" target="_blank" rel="noopener noreferrer">
                 <span class="drawer-item-left"><i class="fa-solid fa-headset" style="color: #e67e22;"></i> Support</span>
             </a>
         </li>
-        <!-- ৭. privacy Policy -->
         <li>
             <a href="https://doc-hosting.flycricket.io/cricket-live-with-scoreboard-privacy-policy/190919ed-e06d-4196-bae2-d63052765d2d/privacy" target="_blank" rel="noopener noreferrer">
                 <span class="drawer-item-left"><i class="fa-solid fa-file-shield" style="color: #6c5ce7;"></i> privacy Policy</span>
             </a>
         </li>
-        <!-- ৮. Apk Rare -->
         <li>
             <a href="https://play.google.com/store/apps/details?id=com.localcricket" target="_blank" rel="noopener noreferrer">
                 <span class="drawer-item-left"><i class="fa-solid fa-android" style="color: #3ddc84;"></i> Apk Rare</span>
             </a>
         </li>
-        <!-- ৯. App Version -->
         <li>
             <div class="drawer-version-item">
                 <span class="drawer-item-left"><i class="fa-solid fa-code-branch" style="color: #0866ff;"></i> App Version</span>
@@ -643,30 +642,37 @@
 </aside>
 
 <script>
-    const APP_VERSION = "v1.8";
-    const versionEl = document.getElementById('app-version-display');
-    if (versionEl) versionEl.innerText = APP_VERSION;
+    const APP_VERSION = "v1.0.0";
+
+    function setAppVersion(version) {
+        const el = document.getElementById('app-version-display');
+        if (el && version) el.innerText = version;
+    }
+
+    setAppVersion(APP_VERSION);
 
     function toggleDrawer() {
         const drawer = document.getElementById('sideDrawer');
         const overlay = document.getElementById('overlay');
-        if (drawer && overlay) {
-            drawer.classList.toggle('open');
-            overlay.classList.toggle('show');
-        }
+        drawer.classList.toggle('open');
+        overlay.classList.toggle('show');
     }
 
     function shareApp(event) {
-        const shareUrl = event.currentTarget.getAttribute('href');
+        const linkEl = event.currentTarget;
+        const customHref = linkEl.getAttribute('href');
+        if (customHref && customHref !== 'SIDE_LINK_3_HERE' && customHref !== '#') {
+            return;
+        }
+        event.preventDefault();
         if (navigator.share) {
-            event.preventDefault();
             navigator.share({
                 title: 'Local Cricket Live Scoreboard',
-                text: 'Download Local Cricket Live Scoreboard App:',
-                url: shareUrl
-            }).catch(() => {
-                window.open(shareUrl, '_blank');
-            });
+                text: 'Check out Local Cricket Live Scoreboard!',
+                url: window.location.href
+            }).catch(() => {});
+        } else {
+            alert("Share link: " + window.location.href);
         }
     }
 </script>
@@ -674,76 +680,122 @@
 <!-- ================= মূল পেজ কন্টেইনার ================= -->
 <div class="fb-page-wrapper">
 
-    <!-- ১. ফেসবুক স্টাইল লগইন ও সাইন-আপ ভিউ -->
-    <div id="auth-wrapper" class="fb-split-layout hidden">
-        
-        <div class="fb-intro-side">
-            <h1 class="fb-hero-title">Scoreboard</h1>
-            <p class="fb-hero-subtitle">Broadcast live cricket scores, manage tournaments, and connect with your audience in real time.</p>
+    <!-- ১. ছবির মতো সাইন-আপ ও সাইন-ইন স্ক্রিন -->
+    <div id="auth-wrapper" class="signup-screen-box hidden">
+        <div class="screen-title-row">
+            <button type="button" class="back-arrow-btn" onclick="handleBackClick()" aria-label="Back">&lt;</button>
+            <h1>Continue to sign up for free</h1>
         </div>
 
-        <div class="fb-card-side">
-            <div class="fb-auth-card">
+        <p class="screen-subtitle">If you already have an account, we’ll log you in.</p>
+
+        <div class="provider-btn-list">
+            <!-- Continue with phone number -->
+            <button type="button" class="provider-btn" onclick="openPhonePanel()">
+                <span class="btn-left-icon" aria-hidden="true">
+                    <svg width="20" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                        <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                    </svg>
+                </span>
+                <span>Continue with phone number</span>
+            </button>
+
+            <!-- Continue with Google (ফোনের গুগল অ্যাকাউন্ট পিকার) -->
+            <button type="button" class="provider-btn" id="googleSignInBtn" onclick="loginWithGoogle()">
+                <span class="btn-left-icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z"/>
+                        <path fill="#FBBC05" d="M5.27 14.29c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.98-3.09z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"/>
+                    </svg>
+                </span>
+                <span>Continue with Google</span>
+            </button>
+
+            <!-- Continue with email -->
+            <button type="button" class="provider-btn" onclick="openEmailPanel()">
+                <span class="btn-left-icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                    </svg>
+                </span>
+                <span>Continue with email</span>
+            </button>
+        </div>
+
+        <button type="button" class="another-way-btn" onclick="openEmailPanel()">Continue another way</button>
+
+        <p class="legal-footer-text">
+            By continuing, you agree to Scoreboard’s
+            <a href="https://lcricket.github.io/s/tournament_panel.html">Terms of Use</a>. Read our
+            <a href="https://doc-hosting.flycricket.io/cricket-live-with-scoreboard-privacy-policy/190919ed-e06d-4196-bae2-d63052765d2d/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+        </p>
+
+        <p id="global-auth-message" class="msg" style="text-align: center; color: #dc2626;"></p>
+
+        <!-- Email Login / Sign-Up Panel (Continue with email চাপলে খুলবে) -->
+        <div id="email-panel" class="sub-form-card hidden">
+            <div id="login-section">
+                <h3 style="font-size: 17px; margin-bottom: 8px; color: #111827;">Log In with Email</h3>
+                <input type="email" id="login-email" class="fb-input" placeholder="Email address" required>
                 
-                <!-- Login Form -->
-                <div id="login-section">
-                    <input type="email" id="login-email" class="fb-input" placeholder="Email address" required>
-                    
-                    <div class="password-container">
-                        <input type="password" id="login-password" class="fb-input" placeholder="Password" required>
-                        <span class="toggle-password" onclick="togglePasswordVisibility('login-password', this)">👁</span>
-                    </div>
+                <div class="password-container">
+                    <input type="password" id="login-password" class="fb-input" placeholder="Password" required>
+                    <span class="toggle-password" onclick="togglePasswordVisibility('login-password', this)">👁</span>
+                </div>
 
-                    <button class="btn-fb-login" onclick="login()">Log In</button>
-                    
-                    <div>
-                        <span class="fb-forgot-link" onclick="resetPassword()">Forgotten password?</span>
-                    </div>
+                <button class="btn-fb-login" onclick="login()">Log In</button>
+                
+                <div style="text-align: center;">
+                    <span class="fb-forgot-link" onclick="resetPassword()">Forgotten password?</span>
+                </div>
 
-                    <p id="login-message" class="msg"></p>
+                <p id="login-message" class="msg" style="text-align: center;"></p>
 
-                    <div class="fb-divider"></div>
-
+                <div style="margin-top: 12px; text-align: center;">
                     <button class="btn-fb-create" onclick="toggleAuth('signup')">Create new account</button>
                 </div>
+            </div>
 
-                <!-- Sign-Up Form -->
-                <div id="signup-section" class="hidden">
-                    <div class="signup-header">
-                        <h2>Sign Up</h2>
-                        <p>It's quick and easy.</p>
-                    </div>
-                    
-                    <div class="promo-banner">
-                        🎉 Sign up now and get <b>1 Free Credit</b> instantly!
-                    </div>
-
-                    <input type="text" id="signup-username" class="fb-input" placeholder="Username (e.g. indronil)" maxlength="15" required>
-                    <input type="email" id="signup-email" class="fb-input" placeholder="Email address" required>
-                    
-                    <div class="password-container">
-                        <input type="password" id="signup-password" class="fb-input" placeholder="New password" required>
-                        <span class="toggle-password" onclick="togglePasswordVisibility('signup-password', this)">👁</span>
-                    </div>
-
-                    <div style="margin: 10px 0; font-size: 11px; color: #777; text-align: left;">
-                        By clicking Sign Up, you agree to our <a href="#" style="color: #0866ff; text-decoration: none;">Terms</a> and <a href="#" style="color: #0866ff; text-decoration: none;">Privacy Policy</a>.
-                    </div>
-
-                    <button class="btn-fb-create" style="width: 100%; font-size: 18px;" onclick="signup()">Sign Up</button>
-                    
-                    <p id="signup-message" class="msg" style="color: red;"></p>
-
-                    <div style="margin-top: 14px;">
-                        <span class="fb-forgot-link" onclick="toggleAuth('login')">Already have an account?</span>
-                    </div>
+            <div id="signup-section" class="hidden">
+                <h3 style="font-size: 17px; margin-bottom: 6px; color: #111827;">Sign Up with Email</h3>
+                <div class="promo-banner">
+                    🎉 Sign up now and get <b>1 Free Credit</b> instantly!
                 </div>
 
-            </div>
+                <input type="text" id="signup-username" class="fb-input" placeholder="Username (e.g. indronil)" maxlength="15" required>
+                <input type="email" id="signup-email" class="fb-input" placeholder="Email address" required>
+                
+                <div class="password-container">
+                    <input type="password" id="signup-password" class="fb-input" placeholder="New password" required>
+                    <span class="toggle-password" onclick="togglePasswordVisibility('signup-password', this)">👁</span>
+                </div>
 
-            <div class="fb-card-footer-note">
-                <a href="https://lcricket.github.io/s/tournament_panel.html">Create a Tournament</a> for your local cricket league or club.
+                <button class="btn-fb-create" style="width: 100%; margin-top: 6px;" onclick="signup()">Sign Up</button>
+                
+                <p id="signup-message" class="msg" style="color: red; text-align: center;"></p>
+
+                <div style="margin-top: 10px; text-align: center;">
+                    <span class="fb-forgot-link" onclick="toggleAuth('login')">Already have an account?</span>
+                </div>
             </div>
+        </div>
+
+        <!-- Phone Number Panel (Continue with phone number চাপলে খুলবে) -->
+        <div id="phone-panel" class="sub-form-card hidden">
+            <h3 style="font-size: 17px; margin-bottom: 8px; color: #111827;">Continue with Phone Number</h3>
+            <input type="tel" id="phone-number-input" class="fb-input" placeholder="+91 9876543210">
+            <div id="recaptcha-container" style="margin: 8px 0;"></div>
+            <button type="button" class="btn-fb-login" onclick="sendPhoneOtp()">Send OTP</button>
+
+            <div id="otp-verify-box" class="hidden" style="margin-top: 12px;">
+                <input type="text" id="phone-otp-input" class="fb-input" placeholder="Enter 6-digit OTP" maxlength="6">
+                <button type="button" class="btn-fb-create" style="width: 100%; margin-top: 6px;" onclick="verifyPhoneOtp()">Verify & Continue</button>
+            </div>
+            <p id="phone-message" class="msg" style="text-align: center;"></p>
         </div>
     </div>
 
@@ -786,48 +838,13 @@
 
 </div>
 
-<!-- সাইড মেনু, শেয়ার ও অ্যাপ ভার্সন স্ক্রিপ্ট -->
-<script>
-    const APP_VERSION = "v1.0.0";
-
-    function setAppVersion(version) {
-        const el = document.getElementById('app-version-display');
-        if (el && version) el.innerText = version;
-    }
-
-    setAppVersion(APP_VERSION);
-
-    function toggleDrawer() {
-        const drawer = document.getElementById('sideDrawer');
-        const overlay = document.getElementById('overlay');
-        drawer.classList.toggle('open');
-        overlay.classList.toggle('show');
-    }
-
-    function shareApp(event) {
-        const linkEl = event.currentTarget;
-        const customHref = linkEl.getAttribute('href');
-        if (customHref && customHref !== 'SIDE_LINK_3_HERE' && customHref !== '#') {
-            return;
-        }
-        event.preventDefault();
-        if (navigator.share) {
-            navigator.share({
-                title: 'Local Cricket Live Scoreboard',
-                text: 'Check out Local Cricket Live Scoreboard!',
-                url: window.location.href
-            }).catch(() => {});
-        } else {
-            alert("Share link: " + window.location.href);
-        }
-    }
-</script>
-
 <!-- Firebase Scripts -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import {  
-        getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+        getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+        GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
+        RecaptchaVerifier, signInWithPhoneNumber,
         sendPasswordResetEmail, onAuthStateChanged, signOut, deleteUser, 
         setPersistence, browserLocalPersistence, sendEmailVerification
     } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
@@ -846,6 +863,11 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
+
+    const googleProvider = new GoogleAuthProvider();
+    googleProvider.setCustomParameters({
+        prompt: 'select_account'
+    });
 
     onValue(ref(db, 'app_version'), (snap) => {
         if (snap.exists() && snap.val()) {
@@ -870,6 +892,153 @@
 
     window.encodeEmailForDb = function(email) {
         return email.replace(/\./g, ',');
+    };
+
+    async function generateUniqueUsername(baseName) {
+        let cleanBase = (baseName || "player")
+            .toLowerCase()
+            .replace(/\s+/g, '')
+            .replace(/[^a-z0-9]/g, '')
+            .substring(0, 12);
+
+        if (!cleanBase) cleanBase = "player";
+
+        const firstSnap = await get(ref(db, 'usernames/' + cleanBase));
+        if (!firstSnap.exists()) return cleanBase;
+
+        for (let i = 0; i < 10; i++) {
+            const suffix = Math.floor(100 + Math.random() * 900);
+            const candidate = (cleanBase.substring(0, 12) + suffix).substring(0, 15);
+            const snap = await get(ref(db, 'usernames/' + candidate));
+            if (!snap.exists()) return candidate;
+        }
+        return (cleanBase.substring(0, 10) + Date.now().toString().slice(-5)).substring(0, 15);
+    }
+
+    async function ensureUserRecord(user, fallbackName = "") {
+        const userSnap = await get(ref(db, `users/${user.uid}`));
+        if (userSnap.exists()) return;
+
+        const rawName = user.displayName || fallbackName || (user.email ? user.email.split('@')[0] : `user${user.uid.slice(0, 5)}`);
+        const username = await generateUniqueUsername(rawName);
+        const contactKey = user.email ? encodeEmailForDb(normalizeEmail(user.email)) : (user.phoneNumber ? user.phoneNumber.replace(/[^0-9]/g, '') : user.uid);
+
+        const claimedSnap = await get(ref(db, 'claimed_emails/' + contactKey));
+        const giveFreeCredit = !claimedSnap.exists();
+
+        await set(ref(db, 'usernames/' + username), user.uid);
+        if (giveFreeCredit) {
+            await set(ref(db, 'claimed_emails/' + contactKey), {
+                uid: user.uid,
+                claimed_credit: true,
+                signup_date: new Date().toISOString()
+            });
+        }
+        await set(ref(db, `users/${user.uid}`), {
+            email: user.email || "",
+            phone: user.phoneNumber || "",
+            username: username,
+            credits: giveFreeCredit ? 1 : 0
+        });
+        await set(ref(db, `users/${user.uid}/profile`), {
+            name: rawName,
+            photo: user.photoURL || ""
+        });
+    }
+
+    // Google Sign-In (ফোনের গুগল অ্যাকাউন্টগুলো বেছে নেওয়ার অপশন)
+    window.loginWithGoogle = async () => {
+        const globalMsg = document.getElementById('global-auth-message');
+        globalMsg.style.color = "#0866ff";
+        globalMsg.innerText = "Opening Google accounts...";
+
+        try {
+            await setPersistence(auth, browserLocalPersistence);
+            const result = await signInWithPopup(auth, googleProvider);
+            await ensureUserRecord(result.user);
+            globalMsg.innerText = "";
+        } catch (error) {
+            if (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported-in-this-environment') {
+                try {
+                    await signInWithRedirect(auth, googleProvider);
+                    return;
+                } catch (redirErr) {
+                    globalMsg.style.color = "#dc2626";
+                    globalMsg.innerText = redirErr.message;
+                }
+            } else if (error.code !== 'auth/popup-closed-by-user') {
+                globalMsg.style.color = "#dc2626";
+                globalMsg.innerText = error.message;
+            } else {
+                globalMsg.innerText = "";
+            }
+        }
+    };
+
+    getRedirectResult(auth).then(async (result) => {
+        if (result && result.user) {
+            await ensureUserRecord(result.user);
+        }
+    }).catch(() => {});
+
+    // Phone Sign-In (OTP)
+    window.openPhonePanel = () => {
+        document.getElementById('email-panel').classList.add('hidden');
+        document.getElementById('phone-panel').classList.remove('hidden');
+        document.getElementById('phone-message').innerText = "";
+    };
+
+    window.openEmailPanel = () => {
+        document.getElementById('phone-panel').classList.add('hidden');
+        document.getElementById('email-panel').classList.remove('hidden');
+        toggleAuth('login');
+    };
+
+    window.handleBackClick = () => {
+        const emailPanel = document.getElementById('email-panel');
+        const phonePanel = document.getElementById('phone-panel');
+        if (!emailPanel.classList.contains('hidden') || !phonePanel.classList.contains('hidden')) {
+            emailPanel.classList.add('hidden');
+            phonePanel.classList.add('hidden');
+            document.getElementById('global-auth-message').innerText = "";
+        } else {
+            history.back();
+        }
+    };
+
+    window.sendPhoneOtp = async () => {
+        const phoneInput = document.getElementById('phone-number-input').value.trim();
+        const phoneMsg = document.getElementById('phone-message');
+        if (!phoneInput) {
+            phoneMsg.style.color = "red";
+            return phoneMsg.innerText = "Please enter a phone number with country code (e.g. +91...).";
+        }
+        try {
+            if (!window.recaptchaVerifier) {
+                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'normal' });
+            }
+            const confirmationResult = await signInWithPhoneNumber(auth, phoneInput, window.recaptchaVerifier);
+            window.phoneConfirmationResult = confirmationResult;
+            document.getElementById('otp-verify-box').classList.remove('hidden');
+            phoneMsg.style.color = "green";
+            phoneMsg.innerText = "OTP sent to " + phoneInput;
+        } catch (error) {
+            phoneMsg.style.color = "red";
+            phoneMsg.innerText = error.message;
+        }
+    };
+
+    window.verifyPhoneOtp = async () => {
+        const code = document.getElementById('phone-otp-input').value.trim();
+        const phoneMsg = document.getElementById('phone-message');
+        if (!code || !window.phoneConfirmationResult) return;
+        try {
+            const cred = await window.phoneConfirmationResult.confirm(code);
+            await ensureUserRecord(cred.user);
+        } catch (error) {
+            phoneMsg.style.color = "red";
+            phoneMsg.innerText = "Invalid OTP code.";
+        }
     };
 
     window.deleteMyAccount = async () => {
@@ -1104,8 +1273,13 @@
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            await user.reload(); 
-            if (!user.emailVerified) {
+            await ensureUserRecord(user);
+            const isPasswordUser = user.providerData.some(p => p.providerId === 'password');
+            if (isPasswordUser) {
+                await user.reload();
+            }
+
+            if (isPasswordUser && !user.emailVerified) {
                 document.getElementById('auth-wrapper').classList.add('hidden');
                 document.getElementById('dashboard-section').classList.add('hidden');
                 
@@ -1121,15 +1295,11 @@
         } else {
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('verify-section').classList.add('hidden');
-            document.getElementById('signup-section').classList.add('hidden');
             
             document.getElementById('auth-wrapper').classList.remove('hidden');
-            document.getElementById('login-section').classList.remove('hidden');
         }
     });
 </script>
 
 </body>
 </html>
-
-
